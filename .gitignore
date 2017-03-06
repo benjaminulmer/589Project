@@ -1,5 +1,6 @@
 include/
 lib/
+Debug/
 packages/
 packages.config
 *.sln
