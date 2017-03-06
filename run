@@ -4,4 +4,4 @@ cd Debug &&
 make clean &&
 make &&
 cd .. &&
-./Debug/Project
+./Debug/589Project

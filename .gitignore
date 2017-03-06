@@ -50,7 +50,6 @@ local.properties
 
 # Build results
 
-[Dd]ebug/
 [Rr]elease/
 x64/
 build/
@@ -220,3 +219,4 @@ pip-log.txt
 
 #Mr Developer
 .mr.developer.cfg
+/Default/
