@@ -2,7 +2,6 @@
 
 Camera* InputHandler::camera;
 RenderEngine* InputHandler::renderEngine;
-Renderable* InputHandler::renderable;
 float InputHandler::mouseOldX;
 float InputHandler::mouseOldY;
 
@@ -32,13 +31,6 @@ void InputHandler::key(GLFWwindow* window, int key, int scancode, int action, in
 	}
 	else if (key == GLFW_KEY_Q) {
 		renderEngine->updateLightPos(glm::vec3(0.0, 0.0, -0.1));
-	}
-	// Object swapping
-	else if (key == GLFW_KEY_Z && action == GLFW_PRESS) {
-		setCurRenderable(renderEngine->swapObject(-1));
-	}
-	else if (key == GLFW_KEY_X && action == GLFW_PRESS) {
-		setCurRenderable(renderEngine->swapObject(1));
 	}
 	else if (key == GLFW_KEY_ESCAPE) {
 		glfwDestroyWindow(window);

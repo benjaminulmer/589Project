@@ -22,8 +22,10 @@ private:
 	RenderEngine* renderEngine;
 	Camera* camera;
 
+	Renderable* object; // Can change to std::vector<Renderable*> when ready if needed
+
 	static void error(int error, const char* description);
 	void setupWindow();
-	void loadObjects();
+	void loadObject();
 	void mainLoop();
 };

@@ -18,12 +18,9 @@ public:
 	static void scroll(GLFWwindow* window, double x, double y);
 	static void reshape(GLFWwindow* window, int width, int height);
 
-	static void setCurRenderable(Renderable* newRenderable) {renderable = newRenderable;}
-
 private:
 	static Camera* camera;
 	static RenderEngine* renderEngine;
-	static Renderable* renderable;
 
 	static float mouseOldX;
 	static float mouseOldY;

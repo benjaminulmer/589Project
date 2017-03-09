@@ -20,17 +20,12 @@ public:
 	RenderEngine(GLFWwindow* window, Camera* camera);
 	virtual ~RenderEngine();
 
-	void render();
-	void setWindowSize(int width, int height);
+	void render(const Renderable& renderable);
 	void assignBuffers(Renderable& renderable);
 	unsigned int loadTexture(std::string filename);
 
-	void setTextures(std::vector<GLuint>& orientationTexs, std::vector<GLuint>& orientationTexsGS,
-		             std::vector<GLuint>& depthTexs, std::vector<GLuint>& depthTexsGS);
-	void setObjects(std::vector<Renderable*> objs);
-
+	void setWindowSize(int width, int height);
 	void updateLightPos(glm::vec3 add);
-	Renderable* swapObject(int inc);
 
 private:
 	GLFWwindow* window;
@@ -42,9 +37,6 @@ private:
 	glm::mat4 view;
 	glm::mat4 projection;
 	glm::vec3 lightPos;
-
-	std::vector<Renderable*> objects;
-	unsigned int objectID;
 
 	void renderLight();
 };

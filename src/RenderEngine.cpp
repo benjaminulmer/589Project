@@ -1,7 +1,7 @@
 #include "RenderEngine.h"
 
 RenderEngine::RenderEngine(GLFWwindow* window, Camera* camera) :
-	window(window), camera(camera),  objectID(0) {
+	window(window), camera(camera) {
 
 	int width, height;
 	glfwGetWindowSize(window, &width, &height);
@@ -25,15 +25,14 @@ RenderEngine::~RenderEngine() {
 }
 
 // Called to render the active object. RenderEngine stores all information about how to render
-void RenderEngine::render() {
+void RenderEngine::render(const Renderable& renderable) {
 	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 
-	Renderable& renderable = *objects[objectID];
 	glBindVertexArray(renderable.vao);
 	glUseProgram(mainProgram);
 
 	// If the object has no image texture switch to attribute only mode
-	Texture::bind2DTexture(mainProgram, renderable.textureID, std::string("image"));
+	Texture::bind2DTexture(mainProgram, renderable.textureID, "image");
 
 	view = camera->getLookAt();
 	glm::mat4 model = glm::mat4();
@@ -120,11 +119,6 @@ unsigned int RenderEngine::loadTexture(std::string filename) {
 	return id;
 }
 
-// Sets the objects that will be used when rendering
-void RenderEngine::setObjects(std::vector<Renderable*> objs) {
-	objects = std::vector<Renderable*>(objs);
-}
-
 // Sets projection and viewport for new width and height
 void RenderEngine::setWindowSize(int width, int height) {
 	projection = glm::perspective(45.0f, (float)width/height, 0.01f, 100.0f);
@@ -134,16 +128,4 @@ void RenderEngine::setWindowSize(int width, int height) {
 // Updates lightPos by specified value
 void RenderEngine::updateLightPos(glm::vec3 add) {
 	lightPos += add;
-}
-
-// Changes the active object to be rendered
-Renderable* RenderEngine::swapObject(int inc) {
-	if ((objectID == 0) && (inc < 0)) {
-		objectID = objects.size() + inc;
-	}
-	else {
-		objectID += inc;
-		objectID = objectID % objects.size();
-	}
-	return objects[objectID];
 }

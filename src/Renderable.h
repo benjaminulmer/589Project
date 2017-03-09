@@ -3,27 +3,9 @@
 #include <GL/glew.h>
 #include <glm/glm.hpp>
 #include <vector>
-#include <list>
-#include <algorithm>
 
 #define _USE_MATH_DEFINES
 #include <math.h>
-
-enum class Facing {
-	FRONT,
-	BACK
-};
-
-struct Node {
-	Node(int vertex) : vertex(vertex) {};
-
-	unsigned short vertex;
-	unsigned short angle = 0;
-	bool front = false;
-	bool back = false;
-
-	GLuint index = 0;
-};
 
 class Renderable {
 

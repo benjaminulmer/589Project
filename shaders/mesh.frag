@@ -10,7 +10,7 @@ in vec3 V;
 in vec2 UV;
 
 void main(void) {    	
-;
+
 	float diffuse =  (dot(N, L) + 1) / 2;
 	vec4 diffuseColour = diffuse * vec4(1.0, 0.0, 0.0, 1.0);
 

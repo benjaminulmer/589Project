@@ -26,7 +26,7 @@ void Program::start() {
 	camera = new Camera();
 	renderEngine = new RenderEngine(window, camera);
 	InputHandler::setUp(camera, renderEngine);
-	loadObjects();
+	loadObject();
 	mainLoop();
 }
 
@@ -49,27 +49,18 @@ void Program::setupWindow() {
 }
 
 // Loads and initializes all objects that can be viewed
-void Program::loadObjects() {
-	std::vector<Renderable*> objects;
-
-	Renderable* o = ContentLoading::createRenderable("./models/lock.obj");
+void Program::loadObject() {
+	object = ContentLoading::createRenderable("./models/lock.obj");
 	//o->textureID = (renderEngine->loadTexture("./textures/cube.png"));
-	objects.push_back(o);
 
-	// Send each object to GPU and initialize edge buffer
-	for (Renderable* r : objects) {
-		renderEngine->assignBuffers(*r);
-	}
-
-	InputHandler::setCurRenderable(objects[0]);
-	renderEngine->setObjects(objects);
+	renderEngine->assignBuffers(*object);
 }
 
 // Main loop
 void Program::mainLoop() {
 	while(!glfwWindowShouldClose(window)) {
 		glfwPollEvents();
-		renderEngine->render();
+		renderEngine->render(*object);
 		glfwSwapBuffers(window);
 	}
 
