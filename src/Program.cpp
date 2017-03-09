@@ -52,7 +52,7 @@ void Program::setupWindow() {
 void Program::loadObjects() {
 	std::vector<Renderable*> objects;
 
-	Renderable* o = ContentLoading::createRenderable("./models/cube.obj");
+	Renderable* o = ContentLoading::createRenderable("./models/lock.obj");
 	//o->textureID = (renderEngine->loadTexture("./textures/cube.png"));
 	objects.push_back(o);
 

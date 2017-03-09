@@ -10,6 +10,6 @@ Renderable::~Renderable() {
 	// Remove data from GPU
 	glDeleteBuffers(1, &vertexBuffer);
 	glDeleteBuffers(1, &normalBuffer);
-	glDeleteBuffers(1, &indexBuffer );
+	glDeleteBuffers(1, &indexBuffer);
 	glDeleteVertexArrays(1, &vao);
 }
