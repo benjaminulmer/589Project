@@ -17,6 +17,7 @@ Renderable::~Renderable() {
 glm::vec3 Renderable::getDimensions() {
 	if (!boundingBoxComputed) {
 		computeBoundingBox();
+		boundingBoxComputed = true;
 	}
 	return dimensions;
 }
@@ -25,11 +26,29 @@ glm::vec3 Renderable::getDimensions() {
 glm::vec3 Renderable::getPosition() {
 	if (!boundingBoxComputed) {
 		computeBoundingBox();
+		boundingBoxComputed = true;
 	}
 	return position;
 }
 
 // Computed objects bounding box stored as dimensions and centre of box
 void Renderable::computeBoundingBox() {
-	// compute here
+	float minX, maxX;
+	float minY, maxY;
+	float minZ, maxZ;
+	minX = maxX = verts.at(0).x;
+	minY = maxY = verts.at(0).y;
+	minZ = maxZ = verts.at(0).z;
+
+	// Loop over all verts to find max and mins
+	for (glm::vec3 v : verts) {
+		minX = glm::min(minX, v.x);
+		maxX = glm::max(maxX, v.x);
+		minY = glm::min(minY, v.y);
+		maxY = glm::max(maxY, v.y);
+		minZ = glm::min(minZ, v.z);
+		maxZ = glm::max(maxZ, v.z);
+	}
+	dimensions = glm::vec3(glm::abs(maxX - minX), glm::abs(maxY - minY), glm::abs(maxZ - minZ));
+	position = glm::vec3(0.5f * (maxX + minX), 0.5f * (maxY + minY), 0.5f * (maxZ + minZ));
 }
