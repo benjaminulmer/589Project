@@ -4,6 +4,7 @@ Program::Program() {
 	window = nullptr;
 	renderEngine = nullptr;
 	camera = nullptr;
+	object = nullptr;
 }
 
 Program::~Program() {
@@ -60,6 +61,9 @@ void Program::loadObject() {
 void Program::mainLoop() {
 	while(!glfwWindowShouldClose(window)) {
 		glfwPollEvents();
+
+		// Will probably be changed to take topological sort of the graph instead of Renderable*
+		// Also frame number/graph depth for animation
 		renderEngine->render(*object);
 		glfwSwapBuffers(window);
 	}

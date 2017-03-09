@@ -26,5 +26,15 @@ public:
 	GLuint uvBuffer;
 	GLuint indexBuffer;
 	GLuint textureID;
+
+	glm::vec3 getDimensions();
+	glm::vec3 getPosition();
+
+private:
+	glm::vec3 dimensions;
+	glm::vec3 position;
+	bool boundingBoxComputed;
+
+	void computeBoundingBox();
 };
 
