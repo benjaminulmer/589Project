@@ -5,8 +5,8 @@ ExplosionGraph::ExplosionGraph() : isSorted(false) {
 
 	// Number of nodes in graph is number of parts in model
 	int numParts = 8;
-	graph = std::vector<std::list<Node>>(numParts);
-	iGraph = std::vector<std::list<Node>>(numParts);
+	graph = std::vector<std::list<Node*>>(numParts);
+	iGraph = std::vector<std::list<Node*>>(numParts);
 
 	// Fill list of nodes
 	nodes = std::vector<Node>(numParts);
@@ -33,8 +33,8 @@ ExplosionGraph::ExplosionGraph(std::vector<Renderable*> parts) : isSorted(false)
 
 	// Number of nodes in graph is number of parts in model
 	int numParts = parts.size();
-	graph = std::vector<std::list<Node>>(numParts);
-	iGraph = std::vector<std::list<Node>>(numParts);
+	graph = std::vector<std::list<Node*>>(numParts);
+	iGraph = std::vector<std::list<Node*>>(numParts);
 
 	// Fill list of nodes
 	nodes = std::vector<Node>(numParts);
@@ -59,7 +59,7 @@ ExplosionGraph::ExplosionGraph(std::vector<Renderable*> parts) : isSorted(false)
 // Fills in total distance of each node in graph based off of parent distances
 void ExplosionGraph::fillDistacnes() {
 	int i = 0;
-	for (std::list<Node> node : graph) {
+	for (std::list<Node*> node : graph) {
 		//std::list<Node> parents = iGraph
 
 		i++;
@@ -69,9 +69,9 @@ void ExplosionGraph::fillDistacnes() {
 // Constructs inverse graph from normal graph
 void ExplosionGraph::constructInverse() {
 	int i = 0;
-	for (std::list<Node> node : graph) {
-		for (Node neighbour : node) {
-			iGraph[neighbour.index].push_back(&nodes[i]);
+	for (std::list<Node*> node : graph) {
+		for (Node* neighbour : node) {
+			iGraph[neighbour->index].push_back(&nodes[i]);
 		}
 		i++;
 	}
