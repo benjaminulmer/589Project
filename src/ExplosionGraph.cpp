@@ -25,7 +25,7 @@ ExplosionGraph::ExplosionGraph() : isSorted(false) {
 	graph[6].push_back(&nodes[7]); graph[6].push_back(&nodes[4]);
 
 	constructInverse();
-	fillDistacnes();
+	fillDistances();
 }
 
 // Creates explosion graph for provided parts
@@ -53,11 +53,11 @@ ExplosionGraph::ExplosionGraph(std::vector<Renderable*> parts) : isSorted(false)
 	constructInverse();
 
 	// Compute total distance for each part after graph is complete (Ben)
-	fillDistacnes();
+	fillDistances();
 }
 
 // Fills in total distance of each node in graph based off of parent distances
-void ExplosionGraph::fillDistacnes() {
+void ExplosionGraph::fillDistances() {
 	int i = 0;
 	for (std::list<Node*> node : graph) {
 		//std::list<Node> parents = iGraph

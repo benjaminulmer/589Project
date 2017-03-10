@@ -29,7 +29,7 @@ private:
 	std::vector<std::vector<Node*>> topologicalSort;
 	bool isSorted;
 
-	void fillDistacnes();
+	void fillDistances();
 	void constructInverse();
 };
 
