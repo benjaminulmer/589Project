@@ -18,14 +18,14 @@ ExplosionGraph::ExplosionGraph() : isSorted(false) {
 	}
 
 	// Hard coded graph for testing
-	graph[1].push_back(nodes[0]); graph[1].push_back(nodes[4]);
-	graph[2].push_back(nodes[1]); graph[2].push_back(nodes[3]); graph[2].push_back(nodes[5]); graph[2].push_back(nodes[6]); graph[2].push_back(nodes[4]);
-	graph[3].push_back(nodes[1]); graph[3].push_back(nodes[4]);
-	graph[5].push_back(nodes[4]); graph[5].push_back(nodes[6]);
-	graph[6].push_back(nodes[7]); graph[6].push_back(nodes[4]);
+	graph[1].push_back(&nodes[0]); graph[1].push_back(&nodes[4]);
+	graph[2].push_back(&nodes[1]); graph[2].push_back(&nodes[3]); graph[2].push_back(&nodes[5]); graph[2].push_back(&nodes[6]); graph[2].push_back(&nodes[4]);
+	graph[3].push_back(&nodes[1]); graph[3].push_back(&nodes[4]);
+	graph[5].push_back(&nodes[4]); graph[5].push_back(&nodes[6]);
+	graph[6].push_back(&nodes[7]); graph[6].push_back(&nodes[4]);
 
-	fillDistacnes();
 	constructInverse();
+	fillDistacnes();
 }
 
 // Creates explosion graph for provided parts
@@ -44,22 +44,26 @@ ExplosionGraph::ExplosionGraph(std::vector<Renderable*> parts) : isSorted(false)
 		node.index = i;
 		nodes[i] = node;
 	}
-	// **** to add an edge: graph[parentIndex].push_back(nodes[childIndex]) ***** //
+	// **** to add an edge: graph[parentIndex].push_back(&nodes[childIndex]) ***** //
 
 	// Compute contacts and blocking (John)
 
 	// Construct graph from contacts and blocking (Mia)
 
+	constructInverse();
+
 	// Compute total distance for each part after graph is complete (Ben)
 	fillDistacnes();
-
-	// Construct inverse graph from completed graph - trivial (anyone)
-	constructInverse();
 }
 
 // Fills in total distance of each node in graph based off of parent distances
 void ExplosionGraph::fillDistacnes() {
-	// Code goes here
+	int i = 0;
+	for (std::list<Node> node : graph) {
+		//std::list<Node> parents = iGraph
+
+		i++;
+	}
 }
 
 // Constructs inverse graph from normal graph
@@ -67,14 +71,14 @@ void ExplosionGraph::constructInverse() {
 	int i = 0;
 	for (std::list<Node> node : graph) {
 		for (Node neighbour : node) {
-			iGraph[neighbour.index].push_back(nodes[i]);
+			iGraph[neighbour.index].push_back(&nodes[i]);
 		}
 		i++;
 	}
 }
 
 // Returns topologically sorted graph. Nodes of same depth are grouped together inside inner vector
-std::vector<std::vector<Node>>& ExplosionGraph::getSort() {
+std::vector<std::vector<Node*>>& ExplosionGraph::getSort() {
 	if (!isSorted) {
 		// Code goes here (Ben)
 

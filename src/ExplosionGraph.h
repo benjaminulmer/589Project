@@ -19,14 +19,14 @@ public:
 	ExplosionGraph(); // Temporary
 	ExplosionGraph(std::vector<Renderable*> parts);
 
-	std::vector<std::vector<Node>>& getSort();
+	std::vector<std::vector<Node*>>& getSort();
 
 private:
 	std::vector<Node> nodes;
-	std::vector<std::list<Node>> graph;
-	std::vector<std::list<Node>> iGraph;
+	std::vector<std::list<Node*>> graph;
+	std::vector<std::list<Node*>> iGraph;
 
-	std::vector<std::vector<Node>> topologicalSort;
+	std::vector<std::vector<Node*>> topologicalSort;
 	bool isSorted;
 
 	void fillDistacnes();
