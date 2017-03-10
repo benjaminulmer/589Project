@@ -8,6 +8,7 @@
 #include "Renderable.h"
 #include "ContentLoading.h"
 #include "Camera.h"
+#include "ExplosionGraph.h"
 
 class Program {
 

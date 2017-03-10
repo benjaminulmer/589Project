@@ -6,6 +6,7 @@
 
 struct Node {
 	Renderable* part;
+	int index;
 
 	glm::vec3 direction;
 	float selfDistance;
@@ -16,12 +17,12 @@ class ExplosionGraph {
 
 public:
 	ExplosionGraph(); // Temporary
-
 	ExplosionGraph(std::vector<Renderable*> parts);
 
 	std::vector<std::vector<Node>>& getSort();
 
 private:
+	std::vector<Node> nodes;
 	std::vector<std::list<Node>> graph;
 	std::vector<std::list<Node>> iGraph;
 
@@ -29,5 +30,6 @@ private:
 	bool isSorted;
 
 	void fillDistacnes();
+	void constructInverse();
 };
 
