@@ -1,5 +1,9 @@
 #include "ContentLoading.h"
 
+#include "ModelSplitter.h"
+
+#include <stdio.h>
+
 // Create renderable from obj file
 Renderable* ContentLoading::createRenderable(std::string modelFile) {
 	Renderable * r = new Renderable();
@@ -10,6 +14,43 @@ Renderable* ContentLoading::createRenderable(std::string modelFile) {
 	std::vector<glm::vec3> raw_verts;
 
 	ContentLoading::loadOBJ(modelFile.c_str(), verts, uvs, normals, faces, raw_verts);
+
+	Renderable* test = new Renderable();
+	test->verts.push_back(glm::vec3(0,0,0));
+	test->verts.push_back(glm::vec3(1,0,0));
+	test->verts.push_back(glm::vec3(0,1,0));
+	test->verts.push_back(glm::vec3(0,2,0));
+	test->verts.push_back(glm::vec3(1,2,0));
+	test->verts.push_back(glm::vec3(1,1,0));
+	test->verts.push_back(glm::vec3(2,0,0));
+	test->verts.push_back(glm::vec3(3,0,0));
+	test->verts.push_back(glm::vec3(2,1,0));
+	test->verts.push_back(glm::vec3(3,1,0));
+
+	test->faces.push_back(0);
+	test->faces.push_back(1);
+	test->faces.push_back(2);
+	test->faces.push_back(3);
+	test->faces.push_back(5);
+	test->faces.push_back(4);
+	test->faces.push_back(6);
+	test->faces.push_back(7);
+	test->faces.push_back(8);
+	test->faces.push_back(7);
+	test->faces.push_back(9);
+	test->faces.push_back(8);
+
+	ModelSplitter* splitter = new ModelSplitter();
+	std::vector<Renderable*> output = splitter->split(test);
+	for (unsigned int i = 0; i < output.size(); i++) {
+		printf("i = %d\n", i);
+		for (unsigned int j = 0; j < output[i]->verts.size(); j++) {
+			printf("x = %f y = %f z = %f\n", output[i]->verts[j].x, output[i]->verts[j].y, output[i]->verts[j].z);
+		}
+		for (unsigned int j = 0; j < output[i]->faces.size(); j+=3) {
+			printf("v1 = %d v2 = %d v3 = %d\n", output[i]->faces[j], output[i]->faces[j + 1], output[i]->faces[j + 2]);
+		}
+	}
 
 	std::vector<unsigned short> indices;
 	std::vector<glm::vec3> indexed_vertices;
