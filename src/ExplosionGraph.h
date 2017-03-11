@@ -31,6 +31,7 @@ private:
 
 	std::vector<std::vector<Node*>> topologicalSort;
 
+	void fillDistances();
 	void constructInverse();
 	void sort();
 	void fillDistacnes();

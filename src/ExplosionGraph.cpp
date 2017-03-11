@@ -48,7 +48,7 @@ ExplosionGraph::ExplosionGraph() {
 
 	constructInverse();
 	sort();
-	fillDistacnes();
+	fillDistances();
 }
 
 // Creates explosion graph for provided parts
@@ -73,7 +73,7 @@ ExplosionGraph::ExplosionGraph(std::vector<Renderable*> parts) {
 	constructInverse();
 
 	// Compute total distance for each part after graph is complete (Ben)
-	fillDistacnes();
+	fillDistances();
 }
 
 // Constructs inverse graph from normal graph
@@ -98,8 +98,6 @@ void ExplosionGraph::constructInverse() {
 		}
 	}
 }
-
-#include <iostream>
 
 // Topologically sorts the graph
 void ExplosionGraph::sort() {
@@ -128,16 +126,10 @@ void ExplosionGraph::sort() {
 		topologicalSort.push_back(queue);
 		queue.clear();
 	}
-	for (std::vector<Node*> level : topologicalSort) {
-		for (Node* n : level) {
-			std::cout << n->index << ", ";
-		}
-		std::cout << std::endl;
-	}
 }
 
 // Fills in total distance of each node in graph based off of parent distances
-void ExplosionGraph::fillDistacnes() {
+void ExplosionGraph::fillDistances() {
 
 }
 
