@@ -5,6 +5,9 @@
 #include "Renderable.h"
 
 struct Node {
+	Node();
+	Node(Renderable* part, int index);
+
 	Renderable* part;
 	int index;
 
@@ -27,9 +30,9 @@ private:
 	std::vector<std::list<Node*>> iGraph;
 
 	std::vector<std::vector<Node*>> topologicalSort;
-	bool isSorted;
 
-	void fillDistacnes();
 	void constructInverse();
+	void sort();
+	void fillDistacnes();
 };
 

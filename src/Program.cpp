@@ -58,11 +58,10 @@ void Program::loadObject() {
 }
 
 // Main loop
-
-ExplosionGraph eg = ExplosionGraph();
-
-
 void Program::mainLoop() {
+
+	ExplosionGraph eg = ExplosionGraph();
+
 	while(!glfwWindowShouldClose(window)) {
 		glfwPollEvents();
 
