@@ -4,7 +4,6 @@ Program::Program() {
 	window = nullptr;
 	renderEngine = nullptr;
 	camera = nullptr;
-	object = nullptr;
 }
 
 Program::~Program() {
@@ -27,7 +26,7 @@ void Program::start() {
 	camera = new Camera();
 	renderEngine = new RenderEngine(window, camera);
 	InputHandler::setUp(camera, renderEngine);
-	loadObject();
+	loadObjects();
 	mainLoop();
 }
 
@@ -49,12 +48,15 @@ void Program::setupWindow() {
 	glfwSetWindowSizeCallback(window, InputHandler::reshape);
 }
 
-// Loads and initializes all objects that can be viewed
-void Program::loadObject() {
-	object = ContentLoading::createRenderable("./models/lock.obj");
-	//o->textureID = (renderEngine->loadTexture("./textures/cube.png"));
-
+void Program::loadObjects() {
+	Renderable* object = ContentLoading::createRenderable("./models/lock.obj");
 	renderEngine->assignBuffers(*object);
+	objects.push_back(object);
+
+	/*object = ContentLoading::createRenderable("./models/cube.obj");
+	//o->textureID = (renderEngine->loadTexture("./textures/cube.png"));
+	renderEngine->assignBuffers(*object);
+	objects.push_back(object);*/
 }
 
 // Main loop
@@ -67,7 +69,7 @@ void Program::mainLoop() {
 
 		// Will probably be changed to take topological sort of the graph instead of Renderable*
 		// Also frame number/graph depth for animation
-		renderEngine->render(*object);
+		renderEngine->render(objects);
 		glfwSwapBuffers(window);
 	}
 

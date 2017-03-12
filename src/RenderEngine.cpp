@@ -26,7 +26,6 @@ RenderEngine::~RenderEngine() {
 
 // Called to render the active object. RenderEngine stores all information about how to render
 void RenderEngine::render(const Renderable& renderable) {
-	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 
 	glBindVertexArray(renderable.vao);
 	glUseProgram(mainProgram);
@@ -47,6 +46,14 @@ void RenderEngine::render(const Renderable& renderable) {
 	glDrawElements(GL_TRIANGLES, renderable.drawFaces.size(), GL_UNSIGNED_SHORT, (void*)0);
 	glBindVertexArray(0);
 	Texture::unbind2DTexture();
+}
+
+void RenderEngine::render(std::vector<Renderable*> renderables) {
+	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
+
+	for (Renderable* renderable : renderables) {
+		render(*renderable);
+	}
 
 	renderLight();
 }
