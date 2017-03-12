@@ -4,7 +4,6 @@ Program::Program() {
 	window = nullptr;
 	renderEngine = nullptr;
 	camera = nullptr;
-	object = nullptr;
 }
 
 Program::~Program() {
@@ -51,23 +50,43 @@ void Program::setupWindow() {
 
 // Loads and initializes all objects that can be viewed
 void Program::loadObject() {
-	object = ContentLoading::createRenderable("./models/lock.obj");
+	std::vector<Renderable*> objects;
+	objects.push_back(ContentLoading::createRenderable("./models/1.obj"));
+	objects.push_back(ContentLoading::createRenderable("./models/2.obj"));
+	objects.push_back(ContentLoading::createRenderable("./models/3.obj"));
+	objects.push_back(ContentLoading::createRenderable("./models/4.obj"));
+
 	//o->textureID = (renderEngine->loadTexture("./textures/cube.png"));
 
-	renderEngine->assignBuffers(*object);
+	graph = ExplosionGraph(objects, true);
+
+	for (Renderable* object : objects) {
+		renderEngine->assignBuffers(*object);
+	}
 }
 
 // Main loop
 void Program::mainLoop() {
 
-	ExplosionGraph eg = ExplosionGraph();
+	std::vector<std::vector<Node*>> sort = graph.getSort();
+	int level = sort.size();
+
+	int frame = 0;
+	int maxFrame = 120;
 
 	while(!glfwWindowShouldClose(window)) {
 		glfwPollEvents();
 
-		// Will probably be changed to take topological sort of the graph instead of Renderable*
-		// Also frame number/graph depth for animation
-		renderEngine->render(*object);
+		if (level >= 0) {
+
+			frame++;
+			if (frame > maxFrame) {
+				frame = 0;
+				level--;
+			}
+		}
+
+		renderEngine->render(sort, level, (float)frame / (float)maxFrame);
 		glfwSwapBuffers(window);
 	}
 

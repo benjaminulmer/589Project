@@ -20,6 +20,7 @@ class ExplosionGraph {
 
 public:
 	ExplosionGraph(); // Temporary
+	ExplosionGraph(std::vector<Renderable*> parts, bool test); // Temporary
 	ExplosionGraph(std::vector<Renderable*> parts);
 
 	std::vector<std::vector<Node*>>& getSort();

@@ -8,7 +8,7 @@
 #include <vector>
 
 #include "ShaderTools.h"
-#include "Renderable.h"
+#include "ExplosionGraph.h"
 #include "Camera.h"
 #include "Texture.h"
 
@@ -20,7 +20,7 @@ public:
 	RenderEngine(GLFWwindow* window, Camera* camera);
 	virtual ~RenderEngine();
 
-	void render(const Renderable& renderable);
+	void render(const std::vector<std::vector<Node*>>& graph, int level, float perc);
 	void assignBuffers(Renderable& renderable);
 	unsigned int loadTexture(std::string filename);
 

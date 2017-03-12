@@ -25,28 +25,48 @@ RenderEngine::~RenderEngine() {
 }
 
 // Called to render the active object. RenderEngine stores all information about how to render
-void RenderEngine::render(const Renderable& renderable) {
+void RenderEngine::render(const std::vector<std::vector<Node*>>& graph, int level, float perc) {
 	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
-
-	glBindVertexArray(renderable.vao);
 	glUseProgram(mainProgram);
 
-	// If the object has no image texture switch to attribute only mode
-	Texture::bind2DTexture(mainProgram, renderable.textureID, "image");
+	int i = 0;
+	for (std::vector<Node*> l : graph) {
+		for (Node* node : l) {
+			Renderable* renderable = node->part;
 
-	view = camera->getLookAt();
-	glm::mat4 model = glm::mat4();
-	glm::mat4 modelView = view * model;
+			glBindVertexArray(renderable->vao);
 
-	// Uniforms
-	glUniformMatrix4fv(glGetUniformLocation(mainProgram, "modelView"), 1, GL_FALSE, glm::value_ptr(modelView));
-	glUniformMatrix4fv(glGetUniformLocation(mainProgram, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
-	glUniform3fv(glGetUniformLocation(mainProgram, "lightPos"), 1, glm::value_ptr(lightPos));
-	glUniform1i(glGetUniformLocation(mainProgram, "hasTexture"), (renderable.textureID > 0 ? 1 : 0));
+			// If the object has no image texture switch to attribute only mode
+			Texture::bind2DTexture(mainProgram, renderable->textureID, "image");
 
-	glDrawElements(GL_TRIANGLES, renderable.drawFaces.size(), GL_UNSIGNED_SHORT, (void*)0);
-	glBindVertexArray(0);
-	Texture::unbind2DTexture();
+			view = camera->getLookAt();
+			glm::mat4 model;
+
+			glm::vec3 dir = node->direction;
+			if (i > level) {
+				model = glm::translate(dir * node->totalDistance);
+			}
+			else if (i == level) {
+				model = glm::translate(dir * node->totalDistance * perc);
+			}
+			else {
+				model = glm::mat4();
+			}
+
+			glm::mat4 modelView = view * model;
+
+			// Uniforms
+			glUniformMatrix4fv(glGetUniformLocation(mainProgram, "modelView"), 1, GL_FALSE, glm::value_ptr(modelView));
+			glUniformMatrix4fv(glGetUniformLocation(mainProgram, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
+			glUniform3fv(glGetUniformLocation(mainProgram, "lightPos"), 1, glm::value_ptr(lightPos));
+			glUniform1i(glGetUniformLocation(mainProgram, "hasTexture"), (renderable->textureID > 0 ? 1 : 0));
+
+			glDrawElements(GL_TRIANGLES, renderable->drawFaces.size(), GL_UNSIGNED_SHORT, (void*)0);
+			glBindVertexArray(0);
+			Texture::unbind2DTexture();
+		}
+		i++;
+	}
 
 	renderLight();
 }

@@ -8,7 +8,40 @@ Node::Node() : part(0), index(0), selfDistance(0.0f), totalDistance(0.0f) {}
 // Node for part with given index
 Node::Node(Renderable* part, int index) : part(part), index(index), selfDistance(0.0f), totalDistance(0.0f) {}
 
-// Creates hard coded explosion graph for testing
+ExplosionGraph::ExplosionGraph(std::vector<Renderable*> parts, bool test) {
+
+	// Number of nodes in graph is number of parts in model
+	int numParts = parts.size();
+	graph = std::vector<std::list<Node*>>(numParts);
+	iGraph = std::vector<std::list<Node*>>(numParts);
+
+	// Fill list of nodes
+	nodes = std::vector<Node>(numParts);
+	for (int i = 0; i < numParts; i++) {
+		nodes[i] = Node(parts[i], i);
+		graph[i].push_back(&nodes[i]);
+	}
+
+	graph[0].push_back(&nodes[2]); graph[0].push_back(&nodes[3]);
+	graph[1].push_back(&nodes[0]);
+
+	nodes[0].direction = glm::vec3(0.0f, -1.0f, 0.0f);
+	nodes[1].direction = glm::vec3(0.0f, -1.0f, 0.0f);
+	nodes[2].direction = glm::vec3(-1.0f, 0.0f, 0.0f);
+	nodes[3].direction = glm::vec3(1.0f, 0.0f, 0.0f);
+
+	nodes[0].selfDistance = 0.0f;
+	nodes[1].selfDistance = 2.0f;
+	nodes[2].selfDistance = 1.0f;
+	nodes[3].selfDistance = 1.0f;
+
+	constructInverse();
+	if (sort() == -1) {
+		std::cout << "Error, graph contains cycle(s)" << std::endl;
+	}
+	fillDistances();
+}
+
 ExplosionGraph::ExplosionGraph() {
 
 	// Number of nodes in graph is number of parts in model
