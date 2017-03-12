@@ -33,7 +33,7 @@ private:
 
 	void fillDistances();
 	void constructInverse();
-	void sort();
+	int sort();
 	void fillDistacnes();
 };
 

@@ -1,5 +1,7 @@
 #include "ExplosionGraph.h"
 
+#include <iostream>
+
 // Default constructor. Zeros everything
 Node::Node() : part(0), index(0), selfDistance(0.0f), totalDistance(0.0f) {}
 
@@ -47,7 +49,9 @@ ExplosionGraph::ExplosionGraph() {
 	nodes[4].selfDistance = 0.0f;
 
 	constructInverse();
-	sort();
+	if (sort() == -1) {
+		std::cout << "Error, graph contains cycle(s)" << std::endl;
+	}
 	fillDistances();
 }
 
@@ -63,6 +67,7 @@ ExplosionGraph::ExplosionGraph(std::vector<Renderable*> parts) {
 	nodes = std::vector<Node>(numParts);
 	for (int i = 0; i < numParts; i++) {
 		nodes[i] = Node(parts[i], i);
+		graph[i].push_back(&nodes[i]);
 	}
 	// **** to add an edge: graph[parentIndex].push_back(&nodes[childIndex]) ***** //
 
@@ -73,6 +78,9 @@ ExplosionGraph::ExplosionGraph(std::vector<Renderable*> parts) {
 	constructInverse();
 
 	// Compute total distance for each part after graph is complete (Ben)
+	if (sort() == -1) {
+		std::cout << "Error, graph contains cycle(s)" << std::endl;
+	}
 	fillDistances();
 }
 
@@ -100,37 +108,68 @@ void ExplosionGraph::constructInverse() {
 }
 
 // Topologically sorts the graph
-void ExplosionGraph::sort() {
+int ExplosionGraph::sort() {
+
+	// Copy so we don't ruin the actual graph
 	std::vector<std::list<Node*>> iGraphMain = iGraph;
 
-	unsigned int numAdded = 0;
 	std::vector<Node*> queue;
 
+	// Continue until all nodes have been sorted
+	unsigned int numAdded = 0;
 	while (numAdded < nodes.size()) {
+		bool found = false;
+
+		// Another copy so all nodes of can be found for each level
 		std::vector<std::list<Node*>> iGraphC = iGraphMain;
 
+		// Loop over all nodes in graph
 		for (unsigned int i = 0; i < iGraphC.size(); i++) {
-			std::list<Node*> children = graph[i];
-			std::list<Node*> parents = iGraphC[i];
+			Node* self = iGraphC[i].front();
 
-			// One parent (only self) means no incoming edges
-			if (parents.size() == 1) {
-				queue.push_back(parents.front());
+			// One parent (only self) means no incoming edges. 0 means it has been removed
+			if (iGraphC[i].size() == 1) {
+				found = true;
+				queue.push_back(self);
 				numAdded++;
 
-				for (Node* child : children) {
-					iGraphMain[child->index].remove(parents.front());
+				// Remove outgoing edges from graph
+				for (Node* child : graph[i]) {
+					iGraphMain[child->index].remove(self);
 				}
 			}
 		}
+		// If no node found then there is a cycle, return error
+		if (!found){
+			return -1;
+		}
+
+		// Add found nodes to current level then clear the queue
 		topologicalSort.push_back(queue);
 		queue.clear();
 	}
+	return 0;
 }
 
 // Fills in total distance of each node in graph based off of parent distances
 void ExplosionGraph::fillDistances() {
 
+	// Loop over all nodes by level in the topological sort
+	for (std::vector<Node*> level : topologicalSort) {
+		for (Node* node : level) {
+
+			// Check all parents for the one with the largest total distance in same direction as self
+			float max = 0.0f;
+			for (Node* parent : iGraph[node->index]) {
+				if (parent->direction == node->direction && parent->totalDistance > max) {
+					max = parent->totalDistance;
+				}
+			}
+
+			// Update total distance by the largest found
+			node->totalDistance = node->selfDistance + max;
+		}
+	}
 }
 
 // Returns topologically sorted graph. Nodes of same depth are grouped together inside inner vector
