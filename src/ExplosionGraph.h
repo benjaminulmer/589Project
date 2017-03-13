@@ -4,6 +4,14 @@
 
 #include "Renderable.h"
 
+struct Node;
+
+struct Block {
+	Block(Node* part, glm::vec3 direction);
+	Node* part;
+	glm::vec3 direction;
+};
+
 struct Node {
 	Node();
 	Node(Renderable* part, int index);
@@ -11,10 +19,13 @@ struct Node {
 	Renderable* part;
 	int index;
 
+	std::vector<Block> blocking;
+
 	glm::vec3 direction;
 	float selfDistance;
 	float totalDistance;
 };
+
 
 class ExplosionGraph {
 

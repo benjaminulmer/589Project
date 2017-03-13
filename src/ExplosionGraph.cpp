@@ -6,6 +6,9 @@ Node::Node() : part(0), index(0), selfDistance(0.0f), totalDistance(0.0f) {}
 // Node for part with given index
 Node::Node(Renderable* part, int index) : part(part), index(index), selfDistance(0.0f), totalDistance(0.0f) {}
 
+// Constructor for a block, always needs part and direction
+Block::Block(Node* part, glm::vec3 direction) : part(part), direction(direction) {}
+
 // Creates hard coded explosion graph for testing
 ExplosionGraph::ExplosionGraph() {
 
