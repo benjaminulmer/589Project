@@ -42,6 +42,7 @@ void RenderEngine::render(const Renderable& renderable) {
 	glUniformMatrix4fv(glGetUniformLocation(mainProgram, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
 	glUniform3fv(glGetUniformLocation(mainProgram, "lightPos"), 1, glm::value_ptr(lightPos));
 	glUniform1i(glGetUniformLocation(mainProgram, "hasTexture"), (renderable.textureID > 0 ? 1 : 0));
+	glUniform4fv(glGetUniformLocation(mainProgram, "objColour"), 1, glm::value_ptr(renderable.colour));
 
 	glDrawElements(GL_TRIANGLES, renderable.drawFaces.size(), GL_UNSIGNED_SHORT, (void*)0);
 	glBindVertexArray(0);

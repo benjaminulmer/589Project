@@ -26,6 +26,7 @@ public:
 	GLuint uvBuffer;
 	GLuint indexBuffer;
 	GLuint textureID;
+	glm::vec4 colour;
 
 	glm::vec3 getDimensions();
 	glm::vec3 getPosition();
