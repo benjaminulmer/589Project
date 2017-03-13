@@ -5,7 +5,7 @@
 #include <stdio.h>
 
 // Create renderable from obj file
-Renderable* ContentLoading::createRenderable(std::string modelFile) {
+std::vector<Renderable*> ContentLoading::createRenderable(std::string modelFile) {
 	Renderable * r = new Renderable();
 	std::vector<glm::vec3> verts;
 	std::vector<glm::vec2> uvs;
@@ -27,6 +27,14 @@ Renderable* ContentLoading::createRenderable(std::string modelFile) {
 	test->verts.push_back(glm::vec3(2,1,0));
 	test->verts.push_back(glm::vec3(3,1,0));
 
+	for (unsigned int i = 0; i < 10; i++) {
+		test->normals.push_back(glm::vec3(0, 0, 1));
+	}
+
+	for (unsigned int i = 0; i < 10; i++) {
+		test->uvs.push_back(glm::vec2(0, 0));
+	}
+
 	test->faces.push_back(0);
 	test->faces.push_back(1);
 	test->faces.push_back(2);
@@ -40,31 +48,47 @@ Renderable* ContentLoading::createRenderable(std::string modelFile) {
 	test->faces.push_back(9);
 	test->faces.push_back(8);
 
+
+	/*
+	std::vector<unsigned short> indices;
+	std::vector<glm::vec3> indexed_vertices;
+	std::vector<glm::vec2> indexed_uvs;
+	std::vector<glm::vec3> indexed_normals;
+	ContentLoading::indexVBO(verts, uvs, normals, indices, indexed_vertices, indexed_uvs, indexed_normals);
+	r->drawVerts = indexed_vertices;*/
+	r->verts = raw_verts;
+	r->uvs = uvs;
+	r->normals = normals;
+	//r->drawFaces = indices;
+	r->faces = faces;
+
 	ModelSplitter* splitter = new ModelSplitter();
-	std::vector<Renderable*> output = splitter->split(test);
+	//std::vector<Renderable*> output;
+	//output.push_back(r);
+	//std::vector<Renderable*> output = splitter->split(test);
+	std::vector<Renderable*> output = splitter->split(r);
+	for (unsigned int j = 0; j < output.size(); j++) {
+		output[j]->drawVerts.clear();
+		output[j]->drawFaces.clear();
+		for (unsigned int i = 0; i < r->faces.size(); i++) {
+			output[j]->drawVerts.push_back(r->verts[r->faces[i]]);
+			output[j]->drawFaces.push_back(i);
+		}
+	}
 	for (unsigned int i = 0; i < output.size(); i++) {
 		printf("i = %d\n", i);
 		for (unsigned int j = 0; j < output[i]->verts.size(); j++) {
 			printf("x = %f y = %f z = %f\n", output[i]->verts[j].x, output[i]->verts[j].y, output[i]->verts[j].z);
 		}
 		for (unsigned int j = 0; j < output[i]->faces.size(); j+=3) {
+			printf("j = %d\n", j);
 			printf("v1 = %d v2 = %d v3 = %d\n", output[i]->faces[j], output[i]->faces[j + 1], output[i]->faces[j + 2]);
 		}
 	}
 
-	std::vector<unsigned short> indices;
-	std::vector<glm::vec3> indexed_vertices;
-	std::vector<glm::vec2> indexed_uvs;
-	std::vector<glm::vec3> indexed_normals;
-	ContentLoading::indexVBO(verts, uvs, normals, indices, indexed_vertices, indexed_uvs, indexed_normals);
-	r->drawVerts = indexed_vertices;
-	r->verts = raw_verts;
-	r->uvs = indexed_uvs;
-	r->normals = indexed_normals;
-	r->drawFaces = indices;
-	r->faces = faces;
+	return output;
 
-	return r;
+	//return r;
 }
 
 bool ContentLoading::getSimilarVertexIndex_fast( 

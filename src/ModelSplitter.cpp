@@ -34,6 +34,8 @@ std::vector<Renderable*> ModelSplitter::split(Renderable* object) {
 		Renderable* newObject = new Renderable();
 		splitObjects.push_back(newObject);
 		std::vector<glm::vec3> verts;
+		std::vector<glm::vec3> normals;
+		std::vector<glm::vec2> uvs;
 		std::vector<GLushort> faces;
 		std::vector<unsigned int> vertsToProcess;
 		for (unsigned int i = 0; i < vertsProcessed.size(); i++) {
@@ -98,6 +100,8 @@ std::vector<Renderable*> ModelSplitter::split(Renderable* object) {
 				}
 			}
 			verts.push_back(object->verts[vertsToProcess[0]]);
+			normals.push_back(object->normals[vertsToProcess[0]]);
+			uvs.push_back(object->uvs[vertsToProcess[0]]);
 			for (unsigned int i = 0; i < faces.size(); i++) {
 				if (faces[i] == vertsToProcess[0]) {
 					faces[i] = verts.size() - 1;
@@ -109,9 +113,21 @@ std::vector<Renderable*> ModelSplitter::split(Renderable* object) {
 		for (unsigned int i = 0; i < verts.size(); i++) {
 			newObject->verts.push_back(verts[i]);
 		}
+		//for (unsigned int i = 0; i < verts.size(); i++) {
+			//newObject->drawVerts.push_back(verts[i]);
+		//}
+		for (unsigned int i = 0; i < normals.size(); i++) {
+			newObject->normals.push_back(normals[i]);
+		}
+		for (unsigned int i = 0; i < uvs.size(); i++) {
+			newObject->uvs.push_back(uvs[i]);
+		}
 		for (unsigned int i = 0; i < faces.size(); i++) {
 			newObject->faces.push_back(faces[i]);
 		}
+		//for (unsigned int i = 0; i < faces.size(); i++) {
+			//newObject->drawFaces.push_back(faces[i]);
+		//}
 	}
 	return splitObjects;
 }

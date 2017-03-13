@@ -20,7 +20,7 @@ public:
 	RenderEngine(GLFWwindow* window, Camera* camera);
 	virtual ~RenderEngine();
 
-	void render(const Renderable& renderable);
+	void render(std::vector<Renderable*> renderables);
 	void assignBuffers(Renderable& renderable);
 	unsigned int loadTexture(std::string filename);
 

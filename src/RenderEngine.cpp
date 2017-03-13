@@ -25,28 +25,31 @@ RenderEngine::~RenderEngine() {
 }
 
 // Called to render the active object. RenderEngine stores all information about how to render
-void RenderEngine::render(const Renderable& renderable) {
+void RenderEngine::render(std::vector<Renderable*> renderables) {
 	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 
-	glBindVertexArray(renderable.vao);
 	glUseProgram(mainProgram);
-
-	// If the object has no image texture switch to attribute only mode
-	Texture::bind2DTexture(mainProgram, renderable.textureID, "image");
 
 	view = camera->getLookAt();
 	glm::mat4 model = glm::mat4();
 	glm::mat4 modelView = view * model;
 
-	// Uniforms
-	glUniformMatrix4fv(glGetUniformLocation(mainProgram, "modelView"), 1, GL_FALSE, glm::value_ptr(modelView));
-	glUniformMatrix4fv(glGetUniformLocation(mainProgram, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
-	glUniform3fv(glGetUniformLocation(mainProgram, "lightPos"), 1, glm::value_ptr(lightPos));
-	glUniform1i(glGetUniformLocation(mainProgram, "hasTexture"), (renderable.textureID > 0 ? 1 : 0));
+	for (unsigned int i = 0; i < renderables.size(); i++) {
+		glBindVertexArray(renderables[i]->vao);
 
-	glDrawElements(GL_TRIANGLES, renderable.drawFaces.size(), GL_UNSIGNED_SHORT, (void*)0);
-	glBindVertexArray(0);
-	Texture::unbind2DTexture();
+		// If the object has no image texture switch to attribute only mode
+		Texture::bind2DTexture(mainProgram, renderables[i]->textureID, "image");
+
+		// Uniforms
+		glUniformMatrix4fv(glGetUniformLocation(mainProgram, "modelView"), 1, GL_FALSE, glm::value_ptr(modelView));
+		glUniformMatrix4fv(glGetUniformLocation(mainProgram, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
+		glUniform3fv(glGetUniformLocation(mainProgram, "lightPos"), 1, glm::value_ptr(lightPos));
+		glUniform1i(glGetUniformLocation(mainProgram, "hasTexture"), (renderables[i]->textureID > 0 ? 1 : 0));
+
+		glDrawElements(GL_TRIANGLES, renderables[i]->drawFaces.size(), GL_UNSIGNED_SHORT, (void*)0);
+		glBindVertexArray(0);
+		Texture::unbind2DTexture();
+	}
 
 	renderLight();
 }

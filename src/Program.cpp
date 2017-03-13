@@ -4,7 +4,7 @@ Program::Program() {
 	window = nullptr;
 	renderEngine = nullptr;
 	camera = nullptr;
-	object = nullptr;
+	//object = nullptr;
 }
 
 Program::~Program() {
@@ -53,8 +53,10 @@ void Program::setupWindow() {
 void Program::loadObject() {
 	object = ContentLoading::createRenderable("./models/cube.obj");
 	//o->textureID = (renderEngine->loadTexture("./textures/cube.png"));
+	for (unsigned int i = 0; i < object.size(); i++) {
+		renderEngine->assignBuffers(*(object[i]));
+	}
 
-	renderEngine->assignBuffers(*object);
 }
 
 // Main loop
@@ -64,7 +66,9 @@ void Program::mainLoop() {
 
 		// Will probably be changed to take topological sort of the graph instead of Renderable*
 		// Also frame number/graph depth for animation
-		renderEngine->render(*object);
+		for (unsigned int i = 0; i < object.size(); i++) {
+			renderEngine->render(object);
+		}
 		glfwSwapBuffers(window);
 	}
 
