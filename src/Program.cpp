@@ -26,7 +26,7 @@ void Program::start() {
 	camera = new Camera();
 	renderEngine = new RenderEngine(window, camera);
 	InputHandler::setUp(camera, renderEngine);
-	loadObject();
+	loadObjects();
 	mainLoop();
 }
 
@@ -49,20 +49,16 @@ void Program::setupWindow() {
 }
 
 // Loads and initializes all objects that can be viewed
-void Program::loadObject() {
-	std::vector<Renderable*> objects;
-	objects.push_back(ContentLoading::createRenderable("./models/1.obj"));
-	objects.push_back(ContentLoading::createRenderable("./models/2.obj"));
-	objects.push_back(ContentLoading::createRenderable("./models/3.obj"));
-	objects.push_back(ContentLoading::createRenderable("./models/4.obj"));
-
+void Program::loadObjects() {
+	std::vector<Renderable*> objects = ContentLoading::createRenderables("./models/example.obj");
 	//o->textureID = (renderEngine->loadTexture("./textures/cube.png"));
 
-	graph = ExplosionGraph(objects, true);
-
 	for (Renderable* object : objects) {
+		object->colour = glm::vec3(1.0f, 0.0f, 0.0f);
 		renderEngine->assignBuffers(*object);
 	}
+
+	graph = ExplosionGraph(objects);
 }
 
 // Main loop

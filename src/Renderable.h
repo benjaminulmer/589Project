@@ -13,12 +13,14 @@ public:
 	Renderable();
 	virtual ~Renderable();
 
+	std::vector<GLushort> vertIndices;
+	std::vector<GLushort> normalIndices;
+	std::vector<GLushort> uvIndices;
+
 	std::vector<glm::vec3> verts;
-	std::vector<glm::vec3> drawVerts;
 	std::vector<glm::vec3> normals;
 	std::vector<glm::vec2> uvs;
 	std::vector<GLushort> faces;
-	std::vector<GLushort> drawFaces;
 
 	GLuint vao;
 	GLuint vertexBuffer;
@@ -26,6 +28,7 @@ public:
 	GLuint uvBuffer;
 	GLuint indexBuffer;
 	GLuint textureID;
+	glm::vec3 colour;
 
 	glm::vec3 getDimensions();
 	glm::vec3 getPosition();

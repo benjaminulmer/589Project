@@ -27,6 +27,6 @@ private:
 
 	static void error(int error, const char* description);
 	void setupWindow();
-	void loadObject();
+	void loadObjects();
 	void mainLoop();
 };

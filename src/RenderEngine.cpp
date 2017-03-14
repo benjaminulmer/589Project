@@ -33,7 +33,6 @@ void RenderEngine::render(const std::vector<std::vector<Node*>>& graph, int leve
 	for (std::vector<Node*> l : graph) {
 		for (Node* node : l) {
 			Renderable* renderable = node->part;
-
 			glBindVertexArray(renderable->vao);
 
 			// If the object has no image texture switch to attribute only mode
@@ -42,6 +41,7 @@ void RenderEngine::render(const std::vector<std::vector<Node*>>& graph, int leve
 			view = camera->getLookAt();
 			glm::mat4 model;
 
+			// Determine how far to move object
 			glm::vec3 dir = node->direction;
 			if (i > level) {
 				model = glm::translate(dir * node->totalDistance);
@@ -59,15 +59,15 @@ void RenderEngine::render(const std::vector<std::vector<Node*>>& graph, int leve
 			glUniformMatrix4fv(glGetUniformLocation(mainProgram, "modelView"), 1, GL_FALSE, glm::value_ptr(modelView));
 			glUniformMatrix4fv(glGetUniformLocation(mainProgram, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
 			glUniform3fv(glGetUniformLocation(mainProgram, "lightPos"), 1, glm::value_ptr(lightPos));
+			glUniform3fv(glGetUniformLocation(mainProgram, "objColour"), 1, glm::value_ptr(renderable->colour));
 			glUniform1i(glGetUniformLocation(mainProgram, "hasTexture"), (renderable->textureID > 0 ? 1 : 0));
 
-			glDrawElements(GL_TRIANGLES, renderable->drawFaces.size(), GL_UNSIGNED_SHORT, (void*)0);
+			glDrawElements(GL_TRIANGLES, renderable->faces.size(), GL_UNSIGNED_SHORT, (void*)0);
 			glBindVertexArray(0);
 			Texture::unbind2DTexture();
 		}
 		i++;
 	}
-
 	renderLight();
 }
 
@@ -85,10 +85,10 @@ void RenderEngine::renderLight() {
 
 // Assigns and binds buffers for a renderable (sends it to the GPU)
 void RenderEngine::assignBuffers(Renderable& renderable) {
-	std::vector<glm::vec3>& vertices = renderable.drawVerts;
+	std::vector<glm::vec3>& vertices = renderable.verts;
 	std::vector<glm::vec3>& normals = renderable.normals;
 	std::vector<glm::vec2>& uvs = renderable.uvs;
-	std::vector<GLushort>& faces = renderable.drawFaces;
+	std::vector<GLushort>& faces = renderable.faces;
 
 	// Bind attribute array for triangles
 	glGenVertexArrays(1, &renderable.vao);

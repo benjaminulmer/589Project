@@ -9,6 +9,7 @@
 #include <cstdio>
 
 #include "Renderable.h"
+#include "ModelSplitter.h"
 
 struct PackedVertex {
 	glm::vec3 position;
@@ -22,13 +23,14 @@ struct PackedVertex {
 class ContentLoading {
 
 public:
-	static Renderable* createRenderable(std::string modelFile);
+	static std::vector<Renderable*> createRenderables(std::string modelFile);
 
 private:
-	static bool getSimilarVertexIndex_fast(
+	static bool getSimilarVertexIndex(
 		PackedVertex & packed, 
 		std::map<PackedVertex,unsigned short> & VertexToOutIndex,
 		unsigned short & result);
+
 	static void indexVBO(
 		std::vector<glm::vec3> & in_vertices,
 		std::vector<glm::vec2> & in_uvs,
@@ -37,12 +39,7 @@ private:
 		std::vector<glm::vec3> & out_vertices,
 		std::vector<glm::vec2> & out_uvs,
 		std::vector<glm::vec3> & out_normals);
-	static bool loadOBJ(
-		const char * path, 
-		std::vector<glm::vec3> & out_vertices, 
-		std::vector<glm::vec2> & out_uvs,
-		std::vector<glm::vec3> & out_normals,
-		std::vector<GLushort> &out_faces,
-		std::vector<glm::vec3> & raw_verts);
+
+	static bool loadOBJ(const char * path, Renderable* r);
 };
 
