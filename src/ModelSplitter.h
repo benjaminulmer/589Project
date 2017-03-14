@@ -19,5 +19,5 @@ public:
 	virtual ~ModelSplitter();
 
 	std::vector<Renderable*> split(Renderable* object);
-	bool andVector(std::vector<bool> input);
+
 };

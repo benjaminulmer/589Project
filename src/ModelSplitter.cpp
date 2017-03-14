@@ -20,23 +20,27 @@ ModelSplitter::~ModelSplitter() {
 
 std::vector<Renderable*> ModelSplitter::split(Renderable* object) {
 	std::vector<bool> vertsProcessed;
-	for (unsigned int i = 0; i < object->verts.size(); i++) {
+	for (unsigned int i = 0; i < object->rawVerts.size(); i++) {
 		vertsProcessed.push_back(false);
 	}
+	unsigned int numVertsProcessed = 0;
 
-	std::vector<GLushort> facesProcessed;
+	std::vector<bool> facesProcessed;
 	for (unsigned int i = 0; i < object->faces.size(); i++) {
 		facesProcessed.push_back(false);
 	}
 
 	std::vector<Renderable*> splitObjects;
-	while (!andVector(vertsProcessed)) {
+	while (numVertsProcessed < object->rawVerts.size()) {
 		Renderable* newObject = new Renderable();
 		splitObjects.push_back(newObject);
-		std::vector<glm::vec3> verts;
+		std::vector<glm::vec3> rawVerts;
 		std::vector<glm::vec3> normals;
 		std::vector<glm::vec2> uvs;
 		std::vector<GLushort> faces;
+		std::vector<GLushort> normalIndices;
+		std::vector<GLushort> uvIndices;
+		std::vector<glm::vec3> drawVerts;
 		std::vector<unsigned int> vertsToProcess;
 		for (unsigned int i = 0; i < vertsProcessed.size(); i++) {
 			if (!vertsProcessed[i]) {
@@ -74,6 +78,7 @@ std::vector<Renderable*> ModelSplitter::split(Renderable* object) {
 					}
 					bool inListSecond = false;
 					bool inListThird = false;
+					//Change this so that we check vertsProcessed first
 					for (unsigned int k = 0; k < vertsToProcess.size(); k++) {
 						if (object->faces[secondIndex] == vertsToProcess[k] || vertsProcessed[object->faces[secondIndex]]) {
 							inListSecond = true;
@@ -96,47 +101,39 @@ std::vector<Renderable*> ModelSplitter::split(Renderable* object) {
 						faces.push_back(object->faces[first]);
 						faces.push_back(object->faces[second]);
 						faces.push_back(object->faces[third]);
+						normalIndices.push_back(object->normalIndices[first]);
+						normalIndices.push_back(object->normalIndices[second]);
+						normalIndices.push_back(object->normalIndices[third]);
+						uvIndices.push_back(object->uvIndices[first]);
+						uvIndices.push_back(object->uvIndices[second]);
+						uvIndices.push_back(object->uvIndices[third]);
+						//Push normal and uv indices here too
 					}
 				}
 			}
-			verts.push_back(object->verts[vertsToProcess[0]]);
-			normals.push_back(object->normals[vertsToProcess[0]]);
-			uvs.push_back(object->uvs[vertsToProcess[0]]);
+			verts.push_back(object->rawVerts[vertsToProcess[0]]);
+			//Repeat the below loop for normals and uvs
 			for (unsigned int i = 0; i < faces.size(); i++) {
 				if (faces[i] == vertsToProcess[0]) {
 					faces[i] = verts.size() - 1;
 				}
 			}
 			vertsProcessed[vertsToProcess[0]] = true;
+			numVertsProcessed++;
 			vertsToProcess.erase(vertsToProcess.begin());
 		}
 		for (unsigned int i = 0; i < verts.size(); i++) {
-			newObject->verts.push_back(verts[i]);
+			newObject->rawVerts.push_back(verts[i]);
 		}
-		//for (unsigned int i = 0; i < verts.size(); i++) {
-			//newObject->drawVerts.push_back(verts[i]);
-		//}
 		for (unsigned int i = 0; i < normals.size(); i++) {
-			newObject->normals.push_back(normals[i]);
+			newObject->normalIndices.push_back(normalIndices[i]);
 		}
 		for (unsigned int i = 0; i < uvs.size(); i++) {
-			newObject->uvs.push_back(uvs[i]);
+			newObject->uvIndices.push_back(uvIndices[i]);
 		}
 		for (unsigned int i = 0; i < faces.size(); i++) {
 			newObject->faces.push_back(faces[i]);
 		}
-		//for (unsigned int i = 0; i < faces.size(); i++) {
-			//newObject->drawFaces.push_back(faces[i]);
-		//}
 	}
 	return splitObjects;
 }
-
-bool ModelSplitter::andVector(std::vector<bool> input) {
-	bool answer = true;
-	for (unsigned int i = 0; i < input.size(); i++) {
-		answer = answer && input[i];
-	}
-	return answer;
-}
-

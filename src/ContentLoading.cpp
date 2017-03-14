@@ -11,28 +11,39 @@ std::vector<Renderable*> ContentLoading::createRenderable(std::string modelFile)
 	std::vector<glm::vec2> uvs;
 	std::vector<glm::vec3> normals;
 	std::vector<GLushort> faces;
-	std::vector<glm::vec3> raw_verts;
+	std::vector<GLushort> normalIndices;
+	std::vector<GLushort> uvIndices;
 
-	ContentLoading::loadOBJ(modelFile.c_str(), verts, uvs, normals, faces, raw_verts);
+	ContentLoading::loadOBJ(modelFile.c_str(), verts, uvs, normals, faces, normalIndices, uvIndices);
+
+	r->rawVerts = verts;
+	r->rawuvs = uvs;
+	r->rawNormals = normals;
+	r->faces = faces;
+	r->normalIndices = normalIndices;
+	r->uvIndices = uvIndices;
+
+	ModelSplitter splitter = ModelSplitter();
+	std::vector<Renderable*> output = splitter.split(r);
 
 	Renderable* test = new Renderable();
-	test->verts.push_back(glm::vec3(0,0,0));
-	test->verts.push_back(glm::vec3(1,0,0));
-	test->verts.push_back(glm::vec3(0,1,0));
-	test->verts.push_back(glm::vec3(0,2,0));
-	test->verts.push_back(glm::vec3(1,2,0));
-	test->verts.push_back(glm::vec3(1,1,0));
-	test->verts.push_back(glm::vec3(2,0,0));
-	test->verts.push_back(glm::vec3(3,0,0));
-	test->verts.push_back(glm::vec3(2,1,0));
-	test->verts.push_back(glm::vec3(3,1,0));
+	test->rawVerts.push_back(glm::vec3(0,0,0));
+	test->rawVerts.push_back(glm::vec3(1,0,0));
+	test->rawVerts.push_back(glm::vec3(0,1,0));
+	test->rawVerts.push_back(glm::vec3(0,2,0));
+	test->rawVerts.push_back(glm::vec3(1,2,0));
+	test->rawVerts.push_back(glm::vec3(1,1,0));
+	test->rawVerts.push_back(glm::vec3(2,0,0));
+	test->rawVerts.push_back(glm::vec3(3,0,0));
+	test->rawVerts.push_back(glm::vec3(2,1,0));
+	test->rawVerts.push_back(glm::vec3(3,1,0));
 
 	for (unsigned int i = 0; i < 10; i++) {
-		test->normals.push_back(glm::vec3(0, 0, 1));
+		test->rawNormals.push_back(glm::vec3(0, 0, 1));
 	}
 
 	for (unsigned int i = 0; i < 10; i++) {
-		test->uvs.push_back(glm::vec2(0, 0));
+		test->rawuvs.push_back(glm::vec2(0, 0));
 	}
 
 	test->faces.push_back(0);
@@ -55,26 +66,13 @@ std::vector<Renderable*> ContentLoading::createRenderable(std::string modelFile)
 	std::vector<glm::vec2> indexed_uvs;
 	std::vector<glm::vec3> indexed_normals;
 	ContentLoading::indexVBO(verts, uvs, normals, indices, indexed_vertices, indexed_uvs, indexed_normals);
-	r->drawVerts = indexed_vertices;*/
+	r->drawVerts = indexed_vertices;
 	r->verts = raw_verts;
 	r->uvs = uvs;
 	r->normals = normals;
 	//r->drawFaces = indices;
-	r->faces = faces;
+	r->faces = faces;*/
 
-	ModelSplitter* splitter = new ModelSplitter();
-	//std::vector<Renderable*> output;
-	//output.push_back(r);
-	//std::vector<Renderable*> output = splitter->split(test);
-	std::vector<Renderable*> output = splitter->split(r);
-	for (unsigned int j = 0; j < output.size(); j++) {
-		output[j]->drawVerts.clear();
-		output[j]->drawFaces.clear();
-		for (unsigned int i = 0; i < r->faces.size(); i++) {
-			output[j]->drawVerts.push_back(r->verts[r->faces[i]]);
-			output[j]->drawFaces.push_back(i);
-		}
-	}
 	for (unsigned int i = 0; i < output.size(); i++) {
 		printf("i = %d\n", i);
 		for (unsigned int j = 0; j < output[i]->verts.size(); j++) {
@@ -146,14 +144,10 @@ bool ContentLoading::loadOBJ(
 		std::vector<glm::vec2> & out_uvs,
 		std::vector<glm::vec3> & out_normals,
 		std::vector<GLushort> & out_faces,
-		std::vector<glm::vec3> & raw_verts)
+		std::vector<GLushort> & out_normalIndices,
+		std::vector<GLushort> & out_uvIndices)
 {
 	printf("Loading OBJ file %s...\n", path);
-
-	std::vector<unsigned short> vertexIndices, uvIndices, normalIndices;
-	std::vector<glm::vec3> temp_vertices; 
-	std::vector<glm::vec2> temp_uvs;
-	std::vector<glm::vec3> temp_normals;
 
 	FILE * file; 
 	file = fopen(path, "r");
@@ -176,33 +170,31 @@ bool ContentLoading::loadOBJ(
 		if ( strcmp( lineHeader, "v" ) == 0 ){
 			glm::vec3 vertex;
 			fscanf(file, "%f %f %f\n", &vertex.x, &vertex.y, &vertex.z );
-			temp_vertices.push_back(vertex);
+			out_vertices.push_back(vertex);
 		}else if ( strcmp( lineHeader, "vt" ) == 0 ){
 			glm::vec2 uv;
 			fscanf(file, "%f %f\n", &uv.x, &uv.y );
 			uv.y = -uv.y; 
-			temp_uvs.push_back(uv);
+			out_uvs.push_back(uv);
 		}else if ( strcmp( lineHeader, "vn" ) == 0 ){
 			glm::vec3 normal;
 			fscanf(file, "%f %f %f\n", &normal.x, &normal.y, &normal.z );
-			temp_normals.push_back(normal);
+			out_normals.push_back(normal);
 		}else if ( strcmp( lineHeader, "f" ) == 0 ){
 			std::string vertex1, vertex2, vertex3;
 			unsigned int vertexIndex[3], uvIndex[3], normalIndex[3];
 			fscanf(file, "%d/%d/%d %d/%d/%d %d/%d/%d\n", &vertexIndex[0], &uvIndex[0], &normalIndex[0], &vertexIndex[1], &uvIndex[1], &normalIndex[1], &vertexIndex[2], &uvIndex[2], &normalIndex[2] );
 
-			vertexIndices.push_back(vertexIndex[0]);
-			vertexIndices.push_back(vertexIndex[1]);
-			vertexIndices.push_back(vertexIndex[2]);
-			uvIndices    .push_back(uvIndex[0]);
-			uvIndices    .push_back(uvIndex[1]);
-			uvIndices    .push_back(uvIndex[2]);
-			normalIndices.push_back(normalIndex[0]);
-			normalIndices.push_back(normalIndex[1]);
-			normalIndices.push_back(normalIndex[2]);
 			out_faces.push_back(vertexIndex[0]-1);
 			out_faces.push_back(vertexIndex[1]-1);
 			out_faces.push_back(vertexIndex[2]-1);
+			out_uvIndices.push_back(uvIndex[0]-1);
+			out_uvIndices.push_back(uvIndex[1]-1);
+			out_uvIndices.push_back(uvIndex[2]-1);
+			out_normalIndices.push_back(normalIndex[0]-1);
+			out_normalIndices.push_back(normalIndex[1]-1);
+			out_normalIndices.push_back(normalIndex[2]-1);
+
 		}else{
 			// Probably a comment, eat up the rest of the line
 			char stupidBuffer[1000];
@@ -210,10 +202,11 @@ bool ContentLoading::loadOBJ(
 		}
 
 	}
-	raw_verts = temp_vertices;
+
+	//Split the object here
 
 	// For each vertex of each triangle
-	for( unsigned int i=0; i<vertexIndices.size(); i++ ){
+	/*for( unsigned int i=0; i<vertexIndices.size(); i++ ){
 
 		// Get the indices of its attributes
 		unsigned int vertexIndex = vertexIndices[i];
@@ -230,7 +223,7 @@ bool ContentLoading::loadOBJ(
 		out_uvs     .push_back(uv);
 		out_normals .push_back(normal);
 	
-	}
+	}*/
 	fclose(file);
 	return true;
 }
