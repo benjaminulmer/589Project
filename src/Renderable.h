@@ -13,17 +13,14 @@ public:
 	Renderable();
 	virtual ~Renderable();
 
+	std::vector<GLushort> vertIndices;
+	std::vector<GLushort> normalIndices;
+	std::vector<GLushort> uvIndices;
 
-
-
-	std::vector<glm::vec3> rawVerts;
+	std::vector<glm::vec3> verts;
 	std::vector<glm::vec3> normals;
 	std::vector<glm::vec2> uvs;
 	std::vector<GLushort> faces;
-	std::vector<GLushort> normalIndices;
-	std::vector<GLushort> uvIndices;
-	std::vector<glm::vec3> drawVerts;
-	std::vector<GLushort> drawFaces;
 
 	GLuint vao;
 	GLuint vertexBuffer;

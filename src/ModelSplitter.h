@@ -1,23 +1,17 @@
-/*
- * ModelSplitter.h
- *
- *  Created on: Mar 9, 2017
- *      Author: jshall
- */
-
 #pragma once
 
 #include <GL/glew.h>
 #include <glm/glm.hpp>
-#include <vector>
+
+#include <deque>
+
+#include "Renderable.h"
 
 class Renderable;
 
 class ModelSplitter {
-public:
-	ModelSplitter();
-	virtual ~ModelSplitter();
 
+public:
 	std::vector<Renderable*> split(Renderable* object);
 
 };

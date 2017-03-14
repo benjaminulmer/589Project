@@ -1,47 +1,22 @@
-/*
- * ModelSplitter.cpp
- *
- *  Created on: Mar 9, 2017
- *      Author: jshall
- */
-
 #include "ModelSplitter.h"
 
-#include "Renderable.h"
+std::vector<Renderable*> ModelSplitter::split(Renderable* mainObject) {
 
-ModelSplitter::ModelSplitter() {
-	// TODO Auto-generated constructor stub
-
-}
-
-ModelSplitter::~ModelSplitter() {
-	// TODO Auto-generated destructor stub
-}
-
-std::vector<Renderable*> ModelSplitter::split(Renderable* object) {
-	std::vector<bool> vertsProcessed;
-	for (unsigned int i = 0; i < object->rawVerts.size(); i++) {
-		vertsProcessed.push_back(false);
-	}
+	// Structures for tracking faces and verts that have been processed
+	std::vector<bool> vertsProcessed(mainObject->verts.size(), false);
+	std::vector<bool> facesProcessed(mainObject->vertIndices.size(), false);
 	unsigned int numVertsProcessed = 0;
 
-	std::vector<bool> facesProcessed;
-	for (unsigned int i = 0; i < object->faces.size(); i++) {
-		facesProcessed.push_back(false);
-	}
-
+	// Split objects until all verts have been processed
 	std::vector<Renderable*> splitObjects;
-	while (numVertsProcessed < object->rawVerts.size()) {
-		Renderable* newObject = new Renderable();
-		splitObjects.push_back(newObject);
-		std::vector<glm::vec3> rawVerts;
-		std::vector<glm::vec3> normals;
-		std::vector<glm::vec2> uvs;
-		std::vector<GLushort> faces;
-		std::vector<GLushort> normalIndices;
-		std::vector<GLushort> uvIndices;
-		std::vector<glm::vec3> drawVerts;
-		std::vector<unsigned int> vertsToProcess;
+	while (numVertsProcessed < mainObject->verts.size()) {
+
+		// Create a new renderable
+		Renderable* r = new Renderable();
+		splitObjects.push_back(r);
+
+		// Create queue of verts to process and push a unprocessed vert to start with
+		std::deque<unsigned short> vertsToProcess;
 		std::vector<bool> facesUpdated;
 		for (unsigned int i = 0; i < vertsProcessed.size(); i++) {
 			if (!vertsProcessed[i]) {
@@ -49,9 +24,10 @@ std::vector<Renderable*> ModelSplitter::split(Renderable* object) {
 				break;
 			}
 		}
+		// Process all verts in the queue
 		while (vertsToProcess.size() != 0) {
-			for (unsigned int j = 0; j < object->faces.size(); j++) {
-				if (object->faces[j] == vertsToProcess[0]) {
+			for (unsigned int j = 0; j < mainObject->vertIndices.size(); j++) {
+				if (mainObject->vertIndices[j] == vertsToProcess.front()) {
 					unsigned int index = j % 3;
 					unsigned int first;
 					unsigned int second;
@@ -81,10 +57,10 @@ std::vector<Renderable*> ModelSplitter::split(Renderable* object) {
 					bool inListThird = false;
 					//Change this so that we check vertsProcessed first
 					for (unsigned int k = 0; k < vertsToProcess.size(); k++) {
-						if (object->faces[secondIndex] == vertsToProcess[k] || vertsProcessed[object->faces[secondIndex]]) {
+						if (mainObject->vertIndices[secondIndex] == vertsToProcess[k] || vertsProcessed[mainObject->vertIndices[secondIndex]]) {
 							inListSecond = true;
 						}
-						if (object->faces[thirdIndex] == vertsToProcess[k] || vertsProcessed[object->faces[thirdIndex]]) {
+						if (mainObject->vertIndices[thirdIndex] == vertsToProcess[k] || vertsProcessed[mainObject->vertIndices[thirdIndex]]) {
 							inListThird = true;
 						}
 						if (inListSecond && inListThird) {
@@ -92,61 +68,38 @@ std::vector<Renderable*> ModelSplitter::split(Renderable* object) {
 						}
 					}
 					if (!inListSecond) {
-						vertsToProcess.push_back(object->faces[secondIndex]);
+						vertsToProcess.push_back(mainObject->vertIndices[secondIndex]);
 					}
 					if (!inListThird) {
-						vertsToProcess.push_back(object->faces[thirdIndex]);
+						vertsToProcess.push_back(mainObject->vertIndices[thirdIndex]);
 					}
 					if (!facesProcessed[first]) {
 						facesProcessed[first] = true;
-						faces.push_back(object->faces[first]);
+						r->vertIndices.push_back(mainObject->vertIndices[first]);
 						facesUpdated.push_back(false);
-						faces.push_back(object->faces[second]);
+						r->vertIndices.push_back(mainObject->vertIndices[second]);
 						facesUpdated.push_back(false);
-						faces.push_back(object->faces[third]);
+						r->vertIndices.push_back(mainObject->vertIndices[third]);
 						facesUpdated.push_back(false);
-						normalIndices.push_back(object->normalIndices[first]);
-						normalIndices.push_back(object->normalIndices[second]);
-						normalIndices.push_back(object->normalIndices[third]);
-						uvIndices.push_back(object->uvIndices[first]);
-						uvIndices.push_back(object->uvIndices[second]);
-						uvIndices.push_back(object->uvIndices[third]);
-						//Push normal and uv indices here too
+
+						r->normalIndices.push_back(mainObject->normalIndices[first]);
+						r->normalIndices.push_back(mainObject->normalIndices[second]);
+						r->normalIndices.push_back(mainObject->normalIndices[third]);
+						r->uvIndices.push_back(mainObject->uvIndices[first]);
+						r->uvIndices.push_back(mainObject->uvIndices[second]);
+						r->uvIndices.push_back(mainObject->uvIndices[third]);
 					}
 				}
 			}
-			rawVerts.push_back(object->rawVerts[vertsToProcess[0]]);
-			//Repeat the below loop for normals and uvs
-			for (unsigned int i = 0; i < faces.size(); i++) {
-				if (faces[i] == vertsToProcess[0] && facesUpdated[i] == false) {
-					faces[i] = rawVerts.size() - 1;
-					facesUpdated[i] = true;
-				}
-			}
-			vertsProcessed[vertsToProcess[0]] = true;
+			vertsProcessed[vertsToProcess.front()] = true;
 			numVertsProcessed++;
-			vertsToProcess.erase(vertsToProcess.begin());
+			vertsToProcess.pop_front();
 		}
-		for (unsigned int i = 0; i < rawVerts.size(); i++) {
-			newObject->rawVerts.push_back(rawVerts[i]);
-		}
-		for (unsigned int i = 0; i < faces.size(); i++) {
-			newObject->drawVerts.push_back(rawVerts[faces[i]]);
-		}
-		for (unsigned int i = 0; i < faces.size(); i++) {
-			newObject->normals.push_back(object->normals[normalIndices[i]]);
-		}
-		for (unsigned int i = 0; i < faces.size(); i++) {
-			newObject->uvs.push_back(object->uvs[uvIndices[i]]);
-		}
-		for (unsigned int i = 0; i < normals.size(); i++) {
-			newObject->normalIndices.push_back(normalIndices[i]);
-		}
-		for (unsigned int i = 0; i < uvs.size(); i++) {
-			newObject->uvIndices.push_back(uvIndices[i]);
-		}
-		for (unsigned int i = 0; i < faces.size(); i++) {
-			newObject->faces.push_back(faces[i]);
+		// Push back data for new object
+		for (unsigned int i = 0; i < r->vertIndices.size(); i++) {
+			r->verts.push_back(mainObject->verts[r->vertIndices[i]]);
+			r->normals.push_back(mainObject->normals[r->normalIndices[i]]);
+			r->uvs.push_back(mainObject->uvs[r->uvIndices[i]]);
 		}
 	}
 	return splitObjects;

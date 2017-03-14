@@ -51,10 +51,11 @@ void Program::setupWindow() {
 
 // Loads and initializes all objects that can be viewed
 void Program::loadObject() {
-	object = ContentLoading::createRenderable("./models/lock.obj");
+	objects = ContentLoading::createRenderables("./models/example.obj");
 	//o->textureID = (renderEngine->loadTexture("./textures/cube.png"));
-	for (unsigned int i = 0; i < object.size(); i++) {
-		renderEngine->assignBuffers(*(object[i]));
+
+	for (Renderable* object : objects) {
+		renderEngine->assignBuffers(*object);
 	}
 
 }
@@ -66,9 +67,7 @@ void Program::mainLoop() {
 
 		// Will probably be changed to take topological sort of the graph instead of Renderable*
 		// Also frame number/graph depth for animation
-		for (unsigned int i = 0; i < object.size(); i++) {
-			renderEngine->render(object);
-		}
+		renderEngine->render(objects);
 		glfwSwapBuffers(window);
 	}
 

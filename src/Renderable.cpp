@@ -36,12 +36,12 @@ void Renderable::computeBoundingBox() {
 	float minX, maxX;
 	float minY, maxY;
 	float minZ, maxZ;
-	minX = maxX = rawVerts.at(0).x;
-	minY = maxY = rawVerts.at(0).y;
-	minZ = maxZ = rawVerts.at(0).z;
+	minX = maxX = verts.at(0).x;
+	minY = maxY = verts.at(0).y;
+	minZ = maxZ = verts.at(0).z;
 
 	// Loop over all verts to find max and mins
-	for (glm::vec3 v : rawVerts) {
+	for (glm::vec3 v : verts) {
 		minX = glm::min(minX, v.x);
 		maxX = glm::max(maxX, v.x);
 		minY = glm::min(minY, v.y);

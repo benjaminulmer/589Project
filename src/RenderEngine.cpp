@@ -46,7 +46,7 @@ void RenderEngine::render(std::vector<Renderable*> renderables) {
 		glUniform3fv(glGetUniformLocation(mainProgram, "lightPos"), 1, glm::value_ptr(lightPos));
 		glUniform1i(glGetUniformLocation(mainProgram, "hasTexture"), (renderables[i]->textureID > 0 ? 1 : 0));
 
-		glDrawElements(GL_TRIANGLES, renderables[i]->drawFaces.size(), GL_UNSIGNED_SHORT, (void*)0);
+		glDrawElements(GL_TRIANGLES, renderables[i]->faces.size(), GL_UNSIGNED_SHORT, (void*)0);
 		glBindVertexArray(0);
 		Texture::unbind2DTexture();
 	}
@@ -68,10 +68,10 @@ void RenderEngine::renderLight() {
 
 // Assigns and binds buffers for a renderable (sends it to the GPU)
 void RenderEngine::assignBuffers(Renderable& renderable) {
-	std::vector<glm::vec3>& vertices = renderable.drawVerts;
+	std::vector<glm::vec3>& vertices = renderable.verts;
 	std::vector<glm::vec3>& normals = renderable.normals;
 	std::vector<glm::vec2>& uvs = renderable.uvs;
-	std::vector<GLushort>& faces = renderable.drawFaces;
+	std::vector<GLushort>& faces = renderable.faces;
 
 	// Bind attribute array for triangles
 	glGenVertexArrays(1, &renderable.vao);
