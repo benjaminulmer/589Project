@@ -1,7 +1,0 @@
-#!/bin/bash
-
-cd Release &&
-make clean &&
-make &&
-cd .. &&
-./Debug/589Project
