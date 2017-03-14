@@ -23,6 +23,7 @@ public:
 	std::vector<GLushort> normalIndices;
 	std::vector<GLushort> uvIndices;
 	std::vector<glm::vec3> drawVerts;
+	std::vector<GLushort> drawFaces;
 
 	GLuint vao;
 	GLuint vertexBuffer;

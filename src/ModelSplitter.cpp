@@ -42,6 +42,7 @@ std::vector<Renderable*> ModelSplitter::split(Renderable* object) {
 		std::vector<GLushort> uvIndices;
 		std::vector<glm::vec3> drawVerts;
 		std::vector<unsigned int> vertsToProcess;
+		std::vector<bool> facesUpdated;
 		for (unsigned int i = 0; i < vertsProcessed.size(); i++) {
 			if (!vertsProcessed[i]) {
 				vertsToProcess.push_back(i);
@@ -99,8 +100,11 @@ std::vector<Renderable*> ModelSplitter::split(Renderable* object) {
 					if (!facesProcessed[first]) {
 						facesProcessed[first] = true;
 						faces.push_back(object->faces[first]);
+						facesUpdated.push_back(false);
 						faces.push_back(object->faces[second]);
+						facesUpdated.push_back(false);
 						faces.push_back(object->faces[third]);
+						facesUpdated.push_back(false);
 						normalIndices.push_back(object->normalIndices[first]);
 						normalIndices.push_back(object->normalIndices[second]);
 						normalIndices.push_back(object->normalIndices[third]);
@@ -111,19 +115,29 @@ std::vector<Renderable*> ModelSplitter::split(Renderable* object) {
 					}
 				}
 			}
-			verts.push_back(object->rawVerts[vertsToProcess[0]]);
+			rawVerts.push_back(object->rawVerts[vertsToProcess[0]]);
 			//Repeat the below loop for normals and uvs
 			for (unsigned int i = 0; i < faces.size(); i++) {
-				if (faces[i] == vertsToProcess[0]) {
-					faces[i] = verts.size() - 1;
+				if (faces[i] == vertsToProcess[0] && facesUpdated[i] == false) {
+					faces[i] = rawVerts.size() - 1;
+					facesUpdated[i] = true;
 				}
 			}
 			vertsProcessed[vertsToProcess[0]] = true;
 			numVertsProcessed++;
 			vertsToProcess.erase(vertsToProcess.begin());
 		}
-		for (unsigned int i = 0; i < verts.size(); i++) {
-			newObject->rawVerts.push_back(verts[i]);
+		for (unsigned int i = 0; i < rawVerts.size(); i++) {
+			newObject->rawVerts.push_back(rawVerts[i]);
+		}
+		for (unsigned int i = 0; i < faces.size(); i++) {
+			newObject->drawVerts.push_back(rawVerts[faces[i]]);
+		}
+		for (unsigned int i = 0; i < faces.size(); i++) {
+			newObject->normals.push_back(object->normals[normalIndices[i]]);
+		}
+		for (unsigned int i = 0; i < faces.size(); i++) {
+			newObject->uvs.push_back(object->uvs[uvIndices[i]]);
 		}
 		for (unsigned int i = 0; i < normals.size(); i++) {
 			newObject->normalIndices.push_back(normalIndices[i]);

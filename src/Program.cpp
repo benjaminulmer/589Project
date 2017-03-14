@@ -51,7 +51,7 @@ void Program::setupWindow() {
 
 // Loads and initializes all objects that can be viewed
 void Program::loadObject() {
-	object = ContentLoading::createRenderable("./models/cube.obj");
+	object = ContentLoading::createRenderable("./models/lock.obj");
 	//o->textureID = (renderEngine->loadTexture("./textures/cube.png"));
 	for (unsigned int i = 0; i < object.size(); i++) {
 		renderEngine->assignBuffers(*(object[i]));
