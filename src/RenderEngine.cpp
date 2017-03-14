@@ -34,23 +34,23 @@ void RenderEngine::render(std::vector<Renderable*> renderables) {
 	glm::mat4 model = glm::mat4();
 	glm::mat4 modelView = view * model;
 
-	for (unsigned int i = 0; i < renderables.size(); i++) {
-		glBindVertexArray(renderables[i]->vao);
+	for (Renderable* r : renderables) {
+		glBindVertexArray(r->vao);
 
 		// If the object has no image texture switch to attribute only mode
-		Texture::bind2DTexture(mainProgram, renderables[i]->textureID, "image");
+		Texture::bind2DTexture(mainProgram, r->textureID, "image");
 
 		// Uniforms
 		glUniformMatrix4fv(glGetUniformLocation(mainProgram, "modelView"), 1, GL_FALSE, glm::value_ptr(modelView));
 		glUniformMatrix4fv(glGetUniformLocation(mainProgram, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
 		glUniform3fv(glGetUniformLocation(mainProgram, "lightPos"), 1, glm::value_ptr(lightPos));
-		glUniform1i(glGetUniformLocation(mainProgram, "hasTexture"), (renderables[i]->textureID > 0 ? 1 : 0));
+		glUniform3fv(glGetUniformLocation(mainProgram, "objColour"), 1, glm::value_ptr(r->colour));
+		glUniform1i(glGetUniformLocation(mainProgram, "hasTexture"), (r->textureID > 0 ? 1 : 0));
 
-		glDrawElements(GL_TRIANGLES, renderables[i]->faces.size(), GL_UNSIGNED_SHORT, (void*)0);
+		glDrawElements(GL_TRIANGLES, r->faces.size(), GL_UNSIGNED_SHORT, (void*)0);
 		glBindVertexArray(0);
 		Texture::unbind2DTexture();
 	}
-
 	renderLight();
 }
 

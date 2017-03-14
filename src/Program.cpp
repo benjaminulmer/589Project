@@ -4,7 +4,6 @@ Program::Program() {
 	window = nullptr;
 	renderEngine = nullptr;
 	camera = nullptr;
-	//object = nullptr;
 }
 
 Program::~Program() {
@@ -27,7 +26,7 @@ void Program::start() {
 	camera = new Camera();
 	renderEngine = new RenderEngine(window, camera);
 	InputHandler::setUp(camera, renderEngine);
-	loadObject();
+	loadObjects();
 	mainLoop();
 }
 
@@ -50,18 +49,21 @@ void Program::setupWindow() {
 }
 
 // Loads and initializes all objects that can be viewed
-void Program::loadObject() {
+void Program::loadObjects() {
 	objects = ContentLoading::createRenderables("./models/example.obj");
 	//o->textureID = (renderEngine->loadTexture("./textures/cube.png"));
 
 	for (Renderable* object : objects) {
+		object->colour = glm::vec3(1.0f, 0.0f, 0.0f);
 		renderEngine->assignBuffers(*object);
 	}
-
 }
 
 // Main loop
 void Program::mainLoop() {
+
+	ExplosionGraph eg = ExplosionGraph();
+
 	while(!glfwWindowShouldClose(window)) {
 		glfwPollEvents();
 
