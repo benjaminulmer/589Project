@@ -48,55 +48,15 @@ void Program::setupWindow() {
 	glfwSetWindowSizeCallback(window, InputHandler::reshape);
 }
 
+// Loads and initializes all objects that can be viewed
 void Program::loadObjects() {
-	Renderable* object = ContentLoading::createRenderable("./models/example/a.obj");
-	renderEngine->assignBuffers(*object);
-	object->colour = glm::vec4(0.f, 1.f, 0.f, 1.f);
-	objects.push_back(object);
-
-	object = ContentLoading::createRenderable("./models/example/b.obj");
-	object->colour = glm::vec4(0.f, 0.9f, 0.2f, 1.f);
-	renderEngine->assignBuffers(*object);
-	objects.push_back(object);
-
-	object = ContentLoading::createRenderable("./models/example/c.obj");
-	object->colour = glm::vec4(0.f, 0.8f, 0.4f, 1.f);
-	renderEngine->assignBuffers(*object);
-	objects.push_back(object);
-
-	object = ContentLoading::createRenderable("./models/example/d.obj");
-	object->colour = glm::vec4(0.f, 0.7f, 0.5f, 1.f);
-	renderEngine->assignBuffers(*object);
-	objects.push_back(object);
-
-	object = ContentLoading::createRenderable("./models/example/e.obj");
-	object->colour = glm::vec4(0.f, 0.6f, 0.5f, 1.f);
-	renderEngine->assignBuffers(*object);
-	objects.push_back(object);
-
-	object = ContentLoading::createRenderable("./models/example/f.obj");
-	object->colour = glm::vec4(0.f, 0.4f, 0.6f, 1.f);
-	renderEngine->assignBuffers(*object);
-	objects.push_back(object);
-
-	object = ContentLoading::createRenderable("./models/example/g.obj");
-	object->colour = glm::vec4(0.f, 0.2f, 0.8f, 1.f);
-	renderEngine->assignBuffers(*object);
-	objects.push_back(object);
-
-	object = ContentLoading::createRenderable("./models/example/h.obj");
-	object->colour = glm::vec4(0.f, 0.f, 1.f, 1.f);
-	renderEngine->assignBuffers(*object);
-	objects.push_back(object);
-
-	/*Renderable* object = ContentLoading::createRenderable("./models/lock.obj");
-	renderEngine->assignBuffers(*object);
-	objects.push_back(object);
-
-	object = ContentLoading::createRenderable("./models/cube.obj");
+	objects = ContentLoading::createRenderables("./models/example.obj");
 	//o->textureID = (renderEngine->loadTexture("./textures/cube.png"));
-	renderEngine->assignBuffers(*object);
-	objects.push_back(object);*/
+
+	for (Renderable* object : objects) {
+		object->colour = glm::vec3(1.0f, 0.0f, 0.0f);
+		renderEngine->assignBuffers(*object);
+	}
 }
 
 // Main loop

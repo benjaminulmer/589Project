@@ -25,37 +25,32 @@ RenderEngine::~RenderEngine() {
 }
 
 // Called to render the active object. RenderEngine stores all information about how to render
-void RenderEngine::render(const Renderable& renderable) {
+void RenderEngine::render(std::vector<Renderable*> renderables) {
+	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 
-	glBindVertexArray(renderable.vao);
 	glUseProgram(mainProgram);
-
-	// If the object has no image texture switch to attribute only mode
-	Texture::bind2DTexture(mainProgram, renderable.textureID, "image");
 
 	view = camera->getLookAt();
 	glm::mat4 model = glm::mat4();
 	glm::mat4 modelView = view * model;
 
-	// Uniforms
-	glUniformMatrix4fv(glGetUniformLocation(mainProgram, "modelView"), 1, GL_FALSE, glm::value_ptr(modelView));
-	glUniformMatrix4fv(glGetUniformLocation(mainProgram, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
-	glUniform3fv(glGetUniformLocation(mainProgram, "lightPos"), 1, glm::value_ptr(lightPos));
-	glUniform1i(glGetUniformLocation(mainProgram, "hasTexture"), (renderable.textureID > 0 ? 1 : 0));
-	glUniform4fv(glGetUniformLocation(mainProgram, "objColour"), 1, glm::value_ptr(renderable.colour));
+	for (Renderable* r : renderables) {
+		glBindVertexArray(r->vao);
 
-	glDrawElements(GL_TRIANGLES, renderable.drawFaces.size(), GL_UNSIGNED_SHORT, (void*)0);
-	glBindVertexArray(0);
-	Texture::unbind2DTexture();
-}
+		// If the object has no image texture switch to attribute only mode
+		Texture::bind2DTexture(mainProgram, r->textureID, "image");
 
-void RenderEngine::render(std::vector<Renderable*> renderables) {
-	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
+		// Uniforms
+		glUniformMatrix4fv(glGetUniformLocation(mainProgram, "modelView"), 1, GL_FALSE, glm::value_ptr(modelView));
+		glUniformMatrix4fv(glGetUniformLocation(mainProgram, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
+		glUniform3fv(glGetUniformLocation(mainProgram, "lightPos"), 1, glm::value_ptr(lightPos));
+		glUniform3fv(glGetUniformLocation(mainProgram, "objColour"), 1, glm::value_ptr(r->colour));
+		glUniform1i(glGetUniformLocation(mainProgram, "hasTexture"), (r->textureID > 0 ? 1 : 0));
 
-	for (Renderable* renderable : renderables) {
-		render(*renderable);
+		glDrawElements(GL_TRIANGLES, r->faces.size(), GL_UNSIGNED_SHORT, (void*)0);
+		glBindVertexArray(0);
+		Texture::unbind2DTexture();
 	}
-
 	renderLight();
 }
 
@@ -73,10 +68,10 @@ void RenderEngine::renderLight() {
 
 // Assigns and binds buffers for a renderable (sends it to the GPU)
 void RenderEngine::assignBuffers(Renderable& renderable) {
-	std::vector<glm::vec3>& vertices = renderable.drawVerts;
+	std::vector<glm::vec3>& vertices = renderable.verts;
 	std::vector<glm::vec3>& normals = renderable.normals;
 	std::vector<glm::vec2>& uvs = renderable.uvs;
-	std::vector<GLushort>& faces = renderable.drawFaces;
+	std::vector<GLushort>& faces = renderable.faces;
 
 	// Bind attribute array for triangles
 	glGenVertexArrays(1, &renderable.vao);
