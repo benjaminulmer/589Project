@@ -1,6 +1,9 @@
 #pragma once
 
+#include <algorithm>
+#include <iostream>
 #include <list>
+#include <string>
 
 #include "Renderable.h"
 

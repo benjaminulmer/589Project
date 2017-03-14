@@ -102,7 +102,7 @@ void Program::loadObjects() {
 // Main loop
 void Program::mainLoop() {
 
-	ExplosionGraph eg = ExplosionGraph();
+	ExplosionGraph eg = ExplosionGraph(objects);
 
 	while(!glfwWindowShouldClose(window)) {
 		glfwPollEvents();
