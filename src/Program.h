@@ -23,7 +23,7 @@ private:
 	RenderEngine* renderEngine;
 	Camera* camera;
 
-	std::vector<Renderable*> objects;
+	ExplosionGraph graph;
 
 	static void error(int error, const char* description);
 	void setupWindow();

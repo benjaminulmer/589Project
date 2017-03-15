@@ -50,7 +50,7 @@ void Program::setupWindow() {
 
 // Loads and initializes all objects that can be viewed
 void Program::loadObjects() {
-	objects = ContentLoading::createRenderables("./models/example.obj");
+	std::vector<Renderable*> objects = ContentLoading::createRenderables("./models/example.obj");
 	//o->textureID = (renderEngine->loadTexture("./textures/cube.png"));
 
 	float i = 0.f;
@@ -62,19 +62,32 @@ void Program::loadObjects() {
 
 		renderEngine->assignBuffers(*object);
 	}
+
+	graph = ExplosionGraph(objects);
 }
 
 // Main loop
 void Program::mainLoop() {
 
-	ExplosionGraph eg = ExplosionGraph(objects);
+	std::vector<std::vector<Node*>> sort = graph.getSort();
+	int level = sort.size();
+
+	int frame = 0;
+	int maxFrame = 120;
 
 	while(!glfwWindowShouldClose(window)) {
 		glfwPollEvents();
 
-		// Will probably be changed to take topological sort of the graph instead of Renderable*
-		// Also frame number/graph depth for animation
-		renderEngine->render(objects);
+		if (level >= 0) {
+
+			frame++;
+			if (frame > maxFrame) {
+				frame = 0;
+				level--;
+			}
+		}
+
+		renderEngine->render(sort, level, (float)frame / (float)maxFrame);
 		glfwSwapBuffers(window);
 	}
 

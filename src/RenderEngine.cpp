@@ -25,31 +25,48 @@ RenderEngine::~RenderEngine() {
 }
 
 // Called to render the active object. RenderEngine stores all information about how to render
-void RenderEngine::render(std::vector<Renderable*> renderables) {
+void RenderEngine::render(const std::vector<std::vector<Node*>>& graph, int level, float perc) {
 	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
-
 	glUseProgram(mainProgram);
 
-	view = camera->getLookAt();
-	glm::mat4 model = glm::mat4();
-	glm::mat4 modelView = view * model;
+	int i = 0;
+	for (std::vector<Node*> l : graph) {
+		for (Node* node : l) {
+			Renderable* renderable = node->part;
+			glBindVertexArray(renderable->vao);
 
-	for (Renderable* r : renderables) {
-		glBindVertexArray(r->vao);
+			// If the object has no image texture switch to attribute only mode
+			Texture::bind2DTexture(mainProgram, renderable->textureID, "image");
 
-		// If the object has no image texture switch to attribute only mode
-		Texture::bind2DTexture(mainProgram, r->textureID, "image");
+			view = camera->getLookAt();
+			glm::mat4 model;
 
-		// Uniforms
-		glUniformMatrix4fv(glGetUniformLocation(mainProgram, "modelView"), 1, GL_FALSE, glm::value_ptr(modelView));
-		glUniformMatrix4fv(glGetUniformLocation(mainProgram, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
-		glUniform3fv(glGetUniformLocation(mainProgram, "lightPos"), 1, glm::value_ptr(lightPos));
-		glUniform3fv(glGetUniformLocation(mainProgram, "objColour"), 1, glm::value_ptr(r->colour));
-		glUniform1i(glGetUniformLocation(mainProgram, "hasTexture"), (r->textureID > 0 ? 1 : 0));
+			// Determine how far to move object
+			glm::vec3 dir = node->direction;
+			if (i > level) {
+				model = glm::translate(dir * node->totalDistance);
+			}
+			else if (i == level) {
+				model = glm::translate(dir * node->totalDistance * perc);
+			}
+			else {
+				model = glm::mat4();
+			}
 
-		glDrawElements(GL_TRIANGLES, r->faces.size(), GL_UNSIGNED_SHORT, (void*)0);
-		glBindVertexArray(0);
-		Texture::unbind2DTexture();
+			glm::mat4 modelView = view * model;
+
+			// Uniforms
+			glUniformMatrix4fv(glGetUniformLocation(mainProgram, "modelView"), 1, GL_FALSE, glm::value_ptr(modelView));
+			glUniformMatrix4fv(glGetUniformLocation(mainProgram, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
+			glUniform3fv(glGetUniformLocation(mainProgram, "lightPos"), 1, glm::value_ptr(lightPos));
+			glUniform3fv(glGetUniformLocation(mainProgram, "objColour"), 1, glm::value_ptr(renderable->colour));
+			glUniform1i(glGetUniformLocation(mainProgram, "hasTexture"), (renderable->textureID > 0 ? 1 : 0));
+
+			glDrawElements(GL_TRIANGLES, renderable->faces.size(), GL_UNSIGNED_SHORT, (void*)0);
+			glBindVertexArray(0);
+			Texture::unbind2DTexture();
+		}
+		i++;
 	}
 	renderLight();
 }

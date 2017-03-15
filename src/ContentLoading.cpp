@@ -9,7 +9,6 @@ std::vector<Renderable*> ContentLoading::createRenderables(std::string modelFile
 
 	ModelSplitter splitter = ModelSplitter();
 	std::vector<Renderable*> output = splitter.split(r);
-	std::cout << output.size() << std::endl; // temp
 
 	for (unsigned int i = 0; i < output.size(); i++) {
 		std::vector<unsigned short> indices;
