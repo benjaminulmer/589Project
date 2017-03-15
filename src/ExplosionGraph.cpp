@@ -292,7 +292,6 @@ void ExplosionGraph::constructInverse() {
 
 // Topologically sorts the graph
 int ExplosionGraph::sort() {
-
 	// Copy so we don't ruin the actual graph
 	std::vector<std::list<Node*>> iGraphMain = iGraph;
 
@@ -308,10 +307,11 @@ int ExplosionGraph::sort() {
 
 		// Loop over all nodes in graph
 		for (unsigned int i = 0; i < iGraphC.size(); i++) {
-			Node* self = iGraphC[i].front();
 
 			// One parent (only self) means no incoming edges. 0 means it has been removed
 			if (iGraphC[i].size() == 1) {
+				Node* self = iGraphC[i].front();
+
 				found = true;
 				queue.push_back(self);
 				numAdded++;
@@ -330,13 +330,6 @@ int ExplosionGraph::sort() {
 		// Add found nodes to current level then clear the queue
 		topologicalSort.push_back(queue);
 		queue.clear();
-	}
-
-	for (std::vector<Node*> l : topologicalSort) {
-		for (Node* node : l) {
-			std::cout << node->index << ", ";
-		}
-		std::cout << std::endl;
 	}
 
 	return 0;
