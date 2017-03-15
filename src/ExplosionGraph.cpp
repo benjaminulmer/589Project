@@ -230,6 +230,7 @@ ExplosionGraph::ExplosionGraph(std::vector<Renderable*> parts) {
 	int i = 0;
 	while (activeSet.size() > 0) {
 		std::cout << "Iteration " << i << std::endl;
+		std::cout << "set: ";
 		for (int active : activeSet) {
 			std::cout << active << " ";
 		}
@@ -237,14 +238,14 @@ ExplosionGraph::ExplosionGraph(std::vector<Renderable*> parts) {
 
 		// Create subset of unblocked pieces
 		std::vector<int> unblocked;
-		for (int j = 0; j < activeSet.size(); j++) {
+		for (unsigned int j = 0; j < activeSet.size(); j++) {
 			// setup booleans for the six directions
 			bool xPlus = true;
 			bool xMinus = true;
 			bool zPlus = true;
 			bool zMinus = true;
-			bool yPlus = false; // for now
-			bool yMinus = false; // for now
+			//bool yPlus = false; // for now
+			//bool yMinus = false; // for now
 			for (Block block : nodes[activeSet[j]].blocking) {
 
 				// if blocking part is in the active set
@@ -284,39 +285,47 @@ ExplosionGraph::ExplosionGraph(std::vector<Renderable*> parts) {
 					}*/
 				}
 			}
-			if (((xPlus || xMinus) || (yPlus || yMinus)) || (zPlus || zMinus)) {
+			//if (((xPlus || xMinus) || (yPlus || yMinus)) || (zPlus || zMinus)) {
+			if ((xPlus || xMinus) || (zPlus || zMinus)) {
 				std::cout << "Adding " << activeSet[j] << " to remove nodes" << std::endl;
 
 				unblocked.push_back(activeSet[j]);
 			}
 		}
 		
+		std::vector<int> blocking;
+		int unblockIndex = -1;
+		glm::vec3 unblockDirection;
+		float minDistance = 10000.f;
+
 		//for each unblocked part
-		for (int m = 0; m < unblocked.size(); m++) {
-			std::vector<int> blocking;
-			glm::vec3 unblockDirection;
-			float minDistance = 10000.f;
+		for (unsigned int m = 0; m < unblocked.size(); m++) {
+			std::cout << "checking for node " << unblocked[m] << std::endl;
 			//TODO determine shortest distance needed to escape bounding box of contacting parts,
 			// & store the direction of this distance as the explosion direction for p
 			bool xPlus = true;
 			bool xMinus = true;
 			bool zPlus = true;
 			bool zMinus = true;
-			bool yPlus = false; // for now
-			bool yMinus = false; // for now
+			//bool yPlus = false; // for now
+			//bool yMinus = false; // for now
 			for (Block block : nodes[unblocked[m]].blocking) {
-				blocking.push_back(block.part->index);
-				if (block.direction.x == 1.f) xPlus = false;
-				else if (block.direction.x == -1.f) xMinus = false;
-				else if (block.direction.z == 1.f) zPlus = false;
-				else if (block.direction.z == -1.f) zMinus = false;
+				// if blocking part is in the active set
+				if (std::find(activeSet.begin(), activeSet.end(), block.part->index) != activeSet.end()) {
+					blocking.push_back(block.part->index);
+					if (block.direction.x == 1.f) xPlus = false;
+					else if (block.direction.x == -1.f) xMinus = false;
+					else if (block.direction.z == 1.f) zPlus = false;
+					else if (block.direction.z == -1.f) zMinus = false;
+				}
 			}
 			glm::vec3 partDimensions = nodes[unblocked[m]].part->getDimensions();
 			glm::vec3 partPos = nodes[unblocked[m]].part->getPosition();
 			glm::vec3 blockDimensions, blockPos;
 			// find shortest distance to escape bounding box of active parts this part is in contact with 
 			if (xPlus) {
-				if (unblockDirection == glm::vec3(0.f, 0.f, 0.f)) unblockDirection = glm::vec3(1.f, 0.f, 0.f);
+				//std::cout << "xplus" << std::endl;
+				//if (unblockDirection == glm::vec3(0.f, 0.f, 0.f)) unblockDirection = glm::vec3(-1.f, 0.f, 0.f);
 				for (Block block : nodes[unblocked[m]].blocking) {
 					blockDimensions = block.part->part->getDimensions();
 					blockPos = block.part->part->getPosition();
@@ -324,13 +333,16 @@ ExplosionGraph::ExplosionGraph(std::vector<Renderable*> parts) {
 					newPos = blockPos.x + ((0.5 * partDimensions.x) + (0.5 * blockDimensions.x));
 					float distance = newPos - partPos.x;
 					if (distance < minDistance) {
-						unblockDirection = glm::vec3(1.f, 0.f, 0.f);
+						unblockDirection = glm::vec3(-1.f, 0.f, 0.f);
 						minDistance = distance;
+						unblockIndex = m;
+						//std::cout << "adding " << m << std::endl;
 					}
 				}
 			}
 			if (xMinus) {
-				if (unblockDirection == glm::vec3(0.f, 0.f, 0.f)) unblockDirection = glm::vec3(-1.f, 0.f, 0.f);
+				//std::cout << "xminus" << std::endl;
+				//if (unblockDirection == glm::vec3(0.f, 0.f, 0.f)) unblockDirection = glm::vec3(1.f, 0.f, 0.f);
 				for (Block block : nodes[unblocked[m]].blocking) {
 					blockDimensions = block.part->part->getDimensions();
 					blockPos = block.part->part->getPosition();
@@ -338,13 +350,16 @@ ExplosionGraph::ExplosionGraph(std::vector<Renderable*> parts) {
 					newPos = blockPos.x - ((0.5 * partDimensions.x) + (0.5 * blockDimensions.x));
 					float distance = newPos - partPos.x;
 					if (distance < minDistance) {
-						unblockDirection = glm::vec3(-1.f, 0.f, 0.f);
+						unblockDirection = glm::vec3(1.f, 0.f, 0.f);
 						minDistance = distance;
+						unblockIndex = m;
+						//std::cout << "adding " << m << std::endl;
 					}
 				}
 			}
 			if (zPlus) {
-				if (unblockDirection == glm::vec3(0.f, 0.f, 0.f)) unblockDirection = glm::vec3(0.f, 0.f, 1.f);
+				//std::cout << "zplus" << std::endl;
+				//if (unblockDirection == glm::vec3(0.f, 0.f, 0.f)) unblockDirection = glm::vec3(0.f, 0.f, -1.f);
 				for (Block block : nodes[unblocked[m]].blocking) {
 					blockDimensions = block.part->part->getDimensions();
 					blockPos = block.part->part->getPosition();
@@ -352,13 +367,16 @@ ExplosionGraph::ExplosionGraph(std::vector<Renderable*> parts) {
 					newPos = blockPos.z + ((0.5 * partDimensions.z) + (0.5 * blockDimensions.z));
 					float distance = newPos - partPos.z;
 					if (distance < minDistance) {
-						unblockDirection = glm::vec3(0.f, 0.f, 1.f);
+						unblockDirection = glm::vec3(0.f, 0.f, -1.f);
 						minDistance = distance;
+						unblockIndex = m;
+						//std::cout << "adding " << m << std::endl;
 					}
 				}
 			}
 			if (zMinus) {
-				if (unblockDirection == glm::vec3(0.f, 0.f, 0.f)) unblockDirection = glm::vec3(0.f, 0.f, -1.f);
+				//std::cout << "zminus" << std::endl;
+				//if (unblockDirection == glm::vec3(0.f, 0.f, 0.f)) unblockDirection = glm::vec3(0.f, 0.f, 1.f);
 				for (Block block : nodes[unblocked[m]].blocking) {
 					blockDimensions = block.part->part->getDimensions();
 					blockPos = block.part->part->getPosition();
@@ -366,23 +384,39 @@ ExplosionGraph::ExplosionGraph(std::vector<Renderable*> parts) {
 					newPos = blockPos.z - ((0.5 * partDimensions.z) + (0.5 * blockDimensions.z));
 					float distance = newPos - partPos.z;
 					if (distance < minDistance) {
-						unblockDirection = glm::vec3(0.f, 0.f, -1.f);
+						unblockDirection = glm::vec3(0.f, 0.f, 1.f);
 						minDistance = distance;
+						unblockIndex = m;
+						//std::cout << "adding " << m << std::endl;
 					}
 				}
 			}
-
-			for (int block : blocking) {
-				graph[block].push_back(&nodes[unblocked[m]]);
-			}
-			activeSet.erase(std::find(activeSet.begin(), activeSet.end(), unblocked[m]));
-			// add edge to every active part that touches p
 		}
+
+		//std::cout << "removing " << unblocked[unblockIndex] << std::endl;
+		for (Block block : nodes[unblocked[unblockIndex]].blocking) {
+			// if blocking part is in the active set
+			if (std::find(activeSet.begin(), activeSet.end(), block.part->index) != activeSet.end()) {
+				bool contains = false;
+				for (Node* n : graph[block.part->index]) {
+					if (n->index == unblocked[unblockIndex]) contains = true;
+				}
+				if (!contains) {
+					graph[block.part->index].push_back(&nodes[unblocked[unblockIndex]]);
+					std::cout << "adding edge to " << block.part->index << std::endl;
+				}
+			}
+		}
+		std::cout << "direction: " << unblockDirection.x << " " << unblockDirection.y << " " << unblockDirection.z << std::endl;
+		nodes[unblocked[unblockIndex]].direction = unblockDirection;
+		nodes[unblocked[unblockIndex]].selfDistance = minDistance;
+		activeSet.erase(std::find(activeSet.begin(), activeSet.end(), unblocked[unblockIndex]));
+		// add edge to every active part that touches p
+		std::cout << "removing " << nodes[unblocked[unblockIndex]].index << " from active set" << std::endl;
 		i++;
 	}
 	
 	constructInverse();
-	sort();
 	// Compute total distance for each part after graph is complete (Ben)
 	if (sort() == -1) {
 		std::cout << "Error, graph contains cycle(s)" << std::endl;

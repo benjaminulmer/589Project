@@ -63,7 +63,7 @@ void Program::loadObjects() {
 		renderEngine->assignBuffers(*object);
 	}
 
-	graph = ExplosionGraph(objects, true);
+	graph = ExplosionGraph(objects);
 }
 
 // Main loop
