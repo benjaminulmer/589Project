@@ -11,12 +11,12 @@ Node::Node(Renderable* part, int index) : part(part), index(index), selfDistance
 ExplosionGraph::ExplosionGraph(std::vector<Renderable*> parts, bool test) {
 
 	// Number of nodes in graph is number of parts in model
-	int numParts = parts.size();
+	numParts = parts.size();
 	graph = std::vector<std::list<Node*>>(numParts);
 	iGraph = std::vector<std::list<Node*>>(numParts);
 
 	// Fill list of nodes
-	nodes = std::vector<Node>(numParts);
+	nodes = new Node[numParts];
 	for (int i = 0; i < numParts; i++) {
 		nodes[i] = Node(parts[i], i);
 		graph[i].push_back(&nodes[i]);
@@ -57,7 +57,7 @@ ExplosionGraph::ExplosionGraph(std::vector<Renderable*> parts) {
 	iGraph = std::vector<std::list<Node*>>(numParts);
 
 	// Fill list of nodes
-	nodes = std::vector<Node>(numParts);
+	nodes = new Node[numParts];
 	std::vector<int> activeSet;
 	for (int i = 0; i < numParts; i++) {
 		nodes[i] = Node(parts[i], i);
@@ -271,12 +271,12 @@ ExplosionGraph::ExplosionGraph(std::vector<Renderable*> parts) {
 void ExplosionGraph::constructInverse() {
 
 	// Add self for each edge list
-	for (unsigned int i = 0; i < nodes.size(); i++) {
+	for (unsigned int i = 0; i < numParts; i++) {
 		iGraph[i].push_back(&nodes[i]);
 	}
 
 	// Construct inverse
-	for (unsigned int i = 0; i < nodes.size(); i++) {
+	for (unsigned int i = 0; i < numParts; i++) {
 		int j = 0;
 		for (Node* neighbour : graph[i]) {
 
@@ -299,7 +299,7 @@ int ExplosionGraph::sort() {
 
 	// Continue until all nodes have been sorted
 	unsigned int numAdded = 0;
-	while (numAdded < nodes.size()) {
+	while (numAdded < numParts) {
 		bool found = false;
 
 		// Another copy so all nodes of can be found for each level
