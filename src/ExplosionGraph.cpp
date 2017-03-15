@@ -46,51 +46,7 @@ ExplosionGraph::ExplosionGraph(std::vector<Renderable*> parts, bool test) {
 Block::Block(Node* part, glm::vec3 direction) : part(part), direction(direction) {}
 
 // Creates hard coded explosion graph for testing
-ExplosionGraph::ExplosionGraph() {
-
-	// Number of nodes in graph is number of parts in model
-	int numParts = 5;
-	graph = std::vector<std::list<Node*>>(numParts);
-	iGraph = std::vector<std::list<Node*>>(numParts);
-
-	// Fill list of nodes
-	nodes = std::vector<Node>(numParts);
-	for (int i = 0; i < numParts; i++) {
-		nodes[i] = Node(nullptr, i);
-		graph[i].push_back(&nodes[i]);
-	}
-
-	// Hard coded graph for testing
-
-	/*
-	graph[1].push_back(&nodes[0]); graph[1].push_back(&nodes[4]);
-	graph[2].push_back(&nodes[1]); graph[2].push_back(&nodes[3]); graph[2].push_back(&nodes[5]); graph[2].push_back(&nodes[6]); graph[2].push_back(&nodes[4]);
-	graph[3].push_back(&nodes[1]); graph[3].push_back(&nodes[4]);
-	graph[5].push_back(&nodes[4]); graph[5].push_back(&nodes[6]);
-	graph[6].push_back(&nodes[7]); graph[6].push_back(&nodes[4]);
-	*/
-
-	graph[1].push_back(&nodes[0]); graph[1].push_back(&nodes[2]);
-	graph[2].push_back(&nodes[0]);
-	graph[3].push_back(&nodes[1]); graph[3].push_back(&nodes[2]);
-	graph[4].push_back(&nodes[1]); graph[4].push_back(&nodes[3]);
-
-
-	for (unsigned int i = 0; i < nodes.size(); i++) {
-		nodes[i].direction = glm::vec3(0.0f, -1.0f, 0.0f);
-	}
-	nodes[0].selfDistance = 0.2f;
-	nodes[1].selfDistance = 2.0f;
-	nodes[2].selfDistance = 1.0f;
-	nodes[3].selfDistance = 1.0f;
-	nodes[4].selfDistance = 0.0f;
-
-	constructInverse();
-	if (sort() == -1) {
-		std::cout << "Error, graph contains cycle(s)" << std::endl;
-	}
-	fillDistances();
-}
+ExplosionGraph::ExplosionGraph() { }
 
 // Creates explosion graph for provided parts
 ExplosionGraph::ExplosionGraph(std::vector<Renderable*> parts) {
