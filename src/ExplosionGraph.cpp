@@ -290,12 +290,91 @@ ExplosionGraph::ExplosionGraph(std::vector<Renderable*> parts) {
 				unblocked.push_back(activeSet[j]);
 			}
 		}
-		// now the set of unblocked parts is created
-
+		
 		//for each unblocked part
 		for (int m = 0; m < unblocked.size(); m++) {
+			std::vector<int> blocking;
+			glm::vec3 unblockDirection;
+			float minDistance = 10000.f;
 			//TODO determine shortest distance needed to escape bounding box of contacting parts,
 			// & store the direction of this distance as the explosion direction for p
+			bool xPlus = true;
+			bool xMinus = true;
+			bool zPlus = true;
+			bool zMinus = true;
+			bool yPlus = false; // for now
+			bool yMinus = false; // for now
+			for (Block block : nodes[unblocked[m]].blocking) {
+				blocking.push_back(block.part->index);
+				if (block.direction.x == 1.f) xPlus = false;
+				else if (block.direction.x == -1.f) xMinus = false;
+				else if (block.direction.z == 1.f) zPlus = false;
+				else if (block.direction.z == -1.f) zMinus = false;
+			}
+			glm::vec3 partDimensions = nodes[unblocked[m]].part->getDimensions();
+			glm::vec3 partPos = nodes[unblocked[m]].part->getPosition();
+			glm::vec3 blockDimensions, blockPos;
+			// find shortest distance to escape bounding box of active parts this part is in contact with 
+			if (xPlus) {
+				if (unblockDirection == glm::vec3(0.f, 0.f, 0.f)) unblockDirection = glm::vec3(1.f, 0.f, 0.f);
+				for (Block block : nodes[unblocked[m]].blocking) {
+					blockDimensions = block.part->part->getDimensions();
+					blockPos = block.part->part->getPosition();
+					float newPos;
+					newPos = blockPos.x + ((0.5 * partDimensions.x) + (0.5 * blockDimensions.x));
+					float distance = newPos - partPos.x;
+					if (distance < minDistance) {
+						unblockDirection = glm::vec3(1.f, 0.f, 0.f);
+						minDistance = distance;
+					}
+				}
+			}
+			if (xMinus) {
+				if (unblockDirection == glm::vec3(0.f, 0.f, 0.f)) unblockDirection = glm::vec3(-1.f, 0.f, 0.f);
+				for (Block block : nodes[unblocked[m]].blocking) {
+					blockDimensions = block.part->part->getDimensions();
+					blockPos = block.part->part->getPosition();
+					float newPos;
+					newPos = blockPos.x - ((0.5 * partDimensions.x) + (0.5 * blockDimensions.x));
+					float distance = newPos - partPos.x;
+					if (distance < minDistance) {
+						unblockDirection = glm::vec3(-1.f, 0.f, 0.f);
+						minDistance = distance;
+					}
+				}
+			}
+			if (zPlus) {
+				if (unblockDirection == glm::vec3(0.f, 0.f, 0.f)) unblockDirection = glm::vec3(0.f, 0.f, 1.f);
+				for (Block block : nodes[unblocked[m]].blocking) {
+					blockDimensions = block.part->part->getDimensions();
+					blockPos = block.part->part->getPosition();
+					float newPos;
+					newPos = blockPos.z + ((0.5 * partDimensions.z) + (0.5 * blockDimensions.z));
+					float distance = newPos - partPos.z;
+					if (distance < minDistance) {
+						unblockDirection = glm::vec3(0.f, 0.f, 1.f);
+						minDistance = distance;
+					}
+				}
+			}
+			if (zMinus) {
+				if (unblockDirection == glm::vec3(0.f, 0.f, 0.f)) unblockDirection = glm::vec3(0.f, 0.f, -1.f);
+				for (Block block : nodes[unblocked[m]].blocking) {
+					blockDimensions = block.part->part->getDimensions();
+					blockPos = block.part->part->getPosition();
+					float newPos;
+					newPos = blockPos.z - ((0.5 * partDimensions.z) + (0.5 * blockDimensions.z));
+					float distance = newPos - partPos.z;
+					if (distance < minDistance) {
+						unblockDirection = glm::vec3(0.f, 0.f, -1.f);
+						minDistance = distance;
+					}
+				}
+			}
+
+			for (int block : blocking) {
+				graph[block].push_back(&nodes[unblocked[m]]);
+			}
 			activeSet.erase(std::find(activeSet.begin(), activeSet.end(), unblocked[m]));
 			// add edge to every active part that touches p
 		}

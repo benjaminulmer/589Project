@@ -2,7 +2,7 @@
 
 // Create renderable from obj file
 std::vector<Renderable*> ContentLoading::createRenderables(std::string modelFile) {
-
+	std::cout << "Creating renderables" << std::endl;
 	// Read data in from obj file
 	Renderable * r = new Renderable();
 	ContentLoading::loadOBJ(modelFile.c_str(), r);
