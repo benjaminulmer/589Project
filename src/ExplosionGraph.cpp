@@ -148,7 +148,7 @@ ExplosionGraph::ExplosionGraph(std::vector<Renderable*> parts) {
 	nodes[1].blocking.push_back(Block(&nodes[6], glm::vec3(-1.f, 0.f, 0.f)));
 
 	nodes[1].blocking.push_back(Block(&nodes[2], glm::vec3(0.f, 0.f, 1.f)));
-	nodes[1].blocking.push_back(Block(&nodes[3], glm::vec3(0.f, 0.f, 1.f)));
+	nodes[1].blocking.push_back(Block(&nodes[4], glm::vec3(0.f, 0.f, 1.f)));
 	nodes[1].blocking.push_back(Block(&nodes[6], glm::vec3(0.f, 0.f, 1.f)));
 
 	// block d
@@ -227,9 +227,7 @@ ExplosionGraph::ExplosionGraph(std::vector<Renderable*> parts) {
 	nodes[5].blocking.push_back(Block(&nodes[6], glm::vec3(-1.f, 0.f, 0.f)));
 
 	// Construct graph from contacts and blocking (Mia)
-	int i = 0;
 	while (activeSet.size() > 0) {
-		std::cout << "Iteration " << i << std::endl;
 		std::cout << "set: ";
 		for (int active : activeSet) {
 			std::cout << active << " ";
@@ -244,71 +242,41 @@ ExplosionGraph::ExplosionGraph(std::vector<Renderable*> parts) {
 			bool xMinus = true;
 			bool zPlus = true;
 			bool zMinus = true;
-			//bool yPlus = false; // for now
-			//bool yMinus = false; // for now
+			//bool yPlus = true;
+			//bool yMinus = true;
 			for (Block block : nodes[activeSet[j]].blocking) {
 
 				// if blocking part is in the active set
 				if (std::find(activeSet.begin(), activeSet.end(), block.part->index) != activeSet.end()) {
-					//TODO Make this better
-					if (block.direction.x == 1.f) {
-						//std::cout << "blocked in x+ direction" << std::endl;
-
-						xPlus = false;
-						nodes[activeSet[j]].direction = glm::vec3(1.f, 0.f, 0.f);
-					}
-					else if (block.direction.x == -1.f) {
-						//std::cout << "blocked in x- direction" << std::endl;
-
-						xMinus = false;
-						nodes[activeSet[j]].direction = glm::vec3(-1.f, 0.f, 0.f);
-					}
-					else if (block.direction.z == 1.f) {
-						//std::cout << "blocked in z+ direction" << std::endl;
-
-						zPlus = false;
-						nodes[activeSet[j]].direction = glm::vec3(0.f, 0.f, 1.f);
-					}
-					else if (block.direction.z == -1.f) {
-						//std::cout << "blocked in z- direction" << std::endl;
-
-						zMinus = false;
-						nodes[activeSet[j]].direction = glm::vec3(0.f, 0.f, -1.f);
-					}
-					/*else if (block.direction.y == 1.f){
-						yPlus = false;
-						nodes[activeSet[j]].direction = glm::vec3(0.f, 1.f, 0.f);
-					}
-					else if (block.direction.y == -1.f) {
-						yMinus = false;
-						nodes[activeSet[j]].direction = glm::vec3(0.f, -1.f, 0.f);
-					}*/
+					if (block.direction.x == 1.f) xPlus = false;
+					else if (block.direction.x == -1.f) xMinus = false;
+					else if (block.direction.z == 1.f) zPlus = false;
+					else if (block.direction.z == -1.f) zMinus = false;
+					//else if (block.direction.y == 1.f) yPlus = false;
+					//else if (block.direction.y == -1.f)  yMinus = false;
 				}
 			}
 			//if (((xPlus || xMinus) || (yPlus || yMinus)) || (zPlus || zMinus)) {
-			if ((xPlus || xMinus) || (zPlus || zMinus)) {
-				std::cout << "Adding " << activeSet[j] << " to remove nodes" << std::endl;
-
-				unblocked.push_back(activeSet[j]);
-			}
+			if ((xPlus || xMinus) || (zPlus || zMinus)) unblocked.push_back(activeSet[j]);
 		}
-		
-		std::vector<int> blocking;
-		int unblockIndex = -1;
-		glm::vec3 unblockDirection;
-		float minDistance = 10000.f;
+
+		// add edge to every active part that touches p
+		for (unsigned int m = 0; m < unblocked.size(); m++) {
+			activeSet.erase(std::find(activeSet.begin(), activeSet.end(), unblocked[m]));
+		}
 
 		//for each unblocked part
 		for (unsigned int m = 0; m < unblocked.size(); m++) {
-			std::cout << "checking for node " << unblocked[m] << std::endl;
-			//TODO determine shortest distance needed to escape bounding box of contacting parts,
-			// & store the direction of this distance as the explosion direction for p
+			std::vector<int> blocking;
+			glm::vec3 unblockDirection;
+			float minDistance = 10000.f;
+
 			bool xPlus = true;
 			bool xMinus = true;
 			bool zPlus = true;
 			bool zMinus = true;
-			//bool yPlus = false; // for now
-			//bool yMinus = false; // for now
+			//bool yPlus = true;
+			//bool yMinus = true;
 			for (Block block : nodes[unblocked[m]].blocking) {
 				// if blocking part is in the active set
 				if (std::find(activeSet.begin(), activeSet.end(), block.part->index) != activeSet.end()) {
@@ -322,98 +290,83 @@ ExplosionGraph::ExplosionGraph(std::vector<Renderable*> parts) {
 			glm::vec3 partDimensions = nodes[unblocked[m]].part->getDimensions();
 			glm::vec3 partPos = nodes[unblocked[m]].part->getPosition();
 			glm::vec3 blockDimensions, blockPos;
-			// find shortest distance to escape bounding box of active parts this part is in contact with 
+
+			// find shortest distance to escape bounding box of active parts this part is in contact with
 			if (xPlus) {
-				//std::cout << "xplus" << std::endl;
-				//if (unblockDirection == glm::vec3(0.f, 0.f, 0.f)) unblockDirection = glm::vec3(-1.f, 0.f, 0.f);
+				float xplusDist = 0.f;
 				for (Block block : nodes[unblocked[m]].blocking) {
 					blockDimensions = block.part->part->getDimensions();
 					blockPos = block.part->part->getPosition();
 					float newPos;
 					newPos = blockPos.x + ((0.5 * partDimensions.x) + (0.5 * blockDimensions.x));
-					float distance = newPos - partPos.x;
-					if (distance < minDistance) {
-						unblockDirection = glm::vec3(-1.f, 0.f, 0.f);
-						minDistance = distance;
-						unblockIndex = m;
-						//std::cout << "adding " << m << std::endl;
-					}
+					float newDist = abs(newPos - partPos.x);
+					if (newDist > xplusDist) xplusDist = newDist;
+
+				}
+				if (xplusDist < minDistance) {
+					unblockDirection = glm::vec3(1.f, 0.f, 0.f);
+					minDistance = xplusDist;
 				}
 			}
 			if (xMinus) {
-				//std::cout << "xminus" << std::endl;
-				//if (unblockDirection == glm::vec3(0.f, 0.f, 0.f)) unblockDirection = glm::vec3(1.f, 0.f, 0.f);
+				float xminDist = 0.f;
 				for (Block block : nodes[unblocked[m]].blocking) {
 					blockDimensions = block.part->part->getDimensions();
 					blockPos = block.part->part->getPosition();
-					float newPos;
-					newPos = blockPos.x - ((0.5 * partDimensions.x) + (0.5 * blockDimensions.x));
-					float distance = newPos - partPos.x;
-					if (distance < minDistance) {
-						unblockDirection = glm::vec3(1.f, 0.f, 0.f);
-						minDistance = distance;
-						unblockIndex = m;
-						//std::cout << "adding " << m << std::endl;
-					}
+					float newPos = blockPos.x - ((0.5 * partDimensions.x) + (0.5 * blockDimensions.x));
+					float newDist = abs(newPos - partPos.x);
+					if (newDist > xminDist) xminDist = newDist;
+				}
+				if (xminDist < minDistance) {
+					unblockDirection = glm::vec3(-1.f, 0.f, 0.f);
+					minDistance = xminDist;
 				}
 			}
 			if (zPlus) {
-				//std::cout << "zplus" << std::endl;
-				//if (unblockDirection == glm::vec3(0.f, 0.f, 0.f)) unblockDirection = glm::vec3(0.f, 0.f, -1.f);
+				float zplusDist = 0.f;
 				for (Block block : nodes[unblocked[m]].blocking) {
 					blockDimensions = block.part->part->getDimensions();
 					blockPos = block.part->part->getPosition();
-					float newPos;
-					newPos = blockPos.z + ((0.5 * partDimensions.z) + (0.5 * blockDimensions.z));
-					float distance = newPos - partPos.z;
-					if (distance < minDistance) {
-						unblockDirection = glm::vec3(0.f, 0.f, -1.f);
-						minDistance = distance;
-						unblockIndex = m;
-						//std::cout << "adding " << m << std::endl;
-					}
+					float newPos = blockPos.z + ((0.5 * partDimensions.z) + (0.5 * blockDimensions.z));
+					float newDist = abs(newPos - partPos.z);
+					if (newDist > zplusDist) zplusDist = newDist;
+
+				}
+				if (zplusDist < minDistance) {
+					unblockDirection = glm::vec3(0.f, 0.f, 1.f);
+					minDistance = zplusDist;
 				}
 			}
 			if (zMinus) {
-				//std::cout << "zminus" << std::endl;
-				//if (unblockDirection == glm::vec3(0.f, 0.f, 0.f)) unblockDirection = glm::vec3(0.f, 0.f, 1.f);
+				float zminDist = 0.f;
 				for (Block block : nodes[unblocked[m]].blocking) {
 					blockDimensions = block.part->part->getDimensions();
 					blockPos = block.part->part->getPosition();
-					float newPos;
-					newPos = blockPos.z - ((0.5 * partDimensions.z) + (0.5 * blockDimensions.z));
-					float distance = newPos - partPos.z;
-					if (distance < minDistance) {
-						unblockDirection = glm::vec3(0.f, 0.f, 1.f);
-						minDistance = distance;
-						unblockIndex = m;
-						//std::cout << "adding " << m << std::endl;
+					float newPos = blockPos.z - ((0.5 * partDimensions.z) + (0.5 * blockDimensions.z));
+					float newDist = abs(newPos - partPos.z);
+					if (newDist > zminDist) zminDist = newDist;
+				}
+				if (zminDist < minDistance) {
+					unblockDirection = glm::vec3(0.f, 0.f, -1.f);
+					minDistance = zminDist;
+				}
+			}
+
+			for (Block block : nodes[unblocked[m]].blocking) {
+				// if blocking part is in the active set
+				if (std::find(activeSet.begin(), activeSet.end(), block.part->index) != activeSet.end()) {
+					bool contains = false;
+					for (Node* n : graph[block.part->index]) {
+						if (n->index == unblocked[m]) contains = true;
+					}
+					if (!contains) {
+						graph[block.part->index].push_back(&nodes[unblocked[m]]);
 					}
 				}
 			}
+			nodes[unblocked[m]].direction = unblockDirection;
+			nodes[unblocked[m]].selfDistance = minDistance;
 		}
-
-		//std::cout << "removing " << unblocked[unblockIndex] << std::endl;
-		for (Block block : nodes[unblocked[unblockIndex]].blocking) {
-			// if blocking part is in the active set
-			if (std::find(activeSet.begin(), activeSet.end(), block.part->index) != activeSet.end()) {
-				bool contains = false;
-				for (Node* n : graph[block.part->index]) {
-					if (n->index == unblocked[unblockIndex]) contains = true;
-				}
-				if (!contains) {
-					graph[block.part->index].push_back(&nodes[unblocked[unblockIndex]]);
-					std::cout << "adding edge to " << block.part->index << std::endl;
-				}
-			}
-		}
-		std::cout << "direction: " << unblockDirection.x << " " << unblockDirection.y << " " << unblockDirection.z << std::endl;
-		nodes[unblocked[unblockIndex]].direction = unblockDirection;
-		nodes[unblocked[unblockIndex]].selfDistance = minDistance;
-		activeSet.erase(std::find(activeSet.begin(), activeSet.end(), unblocked[unblockIndex]));
-		// add edge to every active part that touches p
-		std::cout << "removing " << nodes[unblocked[unblockIndex]].index << " from active set" << std::endl;
-		i++;
 	}
 	
 	constructInverse();
