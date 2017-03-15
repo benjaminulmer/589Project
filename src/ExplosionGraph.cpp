@@ -75,117 +75,117 @@ ExplosionGraph::ExplosionGraph(std::vector<Renderable*> parts) {
 
 	// Manually add blocking for now
 	// block a
-	nodes[0].blocking.push_back(Block(&nodes[1], glm::vec3(0.f, 0.f, 1.f)));
-	nodes[0].blocking.push_back(Block(&nodes[1], glm::vec3(1.f, 0.f, 0.f)));
-	nodes[0].blocking.push_back(Block(&nodes[1], glm::vec3(-1.f, 0.f, 0.f)));
+	nodes[7].blocking.push_back(Block(&nodes[0], glm::vec3(0.f, 0.f, 1.f)));
+	nodes[7].blocking.push_back(Block(&nodes[0], glm::vec3(1.f, 0.f, 0.f)));
+	nodes[7].blocking.push_back(Block(&nodes[0], glm::vec3(-1.f, 0.f, 0.f)));
 
 	// block b
-	nodes[1].blocking.push_back(Block(&nodes[0], glm::vec3(0.f, 0.f, -1.f)));
+	nodes[0].blocking.push_back(Block(&nodes[7], glm::vec3(0.f, 0.f, -1.f)));
 	
+	nodes[0].blocking.push_back(Block(&nodes[7], glm::vec3(1.f, 0.f, 0.f)));
+	nodes[0].blocking.push_back(Block(&nodes[1], glm::vec3(1.f, 0.f, 0.f)));
+	nodes[0].blocking.push_back(Block(&nodes[2], glm::vec3(1.f, 0.f, 0.f)));
+
+	nodes[0].blocking.push_back(Block(&nodes[7], glm::vec3(-1.f, 0.f, 0.f)));
+	nodes[0].blocking.push_back(Block(&nodes[1], glm::vec3(-1.f, 0.f, 0.f)));
+	nodes[0].blocking.push_back(Block(&nodes[2], glm::vec3(-1.f, 0.f, 0.f)));
+
+	nodes[0].blocking.push_back(Block(&nodes[1], glm::vec3(0.f, 0.f, 1.f)));
+	nodes[0].blocking.push_back(Block(&nodes[2], glm::vec3(0.f, 0.f, 1.f)));
+	nodes[0].blocking.push_back(Block(&nodes[3], glm::vec3(0.f, 0.f, 1.f)));
+
+	// block c
+	nodes[1].blocking.push_back(Block(&nodes[0], glm::vec3(0.f, 0.f, -1.f)));
+	nodes[1].blocking.push_back(Block(&nodes[2], glm::vec3(0.f, 0.f, -1.f)));
+	nodes[1].blocking.push_back(Block(&nodes[4], glm::vec3(0.f, 0.f, -1.f)));
+
 	nodes[1].blocking.push_back(Block(&nodes[0], glm::vec3(1.f, 0.f, 0.f)));
-	nodes[1].blocking.push_back(Block(&nodes[2], glm::vec3(1.f, 0.f, 0.f)));
-	nodes[1].blocking.push_back(Block(&nodes[3], glm::vec3(1.f, 0.f, 0.f)));
+	nodes[1].blocking.push_back(Block(&nodes[6], glm::vec3(1.f, 0.f, 0.f)));
 
 	nodes[1].blocking.push_back(Block(&nodes[0], glm::vec3(-1.f, 0.f, 0.f)));
 	nodes[1].blocking.push_back(Block(&nodes[2], glm::vec3(-1.f, 0.f, 0.f)));
 	nodes[1].blocking.push_back(Block(&nodes[3], glm::vec3(-1.f, 0.f, 0.f)));
+	nodes[1].blocking.push_back(Block(&nodes[4], glm::vec3(-1.f, 0.f, 0.f)));
+	nodes[1].blocking.push_back(Block(&nodes[6], glm::vec3(-1.f, 0.f, 0.f)));
 
 	nodes[1].blocking.push_back(Block(&nodes[2], glm::vec3(0.f, 0.f, 1.f)));
 	nodes[1].blocking.push_back(Block(&nodes[3], glm::vec3(0.f, 0.f, 1.f)));
-	nodes[1].blocking.push_back(Block(&nodes[4], glm::vec3(0.f, 0.f, 1.f)));
-
-	// block c
-	nodes[2].blocking.push_back(Block(&nodes[1], glm::vec3(0.f, 0.f, -1.f)));
-	nodes[2].blocking.push_back(Block(&nodes[3], glm::vec3(0.f, 0.f, -1.f)));
-	nodes[2].blocking.push_back(Block(&nodes[5], glm::vec3(0.f, 0.f, -1.f)));
-
-	nodes[2].blocking.push_back(Block(&nodes[1], glm::vec3(1.f, 0.f, 0.f)));
-	nodes[2].blocking.push_back(Block(&nodes[6], glm::vec3(1.f, 0.f, 0.f)));
-
-	nodes[2].blocking.push_back(Block(&nodes[1], glm::vec3(-1.f, 0.f, 0.f)));
-	nodes[2].blocking.push_back(Block(&nodes[3], glm::vec3(-1.f, 0.f, 0.f)));
-	nodes[2].blocking.push_back(Block(&nodes[4], glm::vec3(-1.f, 0.f, 0.f)));
-	nodes[2].blocking.push_back(Block(&nodes[5], glm::vec3(-1.f, 0.f, 0.f)));
-	nodes[2].blocking.push_back(Block(&nodes[6], glm::vec3(-1.f, 0.f, 0.f)));
-
-	nodes[2].blocking.push_back(Block(&nodes[3], glm::vec3(0.f, 0.f, 1.f)));
-	nodes[2].blocking.push_back(Block(&nodes[5], glm::vec3(0.f, 0.f, 1.f)));
-	nodes[2].blocking.push_back(Block(&nodes[6], glm::vec3(0.f, 0.f, 1.f)));
+	nodes[1].blocking.push_back(Block(&nodes[6], glm::vec3(0.f, 0.f, 1.f)));
 
 	// block d
+	nodes[2].blocking.push_back(Block(&nodes[7], glm::vec3(0.f, 0.f, -1.f)));
+	nodes[2].blocking.push_back(Block(&nodes[0], glm::vec3(0.f, 0.f, -1.f)));
+	nodes[2].blocking.push_back(Block(&nodes[1], glm::vec3(0.f, 0.f, -1.f)));
+
+	nodes[2].blocking.push_back(Block(&nodes[1], glm::vec3(0.f, 0.f, 1.f)));
+	nodes[2].blocking.push_back(Block(&nodes[3], glm::vec3(0.f, 0.f, 1.f)));
+	nodes[2].blocking.push_back(Block(&nodes[4], glm::vec3(0.f, 0.f, 1.f)));
+	nodes[2].blocking.push_back(Block(&nodes[6], glm::vec3(0.f, 0.f, 1.f)));
+	nodes[2].blocking.push_back(Block(&nodes[5], glm::vec3(0.f, 0.f, 1.f)));
+
+	nodes[2].blocking.push_back(Block(&nodes[0], glm::vec3(-1.f, 0.f, 0.f)));
+	nodes[2].blocking.push_back(Block(&nodes[3], glm::vec3(-1.f, 0.f, 0.f)));
+
+	nodes[2].blocking.push_back(Block(&nodes[0], glm::vec3(1.f, 0.f, 0.f)));
+	nodes[2].blocking.push_back(Block(&nodes[1], glm::vec3(1.f, 0.f, 0.f)));
+
+	// block e
 	nodes[3].blocking.push_back(Block(&nodes[0], glm::vec3(0.f, 0.f, -1.f)));
-	nodes[3].blocking.push_back(Block(&nodes[1], glm::vec3(0.f, 0.f, -1.f)));
 	nodes[3].blocking.push_back(Block(&nodes[2], glm::vec3(0.f, 0.f, -1.f)));
 
-	nodes[3].blocking.push_back(Block(&nodes[2], glm::vec3(0.f, 0.f, 1.f)));
 	nodes[3].blocking.push_back(Block(&nodes[4], glm::vec3(0.f, 0.f, 1.f)));
-	nodes[3].blocking.push_back(Block(&nodes[5], glm::vec3(0.f, 0.f, 1.f)));
 	nodes[3].blocking.push_back(Block(&nodes[6], glm::vec3(0.f, 0.f, 1.f)));
-	nodes[3].blocking.push_back(Block(&nodes[7], glm::vec3(0.f, 0.f, 1.f)));
-
-	nodes[3].blocking.push_back(Block(&nodes[1], glm::vec3(-1.f, 0.f, 0.f)));
-	nodes[3].blocking.push_back(Block(&nodes[4], glm::vec3(-1.f, 0.f, 0.f)));
 
 	nodes[3].blocking.push_back(Block(&nodes[1], glm::vec3(1.f, 0.f, 0.f)));
 	nodes[3].blocking.push_back(Block(&nodes[2], glm::vec3(1.f, 0.f, 0.f)));
-
-	// block e
-	nodes[4].blocking.push_back(Block(&nodes[1], glm::vec3(0.f, 0.f, -1.f)));
-	nodes[4].blocking.push_back(Block(&nodes[3], glm::vec3(0.f, 0.f, -1.f)));
-
-	nodes[4].blocking.push_back(Block(&nodes[5], glm::vec3(0.f, 0.f, 1.f)));
-	nodes[4].blocking.push_back(Block(&nodes[6], glm::vec3(0.f, 0.f, 1.f)));
-
-	nodes[4].blocking.push_back(Block(&nodes[2], glm::vec3(1.f, 0.f, 0.f)));
-	nodes[4].blocking.push_back(Block(&nodes[3], glm::vec3(1.f, 0.f, 0.f)));
-	nodes[4].blocking.push_back(Block(&nodes[5], glm::vec3(1.f, 0.f, 0.f)));
+	nodes[3].blocking.push_back(Block(&nodes[4], glm::vec3(1.f, 0.f, 0.f)));
 
 	// block f
-	nodes[5].blocking.push_back(Block(&nodes[0], glm::vec3(0.f, 0.f, -1.f)));
-	nodes[5].blocking.push_back(Block(&nodes[1], glm::vec3(0.f, 0.f, -1.f)));
-	nodes[5].blocking.push_back(Block(&nodes[2], glm::vec3(0.f, 0.f, -1.f)));
-	nodes[5].blocking.push_back(Block(&nodes[3], glm::vec3(0.f, 0.f, -1.f)));
-	nodes[5].blocking.push_back(Block(&nodes[4], glm::vec3(0.f, 0.f, -1.f)));
+	nodes[4].blocking.push_back(Block(&nodes[7], glm::vec3(0.f, 0.f, -1.f)));
+	nodes[4].blocking.push_back(Block(&nodes[0], glm::vec3(0.f, 0.f, -1.f)));
+	nodes[4].blocking.push_back(Block(&nodes[1], glm::vec3(0.f, 0.f, -1.f)));
+	nodes[4].blocking.push_back(Block(&nodes[2], glm::vec3(0.f, 0.f, -1.f)));
+	nodes[4].blocking.push_back(Block(&nodes[3], glm::vec3(0.f, 0.f, -1.f)));
 
-	nodes[5].blocking.push_back(Block(&nodes[2], glm::vec3(0.f, 0.f, 1.f)));
-	nodes[5].blocking.push_back(Block(&nodes[6], glm::vec3(0.f, 0.f, 1.f)));
-	nodes[5].blocking.push_back(Block(&nodes[7], glm::vec3(0.f, 0.f, 1.f)));
+	nodes[4].blocking.push_back(Block(&nodes[1], glm::vec3(0.f, 0.f, 1.f)));
+	nodes[4].blocking.push_back(Block(&nodes[6], glm::vec3(0.f, 0.f, 1.f)));
+	nodes[4].blocking.push_back(Block(&nodes[5], glm::vec3(0.f, 0.f, 1.f)));
 
-	nodes[5].blocking.push_back(Block(&nodes[2], glm::vec3(1.f, 0.f, 0.f)));
-	nodes[5].blocking.push_back(Block(&nodes[6], glm::vec3(1.f, 0.f, 0.f)));
+	nodes[4].blocking.push_back(Block(&nodes[1], glm::vec3(1.f, 0.f, 0.f)));
+	nodes[4].blocking.push_back(Block(&nodes[6], glm::vec3(1.f, 0.f, 0.f)));
 
-	nodes[5].blocking.push_back(Block(&nodes[4], glm::vec3(-1.f, 0.f, 0.f)));
-	nodes[5].blocking.push_back(Block(&nodes[6], glm::vec3(-1.f, 0.f, 0.f)));
+	nodes[4].blocking.push_back(Block(&nodes[3], glm::vec3(-1.f, 0.f, 0.f)));
+	nodes[4].blocking.push_back(Block(&nodes[6], glm::vec3(-1.f, 0.f, 0.f)));
 
 	// block g
+	nodes[6].blocking.push_back(Block(&nodes[7], glm::vec3(0.f, 0.f, -1.f)));
 	nodes[6].blocking.push_back(Block(&nodes[0], glm::vec3(0.f, 0.f, -1.f)));
 	nodes[6].blocking.push_back(Block(&nodes[1], glm::vec3(0.f, 0.f, -1.f)));
 	nodes[6].blocking.push_back(Block(&nodes[2], glm::vec3(0.f, 0.f, -1.f)));
 	nodes[6].blocking.push_back(Block(&nodes[3], glm::vec3(0.f, 0.f, -1.f)));
 	nodes[6].blocking.push_back(Block(&nodes[4], glm::vec3(0.f, 0.f, -1.f)));
-	nodes[6].blocking.push_back(Block(&nodes[5], glm::vec3(0.f, 0.f, -1.f)));
 
-	nodes[6].blocking.push_back(Block(&nodes[7], glm::vec3(0.f, 0.f, 1.f)));
+	nodes[6].blocking.push_back(Block(&nodes[5], glm::vec3(0.f, 0.f, 1.f)));
 
-	nodes[6].blocking.push_back(Block(&nodes[2], glm::vec3(1.f, 0.f, 0.f)));
+	nodes[6].blocking.push_back(Block(&nodes[1], glm::vec3(1.f, 0.f, 0.f)));
+	nodes[6].blocking.push_back(Block(&nodes[4], glm::vec3(1.f, 0.f, 0.f)));
 	nodes[6].blocking.push_back(Block(&nodes[5], glm::vec3(1.f, 0.f, 0.f)));
-	nodes[6].blocking.push_back(Block(&nodes[7], glm::vec3(1.f, 0.f, 0.f)));
 
-	nodes[6].blocking.push_back(Block(&nodes[2], glm::vec3(-1.f, 0.f, 0.f)));
+	nodes[6].blocking.push_back(Block(&nodes[1], glm::vec3(-1.f, 0.f, 0.f)));
+	nodes[6].blocking.push_back(Block(&nodes[4], glm::vec3(-1.f, 0.f, 0.f)));
 	nodes[6].blocking.push_back(Block(&nodes[5], glm::vec3(-1.f, 0.f, 0.f)));
-	nodes[6].blocking.push_back(Block(&nodes[7], glm::vec3(-1.f, 0.f, 0.f)));
 
 	// block h
-	nodes[7].blocking.push_back(Block(&nodes[0], glm::vec3(0.f, 0.f, -1.f)));
-	nodes[7].blocking.push_back(Block(&nodes[1], glm::vec3(0.f, 0.f, -1.f)));
-	nodes[7].blocking.push_back(Block(&nodes[2], glm::vec3(0.f, 0.f, -1.f)));
-	nodes[7].blocking.push_back(Block(&nodes[3], glm::vec3(0.f, 0.f, -1.f)));
-	nodes[7].blocking.push_back(Block(&nodes[5], glm::vec3(0.f, 0.f, -1.f)));
-	nodes[7].blocking.push_back(Block(&nodes[6], glm::vec3(0.f, 0.f, -1.f)));
+	nodes[5].blocking.push_back(Block(&nodes[7], glm::vec3(0.f, 0.f, -1.f)));
+	nodes[5].blocking.push_back(Block(&nodes[0], glm::vec3(0.f, 0.f, -1.f)));
+	nodes[5].blocking.push_back(Block(&nodes[1], glm::vec3(0.f, 0.f, -1.f)));
+	nodes[5].blocking.push_back(Block(&nodes[2], glm::vec3(0.f, 0.f, -1.f)));
+	nodes[5].blocking.push_back(Block(&nodes[3], glm::vec3(0.f, 0.f, -1.f)));
+	nodes[5].blocking.push_back(Block(&nodes[6], glm::vec3(0.f, 0.f, -1.f)));
 
-	nodes[7].blocking.push_back(Block(&nodes[6], glm::vec3(1.f, 0.f, 0.f)));
+	nodes[5].blocking.push_back(Block(&nodes[6], glm::vec3(1.f, 0.f, 0.f)));
 	
-	nodes[7].blocking.push_back(Block(&nodes[6], glm::vec3(-1.f, 0.f, 0.f)));
+	nodes[5].blocking.push_back(Block(&nodes[6], glm::vec3(-1.f, 0.f, 0.f)));
 
 	// Construct graph from contacts and blocking (Mia)
 	int i = 0;
@@ -264,7 +264,7 @@ ExplosionGraph::ExplosionGraph(std::vector<Renderable*> parts) {
 	}
 	
 	constructInverse();
-
+	sort();
 	// Compute total distance for each part after graph is complete (Ben)
 	fillDistances();
 }
