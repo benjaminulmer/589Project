@@ -375,6 +375,14 @@ int ExplosionGraph::sort() {
 		topologicalSort.push_back(queue);
 		queue.clear();
 	}
+
+	for (std::vector<Node*> l : topologicalSort) {
+		for (Node* node : l) {
+			std::cout << node->index << ", ";
+		}
+		std::cout << std::endl;
+	}
+
 	return 0;
 }
 
