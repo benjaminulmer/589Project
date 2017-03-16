@@ -53,12 +53,17 @@ void Program::loadObjects() {
 	std::vector<Renderable*> objects = ContentLoading::createRenderables("./models/example.obj");
 	//o->textureID = (renderEngine->loadTexture("./textures/cube.png"));
 
+	float i = 0.f;
+	float j = 1.f;
 	for (Renderable* object : objects) {
-		object->colour = glm::vec3(1.0f, 0.0f, 0.0f);
+		object->colour = glm::vec3(0, i, j);
+		i += (1.0 / objects.size());
+		j -= (1.0 / objects.size());
+
 		renderEngine->assignBuffers(*object);
 	}
 
-	graph = ExplosionGraph(objects, true);
+	graph = ExplosionGraph(objects);
 }
 
 // Main loop
