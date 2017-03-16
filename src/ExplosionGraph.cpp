@@ -52,7 +52,7 @@ ExplosionGraph::ExplosionGraph() { }
 ExplosionGraph::ExplosionGraph(std::vector<Renderable*> parts) {
 
 	// Number of nodes in graph is number of parts in model
-	int numParts = parts.size();
+	numParts = parts.size();
 	graph = std::vector<std::list<Node*>>(numParts);
 	iGraph = std::vector<std::list<Node*>>(numParts);
 
