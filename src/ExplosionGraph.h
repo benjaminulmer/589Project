@@ -40,8 +40,9 @@ public:
 	std::vector<std::vector<Node*>>& getSort();
 
 private:
-	Node* nodes;
-	int numParts;
+	std::vector<Node> nodes;
+	unsigned int numParts;
+
 	std::vector<std::list<Node*>> graph;
 	std::vector<std::list<Node*>> iGraph;
 
