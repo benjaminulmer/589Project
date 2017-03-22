@@ -51,6 +51,6 @@ private:
 	int sort();
 
 	void hardCodedBlocking();
-	float getEscapeDistance(Node* node, int sign, char dir);
+	float getEscapeDistance(Node* node, int sign, char dir, const std::vector<int>& activeSet);
 };
 

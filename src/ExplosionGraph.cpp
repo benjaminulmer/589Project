@@ -103,9 +103,9 @@ ExplosionGraph::ExplosionGraph(std::vector<Renderable*> parts) {
 		}
 
 		// add edge to every active part that touches p
-		for (unsigned int m = 0; m < unblocked.size(); m++) {
+		/*for (unsigned int m = 0; m < unblocked.size(); m++) {
 			activeSet.erase(std::find(activeSet.begin(), activeSet.end(), unblocked[m]));
-		}
+		}*/
 
 		//for each unblocked part
 		for (unsigned int m = 0; m < unblocked.size(); m++) {
@@ -133,33 +133,37 @@ ExplosionGraph::ExplosionGraph(std::vector<Renderable*> parts) {
 
 			// find shortest distance to escape bounding box of active parts this part is in contact with
 			if (xPlus) {
-				float xplusDist = getEscapeDistance(curNode, 1, 'x');
+				float xplusDist = getEscapeDistance(curNode, 1, 'x', activeSet);
 				if (xplusDist < minDistance) {
 					unblockDirection = glm::vec3(1.f, 0.f, 0.f);
 					minDistance = xplusDist;
 				}
 			}
 			if (xMinus) {
-				float xminDist = getEscapeDistance(curNode, -1, 'x');
+				float xminDist = getEscapeDistance(curNode, -1, 'x', activeSet);
 				if (xminDist < minDistance) {
 					unblockDirection = glm::vec3(-1.f, 0.f, 0.f);
 					minDistance = xminDist;
 				}
 			}
 			if (zPlus) {
-				float zplusDist = getEscapeDistance(curNode, 1, 'z');
+				float zplusDist = getEscapeDistance(curNode, 1, 'z', activeSet);
 				if (zplusDist < minDistance) {
 					unblockDirection = glm::vec3(0.f, 0.f, 1.f);
 					minDistance = zplusDist;
 				}
 			}
 			if (zMinus) {
-				float zminDist = getEscapeDistance(curNode, -1, 'z');
+				float zminDist = getEscapeDistance(curNode, -1, 'z', activeSet);
 				if (zminDist < minDistance) {
 					unblockDirection = glm::vec3(0.f, 0.f, -1.f);
 					minDistance = zminDist;
 				}
 			}
+
+			// add edge to every active part that touches p
+			activeSet.erase(std::find(activeSet.begin(), activeSet.end(), unblocked[m]));
+
 
 			for (Block block : nodes[unblocked[m]].blocked) {
 				// if blocking part is in the active set
@@ -176,6 +180,7 @@ ExplosionGraph::ExplosionGraph(std::vector<Renderable*> parts) {
 			nodes[unblocked[m]].direction = unblockDirection;
 			nodes[unblocked[m]].selfDistance = minDistance;
 		}
+
 	}
 
 	constructInverse();
@@ -186,32 +191,34 @@ ExplosionGraph::ExplosionGraph(std::vector<Renderable*> parts) {
 }
 
 // Finds escape distance for a node in given direction (sign combined with axis)
-float ExplosionGraph::getEscapeDistance(Node* node, int sign, char dir) {
+float ExplosionGraph::getEscapeDistance(Node* node, int sign, char dir, const std::vector<int>& activeSet) {
 
 	float toReturn = 0.f;
 	glm::vec3 partPos = node->part->getPosition();
 	glm::vec3 partDimensions = node->part->getDimensions();
 
 	for (Block block : node->blocked) {
-		glm::vec3 blockDimensions = block.part->part->getDimensions();
-		glm::vec3 blockPos = block.part->part->getPosition();
+		if (std::find(activeSet.begin(), activeSet.end(), block.part->index) != activeSet.end()) {
+			glm::vec3 blockDimensions = block.part->part->getDimensions();
+			glm::vec3 blockPos = block.part->part->getPosition();
 
-		float newPos;
-		float newDist;
-		if (dir == 'x') {
-			newPos = blockPos.x + sign * ((0.5 * partDimensions.x) + (0.5 * blockDimensions.x));
-			newDist = abs(newPos - partPos.x);
-		}
-		else if (dir == 'y') {
-			newPos = blockPos.y + sign * ((0.5 * partDimensions.y) + (0.5 * blockDimensions.y));
-			newDist = abs(newPos - partPos.y);
-		}
-		else {
-			newPos = blockPos.z + sign * ((0.5 * partDimensions.z) + (0.5 * blockDimensions.z));
-			newDist = abs(newPos - partPos.z);
-		}
+			float newPos;
+			float newDist;
+			if (dir == 'x') {
+				newPos = blockPos.x + sign * ((0.5 * partDimensions.x) + (0.5 * blockDimensions.x));
+				newDist = abs(newPos - partPos.x);
+			}
+			else if (dir == 'y') {
+				newPos = blockPos.y + sign * ((0.5 * partDimensions.y) + (0.5 * blockDimensions.y));
+				newDist = abs(newPos - partPos.y);
+			}
+			else {
+				newPos = blockPos.z + sign * ((0.5 * partDimensions.z) + (0.5 * blockDimensions.z));
+				newDist = abs(newPos - partPos.z);
+			}
 
-		if (newDist > toReturn) toReturn = newDist;
+			if (newDist > toReturn) toReturn = newDist;
+		}
 	}
 	return toReturn;
 }
