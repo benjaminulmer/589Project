@@ -17,7 +17,7 @@ ExplosionGraph::ExplosionGraph(std::vector<Renderable*> parts, bool test) {
 
 	// Fill list of nodes
 	nodes = new Node[numParts];
-	for (int i = 0; i < numParts; i++) {
+	for (unsigned int i = 0; i < numParts; i++) {
 		nodes[i] = Node(parts[i], i);
 		graph[i].push_back(&nodes[i]);
 	}
@@ -45,8 +45,6 @@ ExplosionGraph::ExplosionGraph(std::vector<Renderable*> parts, bool test) {
 // Constructor for a block, always needs part and direction
 Block::Block(Node* part, glm::vec3 direction) : part(part), direction(direction) {}
 
-// Creates hard coded explosion graph for testing
-ExplosionGraph::ExplosionGraph() { }
 
 // Creates explosion graph for provided parts
 ExplosionGraph::ExplosionGraph(std::vector<Renderable*> parts) {
@@ -59,7 +57,7 @@ ExplosionGraph::ExplosionGraph(std::vector<Renderable*> parts) {
 	// Fill list of nodes
 	nodes = new Node[numParts];
 	std::vector<int> activeSet;
-	for (int i = 0; i < numParts; i++) {
+	for (unsigned int i = 0; i < numParts; i++) {
 		nodes[i] = Node(parts[i], i);
 		graph[i].push_back(&nodes[i]);
 		activeSet.push_back(i);
@@ -67,120 +65,8 @@ ExplosionGraph::ExplosionGraph(std::vector<Renderable*> parts) {
 	// **** to add an edge: graph[parentIndex].push_back(&nodes[childIndex]) ***** //
 
 	// Compute contacts and blocking (John)
+	hardCodedBlocking();
 
-	// Manually add blocking for now
-	// block a
-	nodes[7].blocking.push_back(Block(&nodes[0], glm::vec3(0.f, 0.f, 1.f)));
-	nodes[7].blocking.push_back(Block(&nodes[0], glm::vec3(1.f, 0.f, 0.f)));
-	nodes[7].blocking.push_back(Block(&nodes[0], glm::vec3(-1.f, 0.f, 0.f)));
-
-	// block b
-	nodes[0].blocking.push_back(Block(&nodes[7], glm::vec3(0.f, 0.f, -1.f)));
-	
-	nodes[0].blocking.push_back(Block(&nodes[7], glm::vec3(1.f, 0.f, 0.f)));
-	nodes[0].blocking.push_back(Block(&nodes[1], glm::vec3(1.f, 0.f, 0.f)));
-	nodes[0].blocking.push_back(Block(&nodes[2], glm::vec3(1.f, 0.f, 0.f)));
-
-	nodes[0].blocking.push_back(Block(&nodes[7], glm::vec3(-1.f, 0.f, 0.f)));
-	nodes[0].blocking.push_back(Block(&nodes[1], glm::vec3(-1.f, 0.f, 0.f)));
-	nodes[0].blocking.push_back(Block(&nodes[2], glm::vec3(-1.f, 0.f, 0.f)));
-
-	nodes[0].blocking.push_back(Block(&nodes[1], glm::vec3(0.f, 0.f, 1.f)));
-	nodes[0].blocking.push_back(Block(&nodes[2], glm::vec3(0.f, 0.f, 1.f)));
-	nodes[0].blocking.push_back(Block(&nodes[3], glm::vec3(0.f, 0.f, 1.f)));
-
-	// block c
-	nodes[1].blocking.push_back(Block(&nodes[0], glm::vec3(0.f, 0.f, -1.f)));
-	nodes[1].blocking.push_back(Block(&nodes[2], glm::vec3(0.f, 0.f, -1.f)));
-	nodes[1].blocking.push_back(Block(&nodes[4], glm::vec3(0.f, 0.f, -1.f)));
-
-	nodes[1].blocking.push_back(Block(&nodes[0], glm::vec3(1.f, 0.f, 0.f)));
-	nodes[1].blocking.push_back(Block(&nodes[6], glm::vec3(1.f, 0.f, 0.f)));
-
-	nodes[1].blocking.push_back(Block(&nodes[0], glm::vec3(-1.f, 0.f, 0.f)));
-	nodes[1].blocking.push_back(Block(&nodes[2], glm::vec3(-1.f, 0.f, 0.f)));
-	nodes[1].blocking.push_back(Block(&nodes[3], glm::vec3(-1.f, 0.f, 0.f)));
-	nodes[1].blocking.push_back(Block(&nodes[4], glm::vec3(-1.f, 0.f, 0.f)));
-	nodes[1].blocking.push_back(Block(&nodes[6], glm::vec3(-1.f, 0.f, 0.f)));
-
-	nodes[1].blocking.push_back(Block(&nodes[2], glm::vec3(0.f, 0.f, 1.f)));
-	nodes[1].blocking.push_back(Block(&nodes[4], glm::vec3(0.f, 0.f, 1.f)));
-	nodes[1].blocking.push_back(Block(&nodes[6], glm::vec3(0.f, 0.f, 1.f)));
-
-	// block d
-	nodes[2].blocking.push_back(Block(&nodes[7], glm::vec3(0.f, 0.f, -1.f)));
-	nodes[2].blocking.push_back(Block(&nodes[0], glm::vec3(0.f, 0.f, -1.f)));
-	nodes[2].blocking.push_back(Block(&nodes[1], glm::vec3(0.f, 0.f, -1.f)));
-
-	nodes[2].blocking.push_back(Block(&nodes[1], glm::vec3(0.f, 0.f, 1.f)));
-	nodes[2].blocking.push_back(Block(&nodes[3], glm::vec3(0.f, 0.f, 1.f)));
-	nodes[2].blocking.push_back(Block(&nodes[4], glm::vec3(0.f, 0.f, 1.f)));
-	nodes[2].blocking.push_back(Block(&nodes[6], glm::vec3(0.f, 0.f, 1.f)));
-	nodes[2].blocking.push_back(Block(&nodes[5], glm::vec3(0.f, 0.f, 1.f)));
-
-	nodes[2].blocking.push_back(Block(&nodes[0], glm::vec3(-1.f, 0.f, 0.f)));
-	nodes[2].blocking.push_back(Block(&nodes[3], glm::vec3(-1.f, 0.f, 0.f)));
-
-	nodes[2].blocking.push_back(Block(&nodes[0], glm::vec3(1.f, 0.f, 0.f)));
-	nodes[2].blocking.push_back(Block(&nodes[1], glm::vec3(1.f, 0.f, 0.f)));
-
-	// block e
-	nodes[3].blocking.push_back(Block(&nodes[0], glm::vec3(0.f, 0.f, -1.f)));
-	nodes[3].blocking.push_back(Block(&nodes[2], glm::vec3(0.f, 0.f, -1.f)));
-
-	nodes[3].blocking.push_back(Block(&nodes[4], glm::vec3(0.f, 0.f, 1.f)));
-	nodes[3].blocking.push_back(Block(&nodes[6], glm::vec3(0.f, 0.f, 1.f)));
-
-	nodes[3].blocking.push_back(Block(&nodes[1], glm::vec3(1.f, 0.f, 0.f)));
-	nodes[3].blocking.push_back(Block(&nodes[2], glm::vec3(1.f, 0.f, 0.f)));
-	nodes[3].blocking.push_back(Block(&nodes[4], glm::vec3(1.f, 0.f, 0.f)));
-
-	// block f
-	nodes[4].blocking.push_back(Block(&nodes[7], glm::vec3(0.f, 0.f, -1.f)));
-	nodes[4].blocking.push_back(Block(&nodes[0], glm::vec3(0.f, 0.f, -1.f)));
-	nodes[4].blocking.push_back(Block(&nodes[1], glm::vec3(0.f, 0.f, -1.f)));
-	nodes[4].blocking.push_back(Block(&nodes[2], glm::vec3(0.f, 0.f, -1.f)));
-	nodes[4].blocking.push_back(Block(&nodes[3], glm::vec3(0.f, 0.f, -1.f)));
-
-	nodes[4].blocking.push_back(Block(&nodes[1], glm::vec3(0.f, 0.f, 1.f)));
-	nodes[4].blocking.push_back(Block(&nodes[6], glm::vec3(0.f, 0.f, 1.f)));
-	nodes[4].blocking.push_back(Block(&nodes[5], glm::vec3(0.f, 0.f, 1.f)));
-
-	nodes[4].blocking.push_back(Block(&nodes[1], glm::vec3(1.f, 0.f, 0.f)));
-	nodes[4].blocking.push_back(Block(&nodes[6], glm::vec3(1.f, 0.f, 0.f)));
-
-	nodes[4].blocking.push_back(Block(&nodes[3], glm::vec3(-1.f, 0.f, 0.f)));
-	nodes[4].blocking.push_back(Block(&nodes[6], glm::vec3(-1.f, 0.f, 0.f)));
-
-	// block g
-	nodes[6].blocking.push_back(Block(&nodes[7], glm::vec3(0.f, 0.f, -1.f)));
-	nodes[6].blocking.push_back(Block(&nodes[0], glm::vec3(0.f, 0.f, -1.f)));
-	nodes[6].blocking.push_back(Block(&nodes[1], glm::vec3(0.f, 0.f, -1.f)));
-	nodes[6].blocking.push_back(Block(&nodes[2], glm::vec3(0.f, 0.f, -1.f)));
-	nodes[6].blocking.push_back(Block(&nodes[3], glm::vec3(0.f, 0.f, -1.f)));
-	nodes[6].blocking.push_back(Block(&nodes[4], glm::vec3(0.f, 0.f, -1.f)));
-
-	nodes[6].blocking.push_back(Block(&nodes[5], glm::vec3(0.f, 0.f, 1.f)));
-
-	nodes[6].blocking.push_back(Block(&nodes[1], glm::vec3(1.f, 0.f, 0.f)));
-	nodes[6].blocking.push_back(Block(&nodes[4], glm::vec3(1.f, 0.f, 0.f)));
-	nodes[6].blocking.push_back(Block(&nodes[5], glm::vec3(1.f, 0.f, 0.f)));
-
-	nodes[6].blocking.push_back(Block(&nodes[1], glm::vec3(-1.f, 0.f, 0.f)));
-	nodes[6].blocking.push_back(Block(&nodes[4], glm::vec3(-1.f, 0.f, 0.f)));
-	nodes[6].blocking.push_back(Block(&nodes[5], glm::vec3(-1.f, 0.f, 0.f)));
-
-	// block h
-	nodes[5].blocking.push_back(Block(&nodes[7], glm::vec3(0.f, 0.f, -1.f)));
-	nodes[5].blocking.push_back(Block(&nodes[0], glm::vec3(0.f, 0.f, -1.f)));
-	nodes[5].blocking.push_back(Block(&nodes[1], glm::vec3(0.f, 0.f, -1.f)));
-	nodes[5].blocking.push_back(Block(&nodes[2], glm::vec3(0.f, 0.f, -1.f)));
-	nodes[5].blocking.push_back(Block(&nodes[3], glm::vec3(0.f, 0.f, -1.f)));
-	nodes[5].blocking.push_back(Block(&nodes[6], glm::vec3(0.f, 0.f, -1.f)));
-
-	nodes[5].blocking.push_back(Block(&nodes[6], glm::vec3(1.f, 0.f, 0.f)));
-	
-	nodes[5].blocking.push_back(Block(&nodes[6], glm::vec3(-1.f, 0.f, 0.f)));
 
 	// Construct graph from contacts and blocking (Mia)
 	while (activeSet.size() > 0) {
@@ -200,7 +86,7 @@ ExplosionGraph::ExplosionGraph(std::vector<Renderable*> parts) {
 			bool zMinus = true;
 			//bool yPlus = true;
 			//bool yMinus = true;
-			for (Block block : nodes[activeSet[j]].blocking) {
+			for (Block block : nodes[activeSet[j]].blocked) {
 
 				// if blocking part is in the active set
 				if (std::find(activeSet.begin(), activeSet.end(), block.part->index) != activeSet.end()) {
@@ -233,7 +119,7 @@ ExplosionGraph::ExplosionGraph(std::vector<Renderable*> parts) {
 			bool zMinus = true;
 			//bool yPlus = true;
 			//bool yMinus = true;
-			for (Block block : nodes[unblocked[m]].blocking) {
+			for (Block block : nodes[unblocked[m]].blocked) {
 				// if blocking part is in the active set
 				if (std::find(activeSet.begin(), activeSet.end(), block.part->index) != activeSet.end()) {
 					blocking.push_back(block.part->index);
@@ -243,72 +129,39 @@ ExplosionGraph::ExplosionGraph(std::vector<Renderable*> parts) {
 					else if (block.direction.z == -1.f) zMinus = false;
 				}
 			}
-			glm::vec3 partDimensions = nodes[unblocked[m]].part->getDimensions();
-			glm::vec3 partPos = nodes[unblocked[m]].part->getPosition();
-			glm::vec3 blockDimensions, blockPos;
+			Node* curNode = &nodes[unblocked[m]];
 
 			// find shortest distance to escape bounding box of active parts this part is in contact with
 			if (xPlus) {
-				float xplusDist = 0.f;
-				for (Block block : nodes[unblocked[m]].blocking) {
-					blockDimensions = block.part->part->getDimensions();
-					blockPos = block.part->part->getPosition();
-					float newPos;
-					newPos = blockPos.x + ((0.5 * partDimensions.x) + (0.5 * blockDimensions.x));
-					float newDist = abs(newPos - partPos.x);
-					if (newDist > xplusDist) xplusDist = newDist;
-
-				}
+				float xplusDist = getEscapeDistance(&nodes[unblocked[m]], 1, 'x');
 				if (xplusDist < minDistance) {
 					unblockDirection = glm::vec3(1.f, 0.f, 0.f);
 					minDistance = xplusDist;
 				}
 			}
 			if (xMinus) {
-				float xminDist = 0.f;
-				for (Block block : nodes[unblocked[m]].blocking) {
-					blockDimensions = block.part->part->getDimensions();
-					blockPos = block.part->part->getPosition();
-					float newPos = blockPos.x - ((0.5 * partDimensions.x) + (0.5 * blockDimensions.x));
-					float newDist = abs(newPos - partPos.x);
-					if (newDist > xminDist) xminDist = newDist;
-				}
+				float xminDist = getEscapeDistance(&nodes[unblocked[m]], -1, 'x');
 				if (xminDist < minDistance) {
 					unblockDirection = glm::vec3(-1.f, 0.f, 0.f);
 					minDistance = xminDist;
 				}
 			}
 			if (zPlus) {
-				float zplusDist = 0.f;
-				for (Block block : nodes[unblocked[m]].blocking) {
-					blockDimensions = block.part->part->getDimensions();
-					blockPos = block.part->part->getPosition();
-					float newPos = blockPos.z + ((0.5 * partDimensions.z) + (0.5 * blockDimensions.z));
-					float newDist = abs(newPos - partPos.z);
-					if (newDist > zplusDist) zplusDist = newDist;
-
-				}
+				float zplusDist = getEscapeDistance(&nodes[unblocked[m]], 1, 'z');
 				if (zplusDist < minDistance) {
 					unblockDirection = glm::vec3(0.f, 0.f, 1.f);
 					minDistance = zplusDist;
 				}
 			}
 			if (zMinus) {
-				float zminDist = 0.f;
-				for (Block block : nodes[unblocked[m]].blocking) {
-					blockDimensions = block.part->part->getDimensions();
-					blockPos = block.part->part->getPosition();
-					float newPos = blockPos.z - ((0.5 * partDimensions.z) + (0.5 * blockDimensions.z));
-					float newDist = abs(newPos - partPos.z);
-					if (newDist > zminDist) zminDist = newDist;
-				}
+				float zminDist = getEscapeDistance(&nodes[unblocked[m]], -1, 'z');
 				if (zminDist < minDistance) {
 					unblockDirection = glm::vec3(0.f, 0.f, -1.f);
 					minDistance = zminDist;
 				}
 			}
 
-			for (Block block : nodes[unblocked[m]].blocking) {
+			for (Block block : nodes[unblocked[m]].blocked) {
 				// if blocking part is in the active set
 				if (std::find(activeSet.begin(), activeSet.end(), block.part->index) != activeSet.end()) {
 					bool contains = false;
@@ -324,13 +177,44 @@ ExplosionGraph::ExplosionGraph(std::vector<Renderable*> parts) {
 			nodes[unblocked[m]].selfDistance = minDistance;
 		}
 	}
-	
+
 	constructInverse();
-	// Compute total distance for each part after graph is complete (Ben)
 	if (sort() == -1) {
 		std::cout << "Error, graph contains cycle(s)" << std::endl;
 	}
 	fillDistances();
+}
+
+// Finds escape distance for a node in given direction (sign combined with axis)
+float ExplosionGraph::getEscapeDistance(Node* node, int sign, char dir) {
+
+	float toReturn = 0.f;
+	glm::vec3 partPos = node->part->getPosition();
+	glm::vec3 partDimensions = node->part->getDimensions();
+
+	for (Block block : node->blocked) {
+		glm::vec3 blockDimensions = block.part->part->getDimensions();
+		glm::vec3 blockPos = block.part->part->getPosition();
+
+
+		float newPos;
+		float newDist;
+		if (dir == 'x') {
+			newPos = blockPos.x + sign * ((0.5 * partDimensions.x) + (0.5 * blockDimensions.x));
+			newDist = abs(newPos - partPos.x);
+		}
+		else if (dir == 'y') {
+			newPos = blockPos.y + sign * ((0.5 * partDimensions.y) + (0.5 * blockDimensions.y));
+			newDist = abs(newPos - partPos.y);
+		}
+		else {
+			newPos = blockPos.z + sign * ((0.5 * partDimensions.z) + (0.5 * blockDimensions.z));
+			newDist = abs(newPos - partPos.z);
+		}
+
+		if (newDist > toReturn) toReturn = newDist;
+	}
+	return toReturn;
 }
 
 // Constructs inverse graph from normal graph
@@ -425,4 +309,120 @@ void ExplosionGraph::fillDistances() {
 // Returns topologically sorted graph. Nodes of same depth are grouped together inside inner vector
 std::vector<std::vector<Node*>>& ExplosionGraph::getSort() {
 	return topologicalSort;
+}
+
+void ExplosionGraph::hardCodedBlocking() {
+	// Manually add blocking for now
+	// block a
+	nodes[7].blocked.push_back(Block(&nodes[0], glm::vec3(0.f, 0.f, 1.f)));
+	nodes[7].blocked.push_back(Block(&nodes[0], glm::vec3(1.f, 0.f, 0.f)));
+	nodes[7].blocked.push_back(Block(&nodes[0], glm::vec3(-1.f, 0.f, 0.f)));
+
+	// block b
+	nodes[0].blocked.push_back(Block(&nodes[7], glm::vec3(0.f, 0.f, -1.f)));
+
+	nodes[0].blocked.push_back(Block(&nodes[7], glm::vec3(1.f, 0.f, 0.f)));
+	nodes[0].blocked.push_back(Block(&nodes[1], glm::vec3(1.f, 0.f, 0.f)));
+	nodes[0].blocked.push_back(Block(&nodes[2], glm::vec3(1.f, 0.f, 0.f)));
+
+	nodes[0].blocked.push_back(Block(&nodes[7], glm::vec3(-1.f, 0.f, 0.f)));
+	nodes[0].blocked.push_back(Block(&nodes[1], glm::vec3(-1.f, 0.f, 0.f)));
+	nodes[0].blocked.push_back(Block(&nodes[2], glm::vec3(-1.f, 0.f, 0.f)));
+
+	nodes[0].blocked.push_back(Block(&nodes[1], glm::vec3(0.f, 0.f, 1.f)));
+	nodes[0].blocked.push_back(Block(&nodes[2], glm::vec3(0.f, 0.f, 1.f)));
+	nodes[0].blocked.push_back(Block(&nodes[3], glm::vec3(0.f, 0.f, 1.f)));
+
+	// block c
+	nodes[1].blocked.push_back(Block(&nodes[0], glm::vec3(0.f, 0.f, -1.f)));
+	nodes[1].blocked.push_back(Block(&nodes[2], glm::vec3(0.f, 0.f, -1.f)));
+	nodes[1].blocked.push_back(Block(&nodes[4], glm::vec3(0.f, 0.f, -1.f)));
+
+	nodes[1].blocked.push_back(Block(&nodes[0], glm::vec3(1.f, 0.f, 0.f)));
+	nodes[1].blocked.push_back(Block(&nodes[6], glm::vec3(1.f, 0.f, 0.f)));
+
+	nodes[1].blocked.push_back(Block(&nodes[0], glm::vec3(-1.f, 0.f, 0.f)));
+	nodes[1].blocked.push_back(Block(&nodes[2], glm::vec3(-1.f, 0.f, 0.f)));
+	nodes[1].blocked.push_back(Block(&nodes[3], glm::vec3(-1.f, 0.f, 0.f)));
+	nodes[1].blocked.push_back(Block(&nodes[4], glm::vec3(-1.f, 0.f, 0.f)));
+	nodes[1].blocked.push_back(Block(&nodes[6], glm::vec3(-1.f, 0.f, 0.f)));
+
+	nodes[1].blocked.push_back(Block(&nodes[2], glm::vec3(0.f, 0.f, 1.f)));
+	nodes[1].blocked.push_back(Block(&nodes[4], glm::vec3(0.f, 0.f, 1.f)));
+	nodes[1].blocked.push_back(Block(&nodes[6], glm::vec3(0.f, 0.f, 1.f)));
+
+	// block d
+	nodes[2].blocked.push_back(Block(&nodes[7], glm::vec3(0.f, 0.f, -1.f)));
+	nodes[2].blocked.push_back(Block(&nodes[0], glm::vec3(0.f, 0.f, -1.f)));
+	nodes[2].blocked.push_back(Block(&nodes[1], glm::vec3(0.f, 0.f, -1.f)));
+
+	nodes[2].blocked.push_back(Block(&nodes[1], glm::vec3(0.f, 0.f, 1.f)));
+	nodes[2].blocked.push_back(Block(&nodes[3], glm::vec3(0.f, 0.f, 1.f)));
+	nodes[2].blocked.push_back(Block(&nodes[4], glm::vec3(0.f, 0.f, 1.f)));
+	nodes[2].blocked.push_back(Block(&nodes[6], glm::vec3(0.f, 0.f, 1.f)));
+	nodes[2].blocked.push_back(Block(&nodes[5], glm::vec3(0.f, 0.f, 1.f)));
+
+	nodes[2].blocked.push_back(Block(&nodes[0], glm::vec3(-1.f, 0.f, 0.f)));
+	nodes[2].blocked.push_back(Block(&nodes[3], glm::vec3(-1.f, 0.f, 0.f)));
+
+	nodes[2].blocked.push_back(Block(&nodes[0], glm::vec3(1.f, 0.f, 0.f)));
+	nodes[2].blocked.push_back(Block(&nodes[1], glm::vec3(1.f, 0.f, 0.f)));
+
+	// block e
+	nodes[3].blocked.push_back(Block(&nodes[0], glm::vec3(0.f, 0.f, -1.f)));
+	nodes[3].blocked.push_back(Block(&nodes[2], glm::vec3(0.f, 0.f, -1.f)));
+
+	nodes[3].blocked.push_back(Block(&nodes[4], glm::vec3(0.f, 0.f, 1.f)));
+	nodes[3].blocked.push_back(Block(&nodes[6], glm::vec3(0.f, 0.f, 1.f)));
+
+	nodes[3].blocked.push_back(Block(&nodes[1], glm::vec3(1.f, 0.f, 0.f)));
+	nodes[3].blocked.push_back(Block(&nodes[2], glm::vec3(1.f, 0.f, 0.f)));
+	nodes[3].blocked.push_back(Block(&nodes[4], glm::vec3(1.f, 0.f, 0.f)));
+
+	// block f
+	nodes[4].blocked.push_back(Block(&nodes[7], glm::vec3(0.f, 0.f, -1.f)));
+	nodes[4].blocked.push_back(Block(&nodes[0], glm::vec3(0.f, 0.f, -1.f)));
+	nodes[4].blocked.push_back(Block(&nodes[1], glm::vec3(0.f, 0.f, -1.f)));
+	nodes[4].blocked.push_back(Block(&nodes[2], glm::vec3(0.f, 0.f, -1.f)));
+	nodes[4].blocked.push_back(Block(&nodes[3], glm::vec3(0.f, 0.f, -1.f)));
+
+	nodes[4].blocked.push_back(Block(&nodes[1], glm::vec3(0.f, 0.f, 1.f)));
+	nodes[4].blocked.push_back(Block(&nodes[6], glm::vec3(0.f, 0.f, 1.f)));
+	nodes[4].blocked.push_back(Block(&nodes[5], glm::vec3(0.f, 0.f, 1.f)));
+
+	nodes[4].blocked.push_back(Block(&nodes[1], glm::vec3(1.f, 0.f, 0.f)));
+	nodes[4].blocked.push_back(Block(&nodes[6], glm::vec3(1.f, 0.f, 0.f)));
+
+	nodes[4].blocked.push_back(Block(&nodes[3], glm::vec3(-1.f, 0.f, 0.f)));
+	nodes[4].blocked.push_back(Block(&nodes[6], glm::vec3(-1.f, 0.f, 0.f)));
+
+	// block g
+	nodes[6].blocked.push_back(Block(&nodes[7], glm::vec3(0.f, 0.f, -1.f)));
+	nodes[6].blocked.push_back(Block(&nodes[0], glm::vec3(0.f, 0.f, -1.f)));
+	nodes[6].blocked.push_back(Block(&nodes[1], glm::vec3(0.f, 0.f, -1.f)));
+	nodes[6].blocked.push_back(Block(&nodes[2], glm::vec3(0.f, 0.f, -1.f)));
+	nodes[6].blocked.push_back(Block(&nodes[3], glm::vec3(0.f, 0.f, -1.f)));
+	nodes[6].blocked.push_back(Block(&nodes[4], glm::vec3(0.f, 0.f, -1.f)));
+
+	nodes[6].blocked.push_back(Block(&nodes[5], glm::vec3(0.f, 0.f, 1.f)));
+
+	nodes[6].blocked.push_back(Block(&nodes[1], glm::vec3(1.f, 0.f, 0.f)));
+	nodes[6].blocked.push_back(Block(&nodes[4], glm::vec3(1.f, 0.f, 0.f)));
+	nodes[6].blocked.push_back(Block(&nodes[5], glm::vec3(1.f, 0.f, 0.f)));
+
+	nodes[6].blocked.push_back(Block(&nodes[1], glm::vec3(-1.f, 0.f, 0.f)));
+	nodes[6].blocked.push_back(Block(&nodes[4], glm::vec3(-1.f, 0.f, 0.f)));
+	nodes[6].blocked.push_back(Block(&nodes[5], glm::vec3(-1.f, 0.f, 0.f)));
+
+	// block h
+	nodes[5].blocked.push_back(Block(&nodes[7], glm::vec3(0.f, 0.f, -1.f)));
+	nodes[5].blocked.push_back(Block(&nodes[0], glm::vec3(0.f, 0.f, -1.f)));
+	nodes[5].blocked.push_back(Block(&nodes[1], glm::vec3(0.f, 0.f, -1.f)));
+	nodes[5].blocked.push_back(Block(&nodes[2], glm::vec3(0.f, 0.f, -1.f)));
+	nodes[5].blocked.push_back(Block(&nodes[3], glm::vec3(0.f, 0.f, -1.f)));
+	nodes[5].blocked.push_back(Block(&nodes[6], glm::vec3(0.f, 0.f, -1.f)));
+
+	nodes[5].blocked.push_back(Block(&nodes[6], glm::vec3(1.f, 0.f, 0.f)));
+
+	nodes[5].blocked.push_back(Block(&nodes[6], glm::vec3(-1.f, 0.f, 0.f)));
 }

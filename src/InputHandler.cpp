@@ -71,7 +71,7 @@ void InputHandler::motion(GLFWwindow* window, double x, double y) {
 void InputHandler::scroll(GLFWwindow* window, double x, double y) {
 	double dy;
 	dy = (x - y);
-	camera->updatePosition(glm::vec3(0.0, 0.0, dy * 0.1));
+	camera->updatePosition(glm::vec3(0.0, 0.0, dy * 1.0f));
 }
 
 // Callback for window reshape/resize

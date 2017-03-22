@@ -22,7 +22,7 @@ struct Node {
 	Renderable* part;
 	int index;
 
-	std::vector<Block> blocking;
+	std::vector<Block> blocked;
 
 	glm::vec3 direction;
 	float selfDistance;
@@ -33,7 +33,6 @@ struct Node {
 class ExplosionGraph {
 
 public:
-	ExplosionGraph(); // Temporary
 	ExplosionGraph(std::vector<Renderable*> parts, bool test); // Temporary
 	ExplosionGraph(std::vector<Renderable*> parts);
 
@@ -41,7 +40,7 @@ public:
 
 private:
 	Node* nodes;
-	int numParts;
+	unsigned int numParts;
 	std::vector<std::list<Node*>> graph;
 	std::vector<std::list<Node*>> iGraph;
 
@@ -50,6 +49,8 @@ private:
 	void fillDistances();
 	void constructInverse();
 	int sort();
-	void fillDistacnes();
+
+	void hardCodedBlocking();
+	float getEscapeDistance(Node* node, int sign, char dir);
 };
 

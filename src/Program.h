@@ -22,8 +22,7 @@ private:
 	GLFWwindow* window;
 	RenderEngine* renderEngine;
 	Camera* camera;
-
-	ExplosionGraph graph;
+	ExplosionGraph* graph;
 
 	static void error(int error, const char* description);
 	void setupWindow();

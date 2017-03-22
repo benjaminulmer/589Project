@@ -4,6 +4,7 @@ Program::Program() {
 	window = nullptr;
 	renderEngine = nullptr;
 	camera = nullptr;
+	graph = nullptr;
 }
 
 Program::~Program() {
@@ -63,13 +64,13 @@ void Program::loadObjects() {
 		renderEngine->assignBuffers(*object);
 	}
 
-	graph = ExplosionGraph(objects);
+	graph = new ExplosionGraph(objects);
 }
 
 // Main loop
 void Program::mainLoop() {
 
-	std::vector<std::vector<Node*>> sort = graph.getSort();
+	std::vector<std::vector<Node*>> sort = graph->getSort();
 	int level = sort.size();
 
 	int frame = 0;
