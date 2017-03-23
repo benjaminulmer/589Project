@@ -5,6 +5,11 @@ Program::Program() {
 	renderEngine = nullptr;
 	camera = nullptr;
 	graph = nullptr;
+
+	state = State::NONE;
+	level = 0;
+	counterS = 0.f;
+	timeSPerLevel = 1.f;
 }
 
 Program::~Program() {
@@ -26,7 +31,7 @@ void Program::start() {
 
 	camera = new Camera();
 	renderEngine = new RenderEngine(window, camera);
-	InputHandler::setUp(camera, renderEngine);
+	InputHandler::setUp(camera, renderEngine, this);
 	loadObjects();
 	mainLoop();
 }
@@ -41,6 +46,7 @@ void Program::setupWindow() {
 	glfwWindowHint(GLFW_SAMPLES, 16);
 	window = glfwCreateWindow(1024, 1024, "CPSC589 Project", NULL, NULL);
 	glfwMakeContextCurrent(window);
+	//glfwSwapInterval(1); // Vsync on
 
 	glfwSetKeyCallback(window, InputHandler::key);
 	glfwSetMouseButtonCallback(window, InputHandler::mouse);
@@ -65,34 +71,67 @@ void Program::loadObjects() {
 	}
 
 	graph = new ExplosionGraph(objects);
+	sort = graph->getSort();
 }
 
 // Main loop
 void Program::mainLoop() {
 
-	std::vector<std::vector<Node*>> sort = graph->getSort();
-	int level = sort.size();
-
-	int frame = 0;
-	int maxFrame = 120;
-
 	while(!glfwWindowShouldClose(window)) {
 		glfwPollEvents();
 
-		if (level >= 0) {
-
-			frame++;
-			if (frame > maxFrame) {
-				frame = 0;
-				level--;
-			}
+		if (state == State::EXPLODE) {
+			explode();
+		}
+		else if (state == State::COLLAPSE) {
+			collapse();
 		}
 
-		renderEngine->render(sort, level, (float)frame / (float)maxFrame);
+		glfwSetTime(0.);
+		renderEngine->render(sort, level, counterS / timeSPerLevel);
 		glfwSwapBuffers(window);
 	}
 
 	// Clean up, program needs to exit
 	glfwDestroyWindow(window);
 	glfwTerminate();
+}
+
+// Sets state to new state
+void Program::setState(State newState) {
+	state = newState;
+}
+
+// Sets values to animate explosion of model
+void Program::explode() {
+	counterS += glfwGetTime();
+
+	if (counterS > timeSPerLevel) {
+
+		if (level == sort.size() - 2) {
+			counterS = timeSPerLevel;
+			state = State::NONE;
+		}
+		else {
+			counterS = 0.f;
+			level++;
+		}
+	}
+}
+
+// Sets values to animate collapse of model
+void Program::collapse() {
+	counterS -= glfwGetTime();
+
+	if (counterS < 0.f) {
+
+		if (level == 0) {
+			counterS = 0.f;
+			state = State::NONE;
+		}
+		else {
+			counterS = timeSPerLevel;
+			level--;
+		}
+	}
 }

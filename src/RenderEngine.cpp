@@ -29,6 +29,8 @@ void RenderEngine::render(const std::vector<std::vector<Node*>>& graph, int leve
 	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 	glUseProgram(mainProgram);
 
+	level = graph.size() - level - 1;
+
 	int i = 0;
 	for (std::vector<Node*> l : graph) {
 		for (Node* node : l) {

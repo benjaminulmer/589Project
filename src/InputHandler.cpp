@@ -2,13 +2,15 @@
 
 Camera* InputHandler::camera;
 RenderEngine* InputHandler::renderEngine;
+Program* InputHandler::program;
 float InputHandler::mouseOldX;
 float InputHandler::mouseOldY;
 
 // Must be called before processing any GLFW events
-void InputHandler::setUp(Camera* camera, RenderEngine* renderEngine) {
+void InputHandler::setUp(Camera* camera, RenderEngine* renderEngine, Program* program) {
 	InputHandler::camera = camera;
 	InputHandler::renderEngine = renderEngine;
+	InputHandler::program = program;
 }
 
 // Callback for key presses
@@ -31,6 +33,12 @@ void InputHandler::key(GLFWwindow* window, int key, int scancode, int action, in
 	}
 	else if (key == GLFW_KEY_Q) {
 		renderEngine->updateLightPos(glm::vec3(0.0, 0.0, -0.1));
+	}
+	else if (key == GLFW_KEY_1 && action == GLFW_PRESS) {
+		program->setState(State::EXPLODE);
+	}
+	else if (key == GLFW_KEY_2 && action == GLFW_PRESS) {
+		program->setState(State::COLLAPSE);
 	}
 	else if (key == GLFW_KEY_ESCAPE) {
 		glfwDestroyWindow(window);

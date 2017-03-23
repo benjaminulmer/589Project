@@ -10,6 +10,12 @@
 #include "Camera.h"
 #include "ExplosionGraph.h"
 
+enum class State {
+	NONE,
+	EXPLODE,
+	COLLAPSE
+};
+
 class Program {
 
 public:
@@ -17,6 +23,7 @@ public:
 	virtual ~Program();
 
 	void start();
+	void setState(State newState);
 
 private:
 	GLFWwindow* window;
@@ -24,8 +31,18 @@ private:
 	Camera* camera;
 	ExplosionGraph* graph;
 
+	std::vector<std::vector<Node*>> sort;
+
+	State state;
+	unsigned int level;
+	float counterS;
+	float timeSPerLevel;
+
 	static void error(int error, const char* description);
 	void setupWindow();
 	void loadObjects();
 	void mainLoop();
+
+	void explode();
+	void collapse();
 };
