@@ -10,6 +10,8 @@ Program::Program() {
 	level = 0;
 	counterS = 0.f;
 	timeSPerLevel = 1.f;
+
+	distBuffer = 1.5f;
 }
 
 Program::~Program() {
@@ -71,7 +73,6 @@ void Program::loadObjects() {
 	}
 
 	graph = new ExplosionGraph(objects);
-	sort = graph->getSort();
 }
 
 // Main loop
@@ -88,7 +89,8 @@ void Program::mainLoop() {
 		}
 
 		glfwSetTime(0.);
-		renderEngine->render(sort, level, counterS / timeSPerLevel);
+		renderEngine->render(graph->getSort(), level, counterS / timeSPerLevel, distBuffer);
+		renderEngine->pickerRender(graph->getSort(), level, counterS / timeSPerLevel, distBuffer, 0);
 		glfwSwapBuffers(window);
 	}
 
@@ -108,7 +110,7 @@ void Program::explode() {
 
 	if (counterS > timeSPerLevel) {
 
-		if (level == sort.size() - 2) {
+		if (level == graph->getSort().size() - 2) {
 			counterS = timeSPerLevel;
 			state = State::NONE;
 		}

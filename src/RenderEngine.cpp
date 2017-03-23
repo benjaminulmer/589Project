@@ -3,11 +3,11 @@
 RenderEngine::RenderEngine(GLFWwindow* window, Camera* camera) :
 	window(window), camera(camera) {
 
-	int width, height;
 	glfwGetWindowSize(window, &width, &height);
 
 	mainProgram = ShaderTools::compileShaders("./shaders/mesh.vert", "./shaders/mesh.frag");
 	lightProgram = ShaderTools::compileShaders("./shaders/light.vert", "./shaders/light.frag");
+	pickerProgram = ShaderTools::compileShaders("./shaders/picker.vert", "./shaders/picker.frag");
 
 	lightPos = glm::vec3(0.0, 2.0, 0.0);
 	projection = glm::perspective(45.0f, (float)width/height, 0.01f, 100.0f);
@@ -25,9 +25,11 @@ RenderEngine::~RenderEngine() {
 }
 
 // Called to render the active object. RenderEngine stores all information about how to render
-void RenderEngine::render(const std::vector<std::vector<Node*>>& graph, int level, float perc) {
-	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
+void RenderEngine::render(const std::vector<std::vector<Node*>>& graph, int level, float perc, float distBuffer) {
 	glUseProgram(mainProgram);
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	glClearColor(0.3, 0.3, 0.4, 0.0);
+	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 
 	level = graph.size() - level - 1;
 
@@ -46,10 +48,10 @@ void RenderEngine::render(const std::vector<std::vector<Node*>>& graph, int leve
 			// Determine how far to move object
 			glm::vec3 dir = node->direction;
 			if (i > level) {
-				model = glm::translate(dir * node->totalDistance);
+				model = glm::translate(dir * node->totalDistance * distBuffer);
 			}
 			else if (i == level) {
-				model = glm::translate(dir * node->totalDistance * perc);
+				model = glm::translate(dir * node->totalDistance * perc * distBuffer);
 			}
 			else {
 				model = glm::mat4();
@@ -72,6 +74,94 @@ void RenderEngine::render(const std::vector<std::vector<Node*>>& graph, int leve
 	}
 	renderLight();
 }
+
+#include <array>
+
+void RenderEngine::pickerRender(const std::vector<std::vector<Node*>>& graph, int level, float perc, float distBuffer, float*) {
+
+	// Frame buffer to render to
+	GLuint frameBuffer = 0;
+	glGenFramebuffers(1, &frameBuffer);
+	glBindFramebuffer(GL_FRAMEBUFFER, frameBuffer);
+
+	// Colour buffer
+	GLuint colourBuffer;
+	glGenRenderbuffers(1, &colourBuffer);
+	glBindRenderbuffer(GL_RENDERBUFFER, colourBuffer);
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_RED, width, height);
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, colourBuffer);
+
+	// Depth buffer
+	GLuint depthBuffer;
+	glGenRenderbuffers(1, &depthBuffer);
+	glBindRenderbuffer(GL_RENDERBUFFER, depthBuffer);
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, width, height);
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, depthBuffer);
+
+
+	// **** RENDER STARTS HERE ****** //
+	glUseProgram(pickerProgram);
+	//glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	glClearColor(0.0, 0.0, 0.0, 0.0);
+	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
+
+
+	level = graph.size() - level - 1;
+
+	int i = 0;
+	for (std::vector<Node*> l : graph) {
+		for (Node* node : l) {
+			Renderable* renderable = node->part;
+			glBindVertexArray(renderable->vao);
+
+			// If the object has no image texture switch to attribute only mode
+			Texture::bind2DTexture(pickerProgram, renderable->textureID, "image");
+
+			view = camera->getLookAt();
+			glm::mat4 model;
+
+			// Determine how far to move object
+			glm::vec3 dir = node->direction;
+			if (i > level) {
+				model = glm::translate(dir * node->totalDistance * distBuffer);
+			}
+			else if (i == level) {
+				model = glm::translate(dir * node->totalDistance * perc * distBuffer);
+			}
+			else {
+				model = glm::mat4();
+			}
+
+			glm::mat4 modelView = view * model;
+
+			// Uniforms
+			glUniformMatrix4fv(glGetUniformLocation(pickerProgram, "modelView"), 1, GL_FALSE, glm::value_ptr(modelView));
+			glUniformMatrix4fv(glGetUniformLocation(pickerProgram, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
+			glUniform1f(glGetUniformLocation(pickerProgram, "idColour"), node->index/10.f);
+
+			glDrawElements(GL_TRIANGLES, renderable->faces.size(), GL_UNSIGNED_SHORT, (void*)0);
+			glBindVertexArray(0);
+			Texture::unbind2DTexture();
+		}
+		i++;
+	}
+
+	std::vector<float> pixelsVec(width*height);
+	float* pixels = pixelsVec.data();
+
+	glReadPixels(0, 0, width, height, GL_RED, GL_FLOAT, pixels);
+
+	int c = 512;
+	int r = 200;
+
+	std::cout << *(pixels + width*r + c) << std::endl;
+
+	glDeleteRenderbuffers(1, &colourBuffer);
+	glDeleteRenderbuffers(1, &depthBuffer);
+	glDeleteFramebuffers(1, &frameBuffer);
+
+}
+
 
 // Renders the current position of the light as a point
 void RenderEngine::renderLight() {
@@ -125,6 +215,15 @@ void RenderEngine::assignBuffers(Renderable& renderable) {
 	glBindVertexArray(0);
 }
 
+// Deletes buffers
+void RenderEngine::deleteBuffers(Renderable& renderable) {
+	glDeleteBuffers(1, &renderable.vertexBuffer);
+	glDeleteBuffers(1, &renderable.normalBuffer);
+	glDeleteBuffers(1, &renderable.indexBuffer);
+
+	glDeleteVertexArrays(1, &renderable.vao);
+}
+
 // Creates a 2D texture
 unsigned int RenderEngine::loadTexture(std::string filename) {
 	//reading model texture image
@@ -142,7 +241,9 @@ unsigned int RenderEngine::loadTexture(std::string filename) {
 }
 
 // Sets projection and viewport for new width and height
-void RenderEngine::setWindowSize(int width, int height) {
+void RenderEngine::setWindowSize(int newWidth, int newHeight) {
+	width = newWidth;
+	height = newHeight;
 	projection = glm::perspective(45.0f, (float)width/height, 0.01f, 100.0f);
 	glViewport(0, 0, width, height);
 }

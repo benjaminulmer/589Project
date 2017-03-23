@@ -31,12 +31,12 @@ private:
 	Camera* camera;
 	ExplosionGraph* graph;
 
-	std::vector<std::vector<Node*>> sort;
-
 	State state;
 	unsigned int level;
 	float counterS;
 	float timeSPerLevel;
+
+	float distBuffer;
 
 	static void error(int error, const char* description);
 	void setupWindow();
