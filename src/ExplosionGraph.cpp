@@ -3,10 +3,10 @@
 #include <iostream>
 
 // Default constructor. Zeros everything
-Node::Node() : part(0), index(0), selfDistance(0.0f), totalDistance(0.0f) {}
+Node::Node() : part(0), index(0), selfDistance(0.0f), totalDistance(0.0f), id(0.0f) {}
 
 // Node for part with given index
-Node::Node(Renderable* part, int index) : part(part), index(index), selfDistance(0.0f), totalDistance(0.0f) {}
+Node::Node(Renderable* part, int index) : part(part), index(index), selfDistance(0.0f), totalDistance(0.0f), id(0.0f) {}
 
 ExplosionGraph::ExplosionGraph(std::vector<Renderable*> parts, bool test) {
 

@@ -49,11 +49,19 @@ void InputHandler::key(GLFWwindow* window, int key, int scancode, int action, in
 
 // Callback for mouse button presses
 void InputHandler::mouse(GLFWwindow* window, int button, int action, int mods) {
-	if (action == GLFW_PRESS) {
-		double x, y;
-		glfwGetCursorPos(window, &x, &y);
-		mouseOldX = x;
-		mouseOldY = y;
+	double x, y;
+	glfwGetCursorPos(window, &x, &y);
+	mouseOldX = x;
+	mouseOldY = y;
+
+	if (button == GLFW_MOUSE_BUTTON_1 && action == GLFW_PRESS) {
+		int width, height;
+		glfwGetWindowSize(window, &width, &height);
+
+		int iX = (int)x;
+		int iY = height - (int)y;
+
+		program->_3Dpick(iX, iY);
 	}
 }
 
@@ -63,12 +71,9 @@ void InputHandler::motion(GLFWwindow* window, double x, double y) {
 	dx = (x - mouseOldX);
 	dy = (y - mouseOldY);
 
-	if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_1)) {
+	if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_2)) {
 		camera->updateLongitudeRotation(dx * 0.5);
 		camera->updateLatitudeRotation(dy * 0.5);
-	}
-	else if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_2)) {
-		//translate_z += dy * 0.03f;
 	}
 
 	mouseOldX = x;
@@ -79,8 +84,7 @@ void InputHandler::motion(GLFWwindow* window, double x, double y) {
 void InputHandler::scroll(GLFWwindow* window, double x, double y) {
 	double dy;
 	dy = (x - y);
-	//camera->updatePosition(glm::vec3(0.0, 0.0, dy * 1.0f));
-	camera->updatePosition(glm::vec3(-dy * 1.0f, 0.0, 0.0));
+	camera->updatePosition(glm::vec3(dy * -1.0f, 0.0, 0.0));
 }
 
 // Callback for window reshape/resize

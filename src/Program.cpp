@@ -71,8 +71,18 @@ void Program::loadObjects() {
 
 		renderEngine->assignBuffers(*object);
 	}
-
 	graph = new ExplosionGraph(objects);
+
+	int numNodes = objects.size();
+	for (std::vector<Node*> l : graph->getSort()) {
+		for (Node* node : l) {
+			node->id = float(node->index + 1) / float(numNodes);
+
+			std::cout << node->id << std::endl;
+
+			nodeMap[node->id] = node;
+		}
+	}
 }
 
 // Main loop
@@ -90,18 +100,12 @@ void Program::mainLoop() {
 
 		glfwSetTime(0.);
 		renderEngine->render(graph->getSort(), level, counterS / timeSPerLevel, distBuffer);
-		renderEngine->pickerRender(graph->getSort(), level, counterS / timeSPerLevel, distBuffer, 0);
 		glfwSwapBuffers(window);
 	}
 
 	// Clean up, program needs to exit
 	glfwDestroyWindow(window);
 	glfwTerminate();
-}
-
-// Sets state to new state
-void Program::setState(State newState) {
-	state = newState;
 }
 
 // Sets values to animate explosion of model
@@ -135,5 +139,18 @@ void Program::collapse() {
 			counterS = timeSPerLevel;
 			level--;
 		}
+	}
+}
+
+// Sets state to new state
+void Program::setState(State newState) {
+	state = newState;
+}
+
+void Program::_3Dpick(int x, int y) {
+	float result = renderEngine->pickerRender(graph->getSort(), level, counterS / timeSPerLevel, distBuffer, x, y);
+	std::cout << result << std::endl;
+	if (result != 0.f) {
+		//std::cout << nodeMap[result]->index << std::endl;
 	}
 }

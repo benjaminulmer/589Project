@@ -27,6 +27,8 @@ struct Node {
 	glm::vec3 direction;
 	float selfDistance;
 	float totalDistance;
+
+	float id;
 };
 
 

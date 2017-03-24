@@ -77,7 +77,7 @@ void RenderEngine::render(const std::vector<std::vector<Node*>>& graph, int leve
 
 #include <array>
 
-void RenderEngine::pickerRender(const std::vector<std::vector<Node*>>& graph, int level, float perc, float distBuffer, float*) {
+float RenderEngine::pickerRender(const std::vector<std::vector<Node*>>& graph, int level, float perc, float distBuffer, int x, int y) {
 
 	// Frame buffer to render to
 	GLuint frameBuffer = 0;
@@ -101,10 +101,8 @@ void RenderEngine::pickerRender(const std::vector<std::vector<Node*>>& graph, in
 
 	// **** RENDER STARTS HERE ****** //
 	glUseProgram(pickerProgram);
-	//glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glClearColor(0.0, 0.0, 0.0, 0.0);
 	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
-
 
 	level = graph.size() - level - 1;
 
@@ -137,7 +135,7 @@ void RenderEngine::pickerRender(const std::vector<std::vector<Node*>>& graph, in
 			// Uniforms
 			glUniformMatrix4fv(glGetUniformLocation(pickerProgram, "modelView"), 1, GL_FALSE, glm::value_ptr(modelView));
 			glUniformMatrix4fv(glGetUniformLocation(pickerProgram, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
-			glUniform1f(glGetUniformLocation(pickerProgram, "idColour"), node->index/10.f);
+			glUniform1f(glGetUniformLocation(pickerProgram, "idColour"), node->id);
 
 			glDrawElements(GL_TRIANGLES, renderable->faces.size(), GL_UNSIGNED_SHORT, (void*)0);
 			glBindVertexArray(0);
@@ -151,15 +149,11 @@ void RenderEngine::pickerRender(const std::vector<std::vector<Node*>>& graph, in
 
 	glReadPixels(0, 0, width, height, GL_RED, GL_FLOAT, pixels);
 
-	int c = 512;
-	int r = 200;
-
-	std::cout << *(pixels + width*r + c) << std::endl;
-
 	glDeleteRenderbuffers(1, &colourBuffer);
 	glDeleteRenderbuffers(1, &depthBuffer);
 	glDeleteFramebuffers(1, &frameBuffer);
 
+	return *(pixels + width*y + x);
 }
 
 

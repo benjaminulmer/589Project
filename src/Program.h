@@ -3,6 +3,8 @@
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 
+#include <map>
+
 #include "InputHandler.h"
 #include "RenderEngine.h"
 #include "Renderable.h"
@@ -24,6 +26,7 @@ public:
 
 	void start();
 	void setState(State newState);
+	void _3Dpick(int x, int y);
 
 private:
 	GLFWwindow* window;
@@ -32,11 +35,13 @@ private:
 	ExplosionGraph* graph;
 
 	State state;
+
 	unsigned int level;
 	float counterS;
 	float timeSPerLevel;
-
 	float distBuffer;
+
+	std::map<float, Node*> nodeMap;
 
 	static void error(int error, const char* description);
 	void setupWindow();
