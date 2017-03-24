@@ -72,17 +72,6 @@ void Program::loadObjects() {
 		renderEngine->assignBuffers(*object);
 	}
 	graph = new ExplosionGraph(objects);
-
-	int numNodes = objects.size();
-	for (std::vector<Node*> l : graph->getSort()) {
-		for (Node* node : l) {
-			node->id = float(node->index + 1) / float(numNodes);
-
-			std::cout << node->id << std::endl;
-
-			nodeMap[node->id] = node;
-		}
-	}
 }
 
 // Main loop
@@ -149,8 +138,7 @@ void Program::setState(State newState) {
 
 void Program::_3Dpick(int x, int y) {
 	float result = renderEngine->pickerRender(graph->getSort(), level, counterS / timeSPerLevel, distBuffer, x, y);
-	std::cout << result << std::endl;
-	if (result != 0.f) {
-		//std::cout << nodeMap[result]->index << std::endl;
-	}
+	std::cout << graph->at(result)->index << std::endl;
+	graph->at(result)->part->colour = glm::vec3(1.0f, 1.0f, 1.0f);
+
 }

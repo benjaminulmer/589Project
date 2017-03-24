@@ -28,7 +28,7 @@ public:
 	void setWindowSize(int width, int height);
 	void updateLightPos(glm::vec3 add);
 
-	float pickerRender(const std::vector<std::vector<Node*>>& graph, int level, float perc, float distBuffer, int x, int y);
+	int pickerRender(const std::vector<std::vector<Node*>>& graph, int level, float perc, float distBuffer, int x, int y);
 
 private:
 	GLFWwindow* window;

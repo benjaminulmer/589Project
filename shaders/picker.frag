@@ -1,9 +1,9 @@
 #version 430 core
 
-out vec3 colour;
+layout (location = 0) out int colour;
 
-uniform float idColour;
+uniform int id;
 
 void main(void) {    	
-	colour = vec3(idColour, idColour, idColour);
+	colour = id;
 }

@@ -77,26 +77,35 @@ void RenderEngine::render(const std::vector<std::vector<Node*>>& graph, int leve
 
 #include <array>
 
-float RenderEngine::pickerRender(const std::vector<std::vector<Node*>>& graph, int level, float perc, float distBuffer, int x, int y) {
+int RenderEngine::pickerRender(const std::vector<std::vector<Node*>>& graph, int level, float perc, float distBuffer, int x, int y) {
 
-	// Frame buffer to render to
-	GLuint frameBuffer = 0;
-	glGenFramebuffers(1, &frameBuffer);
-	glBindFramebuffer(GL_FRAMEBUFFER, frameBuffer);
-
-	// Colour buffer
-	GLuint colourBuffer;
-	glGenRenderbuffers(1, &colourBuffer);
-	glBindRenderbuffer(GL_RENDERBUFFER, colourBuffer);
-	glRenderbufferStorage(GL_RENDERBUFFER, GL_RED, width, height);
-	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, colourBuffer);
-
-	// Depth buffer
+   //RGBA8 2D texture, 24 bit depth texture, 256x256
+	GLuint texID;
+	GLuint frameBuffer;
 	GLuint depthBuffer;
-	glGenRenderbuffers(1, &depthBuffer);
-	glBindRenderbuffer(GL_RENDERBUFFER, depthBuffer);
-	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, width, height);
-	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, depthBuffer);
+
+	glGenTextures(1, &texID);
+	glBindTexture(GL_TEXTURE_2D, texID);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+	//NULL means reserve texture memory, but texels are undefined
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_R32I, width, height, 0, GL_RED_INTEGER, GL_INT, NULL);
+
+	glGenFramebuffersEXT(1, &frameBuffer);
+	glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, frameBuffer);
+
+	//Attach 2D texture to this FBO
+	glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_2D, texID, 0);
+
+	glGenRenderbuffersEXT(1, &depthBuffer);
+	glBindRenderbufferEXT(GL_RENDERBUFFER_EXT, depthBuffer);
+	glRenderbufferStorageEXT(GL_RENDERBUFFER_EXT, GL_DEPTH_COMPONENT24, width, height);
+
+	//Attach depth buffer to FBO
+	glFramebufferRenderbufferEXT(GL_FRAMEBUFFER_EXT, GL_DEPTH_ATTACHMENT_EXT, GL_RENDERBUFFER_EXT, depthBuffer);
 
 
 	// **** RENDER STARTS HERE ****** //
@@ -135,7 +144,7 @@ float RenderEngine::pickerRender(const std::vector<std::vector<Node*>>& graph, i
 			// Uniforms
 			glUniformMatrix4fv(glGetUniformLocation(pickerProgram, "modelView"), 1, GL_FALSE, glm::value_ptr(modelView));
 			glUniformMatrix4fv(glGetUniformLocation(pickerProgram, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
-			glUniform1f(glGetUniformLocation(pickerProgram, "idColour"), node->id);
+			glUniform1i(glGetUniformLocation(pickerProgram, "id"), node->index);
 
 			glDrawElements(GL_TRIANGLES, renderable->faces.size(), GL_UNSIGNED_SHORT, (void*)0);
 			glBindVertexArray(0);
@@ -144,12 +153,12 @@ float RenderEngine::pickerRender(const std::vector<std::vector<Node*>>& graph, i
 		i++;
 	}
 
-	std::vector<float> pixelsVec(width*height);
-	float* pixels = pixelsVec.data();
+	std::vector<int> pixelsVec(width*height);
+	int* pixels = pixelsVec.data();
 
-	glReadPixels(0, 0, width, height, GL_RED, GL_FLOAT, pixels);
+	glGetTextureImage(texID, 0, GL_RED_INTEGER, GL_INT, sizeof(int) * width * height, pixels);
 
-	glDeleteRenderbuffers(1, &colourBuffer);
+	glDeleteTextures(1, &texID);
 	glDeleteRenderbuffers(1, &depthBuffer);
 	glDeleteFramebuffers(1, &frameBuffer);
 

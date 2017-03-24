@@ -41,8 +41,6 @@ private:
 	float timeSPerLevel;
 	float distBuffer;
 
-	std::map<float, Node*> nodeMap;
-
 	static void error(int error, const char* description);
 	void setupWindow();
 	void loadObjects();

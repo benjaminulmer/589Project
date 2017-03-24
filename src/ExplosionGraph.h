@@ -27,8 +27,6 @@ struct Node {
 	glm::vec3 direction;
 	float selfDistance;
 	float totalDistance;
-
-	float id;
 };
 
 
@@ -39,6 +37,7 @@ public:
 	ExplosionGraph(std::vector<Renderable*> parts);
 
 	std::vector<std::vector<Node*>>& getSort();
+	Node* at(int index);
 
 private:
 	Node* nodes;
