@@ -26,15 +26,21 @@ public:
 
 	void start();
 	void setState(State newState);
-	void _3Dpick(int x, int y);
+	void setWindowSize(int newWidth, int newHeight);
+	void setMousePos(int x, int y);
 
 private:
 	GLFWwindow* window;
+	int width, height;
+
 	RenderEngine* renderEngine;
 	Camera* camera;
 	ExplosionGraph* graph;
 
 	State state;
+
+	Node* currentNode;
+	int mouseX, mouseY;
 
 	unsigned int level;
 	float counterS;
@@ -48,4 +54,6 @@ private:
 
 	void explode();
 	void collapse();
+
+	void _3Dpick();
 };

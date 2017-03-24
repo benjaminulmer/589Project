@@ -53,16 +53,6 @@ void InputHandler::mouse(GLFWwindow* window, int button, int action, int mods) {
 	glfwGetCursorPos(window, &x, &y);
 	mouseOldX = x;
 	mouseOldY = y;
-
-	if (button == GLFW_MOUSE_BUTTON_1 && action == GLFW_PRESS) {
-		int width, height;
-		glfwGetWindowSize(window, &width, &height);
-
-		int iX = (int)x;
-		int iY = height - (int)y;
-
-		program->_3Dpick(iX, iY);
-	}
 }
 
 // Callback for mouse motion
@@ -71,10 +61,19 @@ void InputHandler::motion(GLFWwindow* window, double x, double y) {
 	dx = (x - mouseOldX);
 	dy = (y - mouseOldY);
 
+	// Right mouse moves camera
 	if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_2)) {
 		camera->updateLongitudeRotation(dx * 0.5);
 		camera->updateLatitudeRotation(dy * 0.5);
 	}
+
+	// Update current position of the mouse
+	int width, height;
+	glfwGetWindowSize(window, &width, &height);
+
+	int iX = (int)x;
+	int iY = height - (int)y;
+	program->setMousePos(iX, iY);
 
 	mouseOldX = x;
 	mouseOldY = y;
@@ -89,5 +88,5 @@ void InputHandler::scroll(GLFWwindow* window, double x, double y) {
 
 // Callback for window reshape/resize
 void InputHandler::reshape(GLFWwindow* window, int width, int height) {
-	renderEngine->setWindowSize(width, height);
+	program->setWindowSize(width, height);
 }

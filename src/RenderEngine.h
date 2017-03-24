@@ -25,7 +25,7 @@ public:
 	void deleteBuffers(Renderable& renderable);
 	unsigned int loadTexture(std::string filename);
 
-	void setWindowSize(int width, int height);
+	void setWindowSize(int newWidth, int newHeight);
 	void updateLightPos(glm::vec3 add);
 
 	int pickerRender(const std::vector<std::vector<Node*>>& graph, int level, float perc, float distBuffer, int x, int y);

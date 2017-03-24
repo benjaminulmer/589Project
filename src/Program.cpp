@@ -6,7 +6,12 @@ Program::Program() {
 	camera = nullptr;
 	graph = nullptr;
 
+	mouseX = mouseY = 0;
+	width = height = 1024;
+
 	state = State::NONE;
+	currentNode = nullptr;
+
 	level = 0;
 	counterS = 0.f;
 	timeSPerLevel = 1.f;
@@ -46,9 +51,9 @@ void Program::setupWindow() {
 	}
 
 	glfwWindowHint(GLFW_SAMPLES, 16);
-	window = glfwCreateWindow(1024, 1024, "CPSC589 Project", NULL, NULL);
+	window = glfwCreateWindow(width, height, "CPSC589 Project", NULL, NULL);
 	glfwMakeContextCurrent(window);
-	//glfwSwapInterval(1); // Vsync on
+	glfwSwapInterval(1); // Vsync on
 
 	glfwSetKeyCallback(window, InputHandler::key);
 	glfwSetMouseButtonCallback(window, InputHandler::mouse);
@@ -80,6 +85,7 @@ void Program::mainLoop() {
 	while(!glfwWindowShouldClose(window)) {
 		glfwPollEvents();
 
+		_3Dpick();
 		if (state == State::EXPLODE) {
 			explode();
 		}
@@ -136,9 +142,33 @@ void Program::setState(State newState) {
 	state = newState;
 }
 
-void Program::_3Dpick(int x, int y) {
-	float result = renderEngine->pickerRender(graph->getSort(), level, counterS / timeSPerLevel, distBuffer, x, y);
-	std::cout << graph->at(result)->index << std::endl;
-	graph->at(result)->part->colour = glm::vec3(1.0f, 1.0f, 1.0f);
+// Sets new width and height
+void Program::setWindowSize(int newWidth, int newHeight) {
+	width = newWidth;
+	height = newHeight;
+	renderEngine->setWindowSize(newWidth, newHeight);
+}
 
+// Update position of mouse. [0, 0] is bottom left corner; [1, 1] is top right
+void Program::setMousePos(int x, int y) {
+	mouseX = x;
+	mouseY = y;
+}
+
+void Program::_3Dpick() {
+	float result = renderEngine->pickerRender(graph->getSort(), level, counterS / timeSPerLevel, distBuffer, mouseX, mouseY);
+
+	// Reset current active node (if there is one)
+	if (currentNode != nullptr) {
+		currentNode->active = false;
+	}
+
+	// Get new current node from mouse position (if mouse is on an object)
+	if (result != 0) {
+		currentNode = graph->at(result - 1);
+		currentNode->active = true;
+	}
+	else {
+		currentNode = nullptr;
+	}
 }

@@ -3,10 +3,10 @@
 #include <iostream>
 
 // Default constructor. Zeros everything
-Node::Node() : part(0), index(0), selfDistance(0.0f), totalDistance(0.0f) {}
+Node::Node() : part(0), index(0), selfDistance(0.0f), totalDistance(0.0f), active(false) {}
 
 // Node for part with given index
-Node::Node(Renderable* part, int index) : part(part), index(index), selfDistance(0.0f), totalDistance(0.0f) {}
+Node::Node(Renderable* part, int index) : part(part), index(index), selfDistance(0.0f), totalDistance(0.0f), active(false) {}
 
 ExplosionGraph::ExplosionGraph(std::vector<Renderable*> parts, bool test) {
 
@@ -248,6 +248,7 @@ void ExplosionGraph::constructInverse() {
 
 // Topologically sorts the graph
 int ExplosionGraph::sort() {
+
 	// Copy so we don't ruin the actual graph
 	std::vector<std::list<Node*>> iGraphMain = iGraph;
 
@@ -317,9 +318,14 @@ std::vector<std::vector<Node*>>& ExplosionGraph::getSort() {
 	return topologicalSort;
 }
 
-// Returns pointer to node at index
+// Returns pointer to node at index or nullptr if index is out of bounds
 Node* ExplosionGraph::at(int index) {
-	return &nodes[index];
+	if (index < 0 || (unsigned int)index >= numParts) {
+		return nullptr;
+	}
+	else {
+		return &nodes[index];
+	}
 }
 
 void ExplosionGraph::hardCodedBlocking() {

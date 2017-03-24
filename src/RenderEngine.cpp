@@ -63,7 +63,10 @@ void RenderEngine::render(const std::vector<std::vector<Node*>>& graph, int leve
 			glUniformMatrix4fv(glGetUniformLocation(mainProgram, "modelView"), 1, GL_FALSE, glm::value_ptr(modelView));
 			glUniformMatrix4fv(glGetUniformLocation(mainProgram, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
 			glUniform3fv(glGetUniformLocation(mainProgram, "lightPos"), 1, glm::value_ptr(lightPos));
-			glUniform3fv(glGetUniformLocation(mainProgram, "objColour"), 1, glm::value_ptr(renderable->colour));
+
+			glm::vec3 col = (node->active) ? glm::vec3(1.0f, 1.0f, 1.0f) : renderable->colour;
+
+			glUniform3fv(glGetUniformLocation(mainProgram, "objColour"), 1, glm::value_ptr(col));
 			glUniform1i(glGetUniformLocation(mainProgram, "hasTexture"), (renderable->textureID > 0 ? 1 : 0));
 
 			glDrawElements(GL_TRIANGLES, renderable->faces.size(), GL_UNSIGNED_SHORT, (void*)0);
@@ -79,36 +82,35 @@ void RenderEngine::render(const std::vector<std::vector<Node*>>& graph, int leve
 
 int RenderEngine::pickerRender(const std::vector<std::vector<Node*>>& graph, int level, float perc, float distBuffer, int x, int y) {
 
-   //RGBA8 2D texture, 24 bit depth texture, 256x256
+	// Create framebuffer with texture to render IDs to
 	GLuint texID;
 	GLuint frameBuffer;
 	GLuint depthBuffer;
 
+	// Create and bind framebuffer
+	glGenFramebuffers(1, &frameBuffer);
+	glBindFramebuffer(GL_FRAMEBUFFER, frameBuffer);
+
+	// Create texture and set texture parameters
 	glGenTextures(1, &texID);
 	glBindTexture(GL_TEXTURE_2D, texID);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-
-	//NULL means reserve texture memory, but texels are undefined
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_R32I, width, height, 0, GL_RED_INTEGER, GL_INT, NULL);
 
-	glGenFramebuffersEXT(1, &frameBuffer);
-	glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, frameBuffer);
+	// Create depth buffer
+	glGenRenderbuffers(1, &depthBuffer);
+	glBindRenderbuffer(GL_RENDERBUFFER, depthBuffer);
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, width, height);
 
-	//Attach 2D texture to this FBO
-	glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_2D, texID, 0);
-
-	glGenRenderbuffersEXT(1, &depthBuffer);
-	glBindRenderbufferEXT(GL_RENDERBUFFER_EXT, depthBuffer);
-	glRenderbufferStorageEXT(GL_RENDERBUFFER_EXT, GL_DEPTH_COMPONENT24, width, height);
-
-	//Attach depth buffer to FBO
-	glFramebufferRenderbufferEXT(GL_FRAMEBUFFER_EXT, GL_DEPTH_ATTACHMENT_EXT, GL_RENDERBUFFER_EXT, depthBuffer);
+	// Attack texture and depth buffer to framebuffer
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_2D, texID, 0);
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, depthBuffer);
 
 
-	// **** RENDER STARTS HERE ****** //
+	// Render IDs to textures in framebuffer
 	glUseProgram(pickerProgram);
 	glClearColor(0.0, 0.0, 0.0, 0.0);
 	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
@@ -144,7 +146,7 @@ int RenderEngine::pickerRender(const std::vector<std::vector<Node*>>& graph, int
 			// Uniforms
 			glUniformMatrix4fv(glGetUniformLocation(pickerProgram, "modelView"), 1, GL_FALSE, glm::value_ptr(modelView));
 			glUniformMatrix4fv(glGetUniformLocation(pickerProgram, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
-			glUniform1i(glGetUniformLocation(pickerProgram, "id"), node->index);
+			glUniform1i(glGetUniformLocation(pickerProgram, "id"), node->index + 1);
 
 			glDrawElements(GL_TRIANGLES, renderable->faces.size(), GL_UNSIGNED_SHORT, (void*)0);
 			glBindVertexArray(0);
@@ -153,6 +155,7 @@ int RenderEngine::pickerRender(const std::vector<std::vector<Node*>>& graph, int
 		i++;
 	}
 
+	// Get render data back to CPU
 	std::vector<int> pixelsVec(width*height);
 	int* pixels = pixelsVec.data();
 
@@ -162,6 +165,7 @@ int RenderEngine::pickerRender(const std::vector<std::vector<Node*>>& graph, int
 	glDeleteRenderbuffers(1, &depthBuffer);
 	glDeleteFramebuffers(1, &frameBuffer);
 
+	// Return ID at pixel of interest
 	return *(pixels + width*y + x);
 }
 
