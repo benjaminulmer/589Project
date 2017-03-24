@@ -40,6 +40,18 @@ void InputHandler::key(GLFWwindow* window, int key, int scancode, int action, in
 	else if (key == GLFW_KEY_2 && action == GLFW_PRESS) {
 		program->setState(State::COLLAPSE);
 	}
+	else if (key == GLFW_KEY_R && action == GLFW_PRESS) {
+		program->updateDistanceBuffer(0.1f);
+	}
+	else if (key == GLFW_KEY_F && action == GLFW_PRESS) {
+		program->updateDistanceBuffer(-0.1f);
+	}
+	else if (key == GLFW_KEY_T && action == GLFW_PRESS) {
+		program->updateExplosionTime(0.1f);
+	}
+	else if (key == GLFW_KEY_G && action == GLFW_PRESS) {
+		program->updateExplosionTime(-0.1f);
+	}
 	else if (key == GLFW_KEY_ESCAPE) {
 		glfwDestroyWindow(window);
 		glfwTerminate();
@@ -62,7 +74,7 @@ void InputHandler::motion(GLFWwindow* window, double x, double y) {
 	dy = (y - mouseOldY);
 
 	// Right mouse moves camera
-	if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_2)) {
+	if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_1)) {
 		camera->updateLongitudeRotation(dx * 0.5);
 		camera->updateLatitudeRotation(dy * 0.5);
 	}

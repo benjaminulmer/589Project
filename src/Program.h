@@ -25,9 +25,13 @@ public:
 	virtual ~Program();
 
 	void start();
+
 	void setState(State newState);
 	void setWindowSize(int newWidth, int newHeight);
 	void setMousePos(int x, int y);
+
+	void updateDistanceBuffer(float inc);
+	void updateExplosionTime(float inc);
 
 private:
 	GLFWwindow* window;

@@ -155,6 +155,7 @@ void Program::setMousePos(int x, int y) {
 	mouseY = y;
 }
 
+// Finds objects mouse is over and makes it current
 void Program::_3Dpick() {
 	float result = renderEngine->pickerRender(graph->getSort(), level, counterS / timeSPerLevel, distBuffer, mouseX, mouseY);
 
@@ -170,5 +171,19 @@ void Program::_3Dpick() {
 	}
 	else {
 		currentNode = nullptr;
+	}
+}
+
+// Updates buffer between objects when exploding
+void Program::updateDistanceBuffer(float inc) {
+	if (distBuffer + inc >= 0.99999f) {
+		distBuffer += inc;
+	}
+}
+
+// Updates buffer between objects when exploding
+void Program::updateExplosionTime(float inc) {
+	if (timeSPerLevel + inc >= 0.19999f) {
+		timeSPerLevel += inc;
 	}
 }

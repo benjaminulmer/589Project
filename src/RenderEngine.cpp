@@ -78,8 +78,6 @@ void RenderEngine::render(const std::vector<std::vector<Node*>>& graph, int leve
 	renderLight();
 }
 
-#include <array>
-
 int RenderEngine::pickerRender(const std::vector<std::vector<Node*>>& graph, int level, float perc, float distBuffer, int x, int y) {
 
 	// Create framebuffer with texture to render IDs to
