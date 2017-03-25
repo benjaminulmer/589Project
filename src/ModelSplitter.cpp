@@ -1,6 +1,9 @@
 #include "ModelSplitter.h"
 
-#include "ExplosionGraph.h"
+
+
+// Constructor for a block, always needs part and direction
+Blocking::Blocking(Renderable* part, glm::vec3 direction) : part(part), direction(direction) {}
 
 std::vector<Renderable*> ModelSplitter::split(Renderable* mainObject) {
 
@@ -108,8 +111,8 @@ std::vector<Renderable*> ModelSplitter::split(Renderable* mainObject) {
 	return splitObjects;
 }
 
-std::vector<Block*> ModelSplitter::contactsAndBlocking(std::vector<Renderable*> objects) {
-	std::vector<Block*> contacts;
+std::vector<Blocking*> ModelSplitter::contactsAndBlocking(std::vector<Renderable*> objects) {
+	std::vector<Blocking*> contacts;
 
 	for (unsigned int focusObject = 0; focusObject < objects.size(); focusObject++) {
 		for (unsigned int otherObject = focusObject + 1; otherObject < objects.size(); otherObject++) {
@@ -177,14 +180,14 @@ std::vector<Block*> ModelSplitter::contactsAndBlocking(std::vector<Renderable*> 
 									bool alreadyExists = false;
 									//vectors form an acute angle, focus object cannot move in positive x
 									for (unsigned int i = 0; i < contacts.size(); i++) {
-										if (contacts[i]->part->part == objects[focusObject] && contacts[i]->part->direction == glm::vec3(1, 0, 0)) {
+										if (contacts[i]->part == objects[focusObject] && contacts[i]->direction == glm::vec3(1, 0, 0)) {
 											alreadyExists = true;
 											break;
 										}
 									}
 									if (!alreadyExists) {
-										Block* block = new Block(objects[focusObject], glm::vec3(1, 0, 0));
-										Block* block2 = new Block(objects[otherObject], glm::vec3(-1, 0, 0));
+										Blocking* block = new Blocking(objects[focusObject], glm::vec3(1, 0, 0));
+										Blocking* block2 = new Blocking(objects[otherObject], glm::vec3(-1, 0, 0));
 										contacts.push_back(block);
 										contacts.push_back(block2);
 									}
@@ -192,14 +195,14 @@ std::vector<Block*> ModelSplitter::contactsAndBlocking(std::vector<Renderable*> 
 									bool alreadyExists = false;
 									//vectors form an obtuse angle, focus object cannot move in negative x
 									for (unsigned int i = 0; i < contacts.size(); i++) {
-										if (contacts[i]->part->part == objects[focusObject] && contacts[i]->part->direction == glm::vec3(-1, 0, 0)) {
+										if (contacts[i]->part == objects[focusObject] && contacts[i]->direction == glm::vec3(-1, 0, 0)) {
 											alreadyExists = true;
 											break;
 										}
 									}
 									if (!alreadyExists) {
-										Block* block = new Block(objects[focusObject], glm::vec3(-1, 0, 0));
-										Block* block2 = new Block(objects[otherObject], glm::vec3(1, 0, 0));
+										Blocking* block = new Blocking(objects[focusObject], glm::vec3(-1, 0, 0));
+										Blocking* block2 = new Blocking(objects[otherObject], glm::vec3(1, 0, 0));
 										contacts.push_back(block);
 										contacts.push_back(block2);
 									}
@@ -211,14 +214,14 @@ std::vector<Block*> ModelSplitter::contactsAndBlocking(std::vector<Renderable*> 
 									bool alreadyExists = false;
 									//vectors form an acute angle, focus object cannot move in positive y
 									for (unsigned int i = 0; i < contacts.size(); i++) {
-										if (contacts[i]->part->part == objects[focusObject] && contacts[i]->part->direction == glm::vec3(0, 1, 0)) {
+										if (contacts[i]->part == objects[focusObject] && contacts[i]->direction == glm::vec3(0, 1, 0)) {
 											alreadyExists = true;
 											break;
 										}
 									}
 									if (!alreadyExists) {
-										Block* block = new Block(objects[focusObject], glm::vec3(0, 1, 0));
-										Block* block2 = new Block(objects[otherObject], glm::vec3(0, -1, 0));
+										Blocking* block = new Blocking(objects[focusObject], glm::vec3(0, 1, 0));
+										Blocking* block2 = new Blocking(objects[otherObject], glm::vec3(0, -1, 0));
 										contacts.push_back(block);
 										contacts.push_back(block2);
 									}
@@ -226,14 +229,14 @@ std::vector<Block*> ModelSplitter::contactsAndBlocking(std::vector<Renderable*> 
 									bool alreadyExists = false;
 									//vectors form an obtuse angle, focus object cannot move in negative y
 									for (unsigned int i = 0; i < contacts.size(); i++) {
-										if (contacts[i]->part->part == objects[focusObject] && contacts[i]->part->direction == glm::vec3(0, -1, 0)) {
+										if (contacts[i]->part == objects[focusObject] && contacts[i]->direction == glm::vec3(0, -1, 0)) {
 											alreadyExists = true;
 											break;
 										}
 									}
 									if (!alreadyExists) {
-										Block* block = new Block(objects[focusObject], glm::vec3(0, -1, 0));
-										Block* block2 = new Block(objects[otherObject], glm::vec3(0, 1, 0));
+										Blocking* block = new Blocking(objects[focusObject], glm::vec3(0, -1, 0));
+										Blocking* block2 = new Blocking(objects[otherObject], glm::vec3(0, 1, 0));
 										contacts.push_back(block);
 										contacts.push_back(block2);
 									}
@@ -245,14 +248,14 @@ std::vector<Block*> ModelSplitter::contactsAndBlocking(std::vector<Renderable*> 
 									bool alreadyExists = false;
 									//vectors form an acute angle, focus object cannot move in positive z
 									for (unsigned int i = 0; i < contacts.size(); i++) {
-										if (contacts[i]->part->part == objects[focusObject] && contacts[i]->part->direction == glm::vec3(0, 0, 1)) {
+										if (contacts[i]->part == objects[focusObject] && contacts[i]->direction == glm::vec3(0, 0, 1)) {
 											alreadyExists = true;
 											break;
 										}
 									}
 									if (!alreadyExists) {
-										Block* block = new Block(objects[focusObject], glm::vec3(0, 0, 1));
-										Block* block2 = new Block(objects[otherObject], glm::vec3(0, 0, -1));
+										Blocking* block = new Blocking(objects[focusObject], glm::vec3(0, 0, 1));
+										Blocking* block2 = new Blocking(objects[otherObject], glm::vec3(0, 0, -1));
 										contacts.push_back(block);
 										contacts.push_back(block2);
 									}
@@ -261,14 +264,14 @@ std::vector<Block*> ModelSplitter::contactsAndBlocking(std::vector<Renderable*> 
 									bool alreadyExists = false;
 									//vectors form an obtuse angle, focus object cannot move in negative z
 									for (unsigned int i = 0; i < contacts.size(); i++) {
-										if (contacts[i]->part->part == objects[focusObject] && contacts[i]->part->direction == glm::vec3(0, 0, -1)) {
+										if (contacts[i]->part == objects[focusObject] && contacts[i]->direction == glm::vec3(0, 0, -1)) {
 											alreadyExists = true;
 											break;
 										}
 									}
 									if (!alreadyExists) {
-										Block* block = new Block(objects[focusObject], glm::vec3(0, 0, -1));
-										Block* block2 = new Block(objects[otherObject], glm::vec3(0, 0, 1));
+										Blocking* block = new Blocking(objects[focusObject], glm::vec3(0, 0, -1));
+										Blocking* block2 = new Blocking(objects[otherObject], glm::vec3(0, 0, 1));
 										contacts.push_back(block);
 										contacts.push_back(block2);
 									}
