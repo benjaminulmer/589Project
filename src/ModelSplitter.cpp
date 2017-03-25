@@ -1,6 +1,6 @@
 #include "ModelSplitter.h"
 
-
+#include <stdio.h>
 
 // Constructor for a block, always needs part and direction
 Blocking::Blocking(Renderable* part, glm::vec3 direction) : part(part), direction(direction) {}
@@ -285,6 +285,10 @@ std::vector<Blocking*> ModelSplitter::contactsAndBlocking(std::vector<Renderable
 				}
 			}
 		}
+	}
+
+	for (unsigned int i = 0; i < contacts.size(); i++) {
+		printf("part = %p dir = %f, %f, %f\n", contacts[i]->part, contacts[i]->direction.x, contacts[i]->direction.y, contacts[i]->direction.z);
 	}
 
 	return contacts;
