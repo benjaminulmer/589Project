@@ -9,8 +9,9 @@
 
 class Renderable;
 struct Blocking {
-	Blocking(Renderable* part, glm::vec3 direction);
-	Renderable* part;
+	Blocking(Renderable* focusPart, Renderable* otherPart, glm::vec3 direction);
+	Renderable* focusPart;
+	Renderable* otherPart;
 	glm::vec3 direction;
 };
 

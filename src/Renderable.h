@@ -30,6 +30,8 @@ public:
 	GLuint textureID;
 	glm::vec3 colour;
 
+	int id;
+
 	glm::vec3 getDimensions();
 	glm::vec3 getPosition();
 

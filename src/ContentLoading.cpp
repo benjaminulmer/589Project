@@ -9,6 +9,9 @@ std::vector<Renderable*> ContentLoading::createRenderables(std::string modelFile
 
 	ModelSplitter splitter = ModelSplitter();
 	std::vector<Renderable*> output = splitter.split(r);
+	for (unsigned int i = 0; i < output.size(); i++) {
+		output[i]->id = i;
+	}
 	std::vector<Blocking*> blockings = splitter.contactsAndBlocking(output);
 
 	for (unsigned int i = 0; i < output.size(); i++) {
