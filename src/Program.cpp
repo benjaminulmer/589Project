@@ -5,6 +5,18 @@ Program::Program() {
 	renderEngine = nullptr;
 	camera = nullptr;
 	graph = nullptr;
+
+	mouseX = mouseY = 0;
+	width = height = 1024;
+
+	state = State::NONE;
+	currentNode = nullptr;
+
+	level = 0;
+	counterS = 0.f;
+	timeSPerLevel = 1.f;
+
+	distBuffer = 1.5f;
 }
 
 Program::~Program() {
@@ -26,7 +38,7 @@ void Program::start() {
 
 	camera = new Camera();
 	renderEngine = new RenderEngine(window, camera);
-	InputHandler::setUp(camera, renderEngine);
+	InputHandler::setUp(camera, renderEngine, this);
 	loadObjects();
 	mainLoop();
 }
@@ -39,8 +51,9 @@ void Program::setupWindow() {
 	}
 
 	glfwWindowHint(GLFW_SAMPLES, 16);
-	window = glfwCreateWindow(1024, 1024, "CPSC589 Project", NULL, NULL);
+	window = glfwCreateWindow(width, height, "CPSC589 Project", NULL, NULL);
 	glfwMakeContextCurrent(window);
+	glfwSwapInterval(1); // Vsync on
 
 	glfwSetKeyCallback(window, InputHandler::key);
 	glfwSetMouseButtonCallback(window, InputHandler::mouse);
@@ -63,36 +76,114 @@ void Program::loadObjects() {
 
 		renderEngine->assignBuffers(*object);
 	}
-
 	graph = new ExplosionGraph(objects);
 }
 
 // Main loop
 void Program::mainLoop() {
 
-	std::vector<std::vector<Node*>> sort = graph->getSort();
-	int level = sort.size();
-
-	int frame = 0;
-	int maxFrame = 120;
-
 	while(!glfwWindowShouldClose(window)) {
 		glfwPollEvents();
 
-		if (level >= 0) {
-
-			frame++;
-			if (frame > maxFrame) {
-				frame = 0;
-				level--;
-			}
+		_3Dpick();
+		if (state == State::EXPLODE) {
+			explode();
+		}
+		else if (state == State::COLLAPSE) {
+			collapse();
 		}
 
-		renderEngine->render(sort, level, (float)frame / (float)maxFrame);
+		glfwSetTime(0.);
+		renderEngine->render(graph->getSort(), level, counterS / timeSPerLevel, distBuffer);
 		glfwSwapBuffers(window);
 	}
 
 	// Clean up, program needs to exit
 	glfwDestroyWindow(window);
 	glfwTerminate();
+}
+
+// Sets values to animate explosion of model
+void Program::explode() {
+	counterS += glfwGetTime();
+
+	if (counterS > timeSPerLevel) {
+
+		if (level == graph->getSort().size() - 2) {
+			counterS = timeSPerLevel;
+			state = State::NONE;
+		}
+		else {
+			counterS = 0.f;
+			level++;
+		}
+	}
+}
+
+// Sets values to animate collapse of model
+void Program::collapse() {
+	counterS -= glfwGetTime();
+
+	if (counterS < 0.f) {
+
+		if (level == 0) {
+			counterS = 0.f;
+			state = State::NONE;
+		}
+		else {
+			counterS = timeSPerLevel;
+			level--;
+		}
+	}
+}
+
+// Sets state to new state
+void Program::setState(State newState) {
+	state = newState;
+}
+
+// Sets new width and height
+void Program::setWindowSize(int newWidth, int newHeight) {
+	width = newWidth;
+	height = newHeight;
+	renderEngine->setWindowSize(newWidth, newHeight);
+}
+
+// Update position of mouse. [0, 0] is bottom left corner; [1, 1] is top right
+void Program::setMousePos(int x, int y) {
+	mouseX = x;
+	mouseY = y;
+}
+
+// Finds objects mouse is over and makes it current
+void Program::_3Dpick() {
+	float result = renderEngine->pickerRender(graph->getSort(), level, counterS / timeSPerLevel, distBuffer, mouseX, mouseY);
+
+	// Reset current active node (if there is one)
+	if (currentNode != nullptr) {
+		currentNode->active = false;
+	}
+
+	// Get new current node from mouse position (if mouse is on an object)
+	if (result != 0) {
+		currentNode = graph->at(result - 1);
+		currentNode->active = true;
+	}
+	else {
+		currentNode = nullptr;
+	}
+}
+
+// Updates buffer between objects when exploding
+void Program::updateDistanceBuffer(float inc) {
+	if (distBuffer + inc >= 0.99999f) {
+		distBuffer += inc;
+	}
+}
+
+// Updates buffer between objects when exploding
+void Program::updateExplosionTime(float inc) {
+	if (timeSPerLevel + inc >= 0.19999f) {
+		timeSPerLevel += inc;
+	}
 }
