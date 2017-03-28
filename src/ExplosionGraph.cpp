@@ -47,7 +47,7 @@ Block::Block(Node* part, glm::vec3 direction) : part(part), direction(direction)
 
 
 // Creates explosion graph for provided parts
-ExplosionGraph::ExplosionGraph(std::vector<Renderable*> parts) {
+ExplosionGraph::ExplosionGraph(std::vector<Renderable*> parts, std::vector<Blocking*> blockings) {
 
 	// Number of nodes in graph is number of parts in model
 	numParts = parts.size();
@@ -65,7 +65,18 @@ ExplosionGraph::ExplosionGraph(std::vector<Renderable*> parts) {
 	// **** to add an edge: graph[parentIndex].push_back(&nodes[childIndex]) ***** //
 
 	// Compute contacts and blocking (John)
-	hardCodedBlocking();
+	for (Blocking* block : blockings) {
+		nodes[block->focusPart->id].blocked.push_back(Block(&nodes[block->otherPart->id], block->direction));
+	}
+	//hardCodedBlocking();
+
+
+	for (unsigned int i = 0; i < numParts; i++) {
+		for (Block b : nodes[i].blocked) {
+			std::cout << i << " : " << b.part->index << " : [" << b.direction.x << "," << b.direction.y << "," << b.direction.z << "]" << std::endl;
+		}
+	}
+
 
 
 	// Construct graph from contacts and blocking (Mia)
@@ -108,6 +119,12 @@ ExplosionGraph::ExplosionGraph(std::vector<Renderable*> parts) {
 		}*/
 
 		//for each unblocked part
+		if (activeSet.size() == unblocked.size()) {
+			activeSet.clear();
+			activeSet.push_back(unblocked.front());
+		}
+
+
 		for (unsigned int m = 0; m < unblocked.size(); m++) {
 			std::vector<int> blocking;
 			glm::vec3 unblockDirection;
@@ -162,8 +179,9 @@ ExplosionGraph::ExplosionGraph(std::vector<Renderable*> parts) {
 			}
 
 			// add edge to every active part that touches p
-			activeSet.erase(std::find(activeSet.begin(), activeSet.end(), unblocked[m]));
-
+			if (activeSet.size() != 1) {
+				activeSet.erase(std::find(activeSet.begin(), activeSet.end(), unblocked[m]));
+			}
 
 			for (Block block : nodes[unblocked[m]].blocked) {
 				// if blocking part is in the active set
@@ -177,10 +195,13 @@ ExplosionGraph::ExplosionGraph(std::vector<Renderable*> parts) {
 					}
 				}
 			}
+
 			nodes[unblocked[m]].direction = unblockDirection;
 			nodes[unblocked[m]].selfDistance = minDistance;
 		}
-
+		if (activeSet.size() == 1) {
+			activeSet.clear();
+		}
 	}
 
 	constructInverse();
@@ -188,6 +209,7 @@ ExplosionGraph::ExplosionGraph(std::vector<Renderable*> parts) {
 		std::cout << "Error, graph contains cycle(s)" << std::endl;
 	}
 	fillDistances();
+	int br;
 }
 
 // Finds escape distance for a node in given direction (sign combined with axis)

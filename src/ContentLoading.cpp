@@ -1,7 +1,7 @@
 #include "ContentLoading.h"
 
 // Create renderable from obj file
-std::vector<Renderable*> ContentLoading::createRenderables(std::string modelFile) {
+std::pair<std::vector<Renderable*>, std::vector<Blocking*>>  ContentLoading::createRenderables(std::string modelFile) {
 	std::cout << "Creating renderables" << std::endl;
 	// Read data in from obj file
 	Renderable * r = new Renderable();
@@ -26,7 +26,7 @@ std::vector<Renderable*> ContentLoading::createRenderables(std::string modelFile
 		output[i]->faces = indices;
 	}
 
-	return output;
+	return std::pair<std::vector<Renderable*>, std::vector<Blocking*>>(output, blockings);
 }
 
 bool ContentLoading::getSimilarVertexIndex( 

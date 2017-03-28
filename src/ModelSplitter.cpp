@@ -353,7 +353,7 @@ std::vector<Blocking*> ModelSplitter::contactsAndBlocking(std::vector<Renderable
 	}
 
 	for (unsigned int i = 0; i < contacts.size(); i++) {
-		printf("focusObject = %d otherObject = %d dir = %f, %f, %f\n", contacts[i]->focusPart->id, contacts[i]->otherPart->id, contacts[i]->direction.x, contacts[i]->direction.y, contacts[i]->direction.z);
+		//printf("focusObject = %d otherObject = %d dir = %f, %f, %f\n", contacts[i]->focusPart->id, contacts[i]->otherPart->id, contacts[i]->direction.x, contacts[i]->direction.y, contacts[i]->direction.z);
 	}
 	printf("numContacts = %d\n", contacts.size());
 

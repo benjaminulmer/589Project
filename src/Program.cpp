@@ -64,7 +64,8 @@ void Program::setupWindow() {
 
 // Loads and initializes all objects that can be viewed
 void Program::loadObjects() {
-	std::vector<Renderable*> objects = ContentLoading::createRenderables("./models/FixedExample.obj");
+	std::pair<std::vector<Renderable*>, std::vector<Blocking*>> result = ContentLoading::createRenderables("./models/FixedExample.obj");
+	std::vector<Renderable*> objects = result.first;
 	//o->textureID = (renderEngine->loadTexture("./textures/cube.png"));
 
 	float i = 0.f;
@@ -76,7 +77,7 @@ void Program::loadObjects() {
 
 		renderEngine->assignBuffers(*object);
 	}
-	graph = new ExplosionGraph(objects);
+	graph = new ExplosionGraph(objects, result.second);
 }
 
 // Main loop

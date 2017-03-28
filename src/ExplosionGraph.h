@@ -6,6 +6,7 @@
 #include <string>
 
 #include "Renderable.h"
+#include "ModelSplitter.h"
 
 struct Node;
 
@@ -36,7 +37,7 @@ class ExplosionGraph {
 
 public:
 	ExplosionGraph(std::vector<Renderable*> parts, bool test); // Temporary
-	ExplosionGraph(std::vector<Renderable*> parts);
+	ExplosionGraph(std::vector<Renderable*> parts, std::vector<Blocking*> blockings);
 
 	std::vector<std::vector<Node*>>& getSort();
 	Node* at(int index);
