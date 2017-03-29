@@ -157,7 +157,8 @@ int RenderEngine::pickerRender(const std::vector<std::vector<Node*>>& graph, int
 	std::vector<int> pixelsVec(width*height);
 	int* pixels = pixelsVec.data();
 
-	glGetTextureImage(texID, 0, GL_RED_INTEGER, GL_INT, sizeof(int) * width * height, pixels);
+	glBindTexture(GL_TEXTURE_2D, texID);
+	glGetTexImage(GL_TEXTURE_2D, 0, GL_RED_INTEGER, GL_INT, pixels);
 
 	glDeleteTextures(1, &texID);
 	glDeleteRenderbuffers(1, &depthBuffer);
