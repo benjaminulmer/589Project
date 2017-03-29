@@ -23,7 +23,7 @@ struct PackedVertex {
 class ContentLoading {
 
 public:
-	static std::pair<std::vector<Renderable*>, std::vector<Blocking*>> createRenderables(std::string modelFile);
+	static std::pair<std::vector<Renderable*>, std::vector<BlockingPair*>> createRenderables(std::string modelFile);
 
 private:
 	static bool getSimilarVertexIndex(

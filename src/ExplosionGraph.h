@@ -36,8 +36,7 @@ struct Node {
 class ExplosionGraph {
 
 public:
-	ExplosionGraph(std::vector<Renderable*> parts, bool test); // Temporary
-	ExplosionGraph(std::vector<Renderable*> parts, std::vector<Blocking*> blockings);
+	ExplosionGraph(std::vector<Renderable*> parts, std::vector<BlockingPair*> blockingPairs);
 
 	std::vector<std::vector<Node*>>& getSort();
 	Node* at(int index);
@@ -54,7 +53,6 @@ private:
 	void constructInverse();
 	int sort();
 
-	void hardCodedBlocking();
 	float getEscapeDistance(Node* node, int sign, char dir, const std::vector<int>& activeSet);
 };
 

@@ -64,7 +64,7 @@ void Program::setupWindow() {
 
 // Loads and initializes all objects that can be viewed
 void Program::loadObjects() {
-	std::pair<std::vector<Renderable*>, std::vector<Blocking*>> result = ContentLoading::createRenderables("./models/FixedExample.obj");
+	std::pair<std::vector<Renderable*>, std::vector<BlockingPair*>> result = ContentLoading::createRenderables("./models/FixedExample.obj");
 	std::vector<Renderable*> objects = result.first;
 	//o->textureID = (renderEngine->loadTexture("./textures/cube.png"));
 
