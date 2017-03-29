@@ -3,7 +3,7 @@
 #include <stdio.h>
 
 // Constructor for a block, always needs part and direction
-Blocking::Blocking(Renderable* focusPart, Renderable* otherPart, glm::vec3 direction) : focusPart(focusPart), otherPart(otherPart), direction(direction) {}
+BlockingPair::BlockingPair(Renderable* focusPart, Renderable* otherPart, glm::vec3 direction) : focusPart(focusPart), otherPart(otherPart), direction(direction) {}
 
 std::vector<Renderable*> ModelSplitter::split(Renderable* mainObject) {
 
@@ -111,8 +111,8 @@ std::vector<Renderable*> ModelSplitter::split(Renderable* mainObject) {
 	return splitObjects;
 }
 
-std::vector<Blocking*> ModelSplitter::contactsAndBlocking(std::vector<Renderable*> objects) {
-	std::vector<Blocking*> contacts;
+std::vector<BlockingPair*> ModelSplitter::contactsAndBlocking(std::vector<Renderable*> objects) {
+	std::vector<BlockingPair*> contacts;
 
 	for (unsigned int focusObject = 0; focusObject < objects.size(); focusObject++) {
 		for (unsigned int otherObject = focusObject + 1; otherObject < objects.size(); otherObject++) {
@@ -135,7 +135,7 @@ std::vector<Blocking*> ModelSplitter::contactsAndBlocking(std::vector<Renderable
 					glm::vec3 focusTriangleNormal = glm::normalize(glm::cross(focusTriangleVerts[0] - focusTriangleVerts[1], focusTriangleVerts[2] - focusTriangleVerts[1]));
 
 					glm::vec3 otherTriangleNormal = glm::normalize(glm::cross(otherTriangleVerts[0] - otherTriangleVerts[1], otherTriangleVerts[2] - otherTriangleVerts[1]));
-					int debug = 0;
+
 					//Decide if the normalized normals are the same
 					if (focusTriangleNormal.x == -otherTriangleNormal.x && focusTriangleNormal.y == -otherTriangleNormal.y && focusTriangleNormal.z == -otherTriangleNormal.z) {
 						glm::vec3 offset = focusTriangleVerts[0] - otherTriangleVerts[0];
@@ -147,47 +147,38 @@ std::vector<Blocking*> ModelSplitter::contactsAndBlocking(std::vector<Renderable
 							if (lineIntersect(focusTriangleVerts[0],focusTriangleVerts[1],otherTriangleVerts[0],otherTriangleVerts[1])) {
 								numIntersect++;
 								//intersect = true;
-								debug = 1;
 							}
 							if (lineIntersect(focusTriangleVerts[0],focusTriangleVerts[1],otherTriangleVerts[0],otherTriangleVerts[2])) {
 								numIntersect++;
 								//intersect = true;
-								debug = 2;
 							}
 							if (lineIntersect(focusTriangleVerts[0],focusTriangleVerts[1],otherTriangleVerts[1],otherTriangleVerts[2])) {
 								numIntersect++;
 								//intersect = true;
-								debug = 3;
 							}
 							if (lineIntersect(focusTriangleVerts[0],focusTriangleVerts[2],otherTriangleVerts[0],otherTriangleVerts[1])) {
 								numIntersect++;
 								//intersect = true;
-								debug = 4;
 							}
 							if (lineIntersect(focusTriangleVerts[0],focusTriangleVerts[2],otherTriangleVerts[0],otherTriangleVerts[2])) {
 								numIntersect++;
 								//intersect = true;
-								debug = 5;
 							}
 							if (lineIntersect(focusTriangleVerts[0],focusTriangleVerts[2],otherTriangleVerts[1],otherTriangleVerts[2])) {
 								numIntersect++;
 								//intersect = true;
-								debug = 6;
 							}
 							if (lineIntersect(focusTriangleVerts[1],focusTriangleVerts[2],otherTriangleVerts[0],otherTriangleVerts[1])) {
 								numIntersect++;
 								//intersect = true;
-								debug = 7;
 							}
 							if (lineIntersect(focusTriangleVerts[1],focusTriangleVerts[2],otherTriangleVerts[0],otherTriangleVerts[2])) {
 								numIntersect++;
 								//intersect = true;
-								debug = 8;
 							}
 							if (lineIntersect(focusTriangleVerts[1],focusTriangleVerts[2],otherTriangleVerts[1],otherTriangleVerts[2])) {
 								numIntersect++;
 								//intersect = true;
-								debug = 9;
 							}
 							//Triangles that only share one edge may not be in contact
 							if (numIntersect > 1) {
@@ -199,7 +190,6 @@ std::vector<Blocking*> ModelSplitter::contactsAndBlocking(std::vector<Renderable
 							inTri = inTri && pointInTriangle(focusTriangleVerts[0],focusTriangleVerts[1],focusTriangleVerts[2], otherTriangleVerts[2]);
 							if (inTri) {
 								intersect = true;
-								debug = 10;
 							}
 							inTri = true;
 							inTri = inTri && pointInTriangle(otherTriangleVerts[0],otherTriangleVerts[1],otherTriangleVerts[2], focusTriangleVerts[0]);
@@ -207,7 +197,6 @@ std::vector<Blocking*> ModelSplitter::contactsAndBlocking(std::vector<Renderable
 							inTri = inTri && pointInTriangle(otherTriangleVerts[0],otherTriangleVerts[1],otherTriangleVerts[2], focusTriangleVerts[2]);
 							if (inTri) {
 								intersect = true;
-								debug = 11;
 							}
 							if (intersect) {
 								//Determine blocking direction(s)
@@ -225,11 +214,11 @@ std::vector<Blocking*> ModelSplitter::contactsAndBlocking(std::vector<Renderable
 										}
 									}
 									if (!alreadyExists) {
-										Blocking* block = new Blocking(objects[focusObject], objects[otherObject], glm::vec3(-1, 0, 0));
+										BlockingPair* block = new BlockingPair(objects[focusObject], objects[otherObject], glm::vec3(-1, 0, 0));
 										contacts.push_back(block);
 									}
 									if (!alreadyExists2) {
-										Blocking* block = new Blocking(objects[otherObject], objects[focusObject], glm::vec3(1, 0, 0));
+										BlockingPair* block = new BlockingPair(objects[otherObject], objects[focusObject], glm::vec3(1, 0, 0));
 										contacts.push_back(block);
 									}
 								} else if (angle < 0.0) {
@@ -245,11 +234,11 @@ std::vector<Blocking*> ModelSplitter::contactsAndBlocking(std::vector<Renderable
 										}
 									}
 									if (!alreadyExists) {
-										Blocking* block = new Blocking(objects[focusObject], objects[otherObject], glm::vec3(1, 0, 0));
+										BlockingPair* block = new BlockingPair(objects[focusObject], objects[otherObject], glm::vec3(1, 0, 0));
 										contacts.push_back(block);
 									}
 									if (!alreadyExists2) {
-										Blocking* block = new Blocking(objects[otherObject], objects[focusObject], glm::vec3(-1, 0, 0));
+										BlockingPair* block = new BlockingPair(objects[otherObject], objects[focusObject], glm::vec3(-1, 0, 0));
 										contacts.push_back(block);
 									}
 								} else {
@@ -269,11 +258,11 @@ std::vector<Blocking*> ModelSplitter::contactsAndBlocking(std::vector<Renderable
 										}
 									}
 									if (!alreadyExists) {
-										Blocking* block = new Blocking(objects[focusObject], objects[otherObject], glm::vec3(0, -1, 0));
+										BlockingPair* block = new BlockingPair(objects[focusObject], objects[otherObject], glm::vec3(0, -1, 0));
 										contacts.push_back(block);
 									}
 									if (!alreadyExists2) {
-										Blocking* block = new Blocking(objects[otherObject], objects[focusObject], glm::vec3(0, 1, 0));
+										BlockingPair* block = new BlockingPair(objects[otherObject], objects[focusObject], glm::vec3(0, 1, 0));
 										contacts.push_back(block);
 									}
 								} else if (angle < 0.0) {
@@ -289,11 +278,11 @@ std::vector<Blocking*> ModelSplitter::contactsAndBlocking(std::vector<Renderable
 										}
 									}
 									if (!alreadyExists) {
-										Blocking* block = new Blocking(objects[focusObject], objects[otherObject], glm::vec3(0, 1, 0));
+										BlockingPair* block = new BlockingPair(objects[focusObject], objects[otherObject], glm::vec3(0, 1, 0));
 										contacts.push_back(block);
 									}
 									if (!alreadyExists2) {
-										Blocking* block = new Blocking(objects[otherObject], objects[focusObject], glm::vec3(0, -1, 0));
+										BlockingPair* block = new BlockingPair(objects[otherObject], objects[focusObject], glm::vec3(0, -1, 0));
 										contacts.push_back(block);
 									}
 								} else {
@@ -313,11 +302,11 @@ std::vector<Blocking*> ModelSplitter::contactsAndBlocking(std::vector<Renderable
 										}
 									}
 									if (!alreadyExists) {
-										Blocking* block = new Blocking(objects[focusObject], objects[otherObject], glm::vec3(0, 0, -1));
+										BlockingPair* block = new BlockingPair(objects[focusObject], objects[otherObject], glm::vec3(0, 0, -1));
 										contacts.push_back(block);
 									}
 									if (!alreadyExists2) {
-										Blocking* block = new Blocking(objects[otherObject], objects[focusObject], glm::vec3(0, 0, 1));
+										BlockingPair* block = new BlockingPair(objects[otherObject], objects[focusObject], glm::vec3(0, 0, 1));
 										contacts.push_back(block);
 									}
 								} else if (angle < 0.0) {
@@ -333,11 +322,11 @@ std::vector<Blocking*> ModelSplitter::contactsAndBlocking(std::vector<Renderable
 										}
 									}
 									if (!alreadyExists) {
-										Blocking* block = new Blocking(objects[focusObject], objects[otherObject], glm::vec3(0, 0, 1));
+										BlockingPair* block = new BlockingPair(objects[focusObject], objects[otherObject], glm::vec3(0, 0, 1));
 										contacts.push_back(block);
 									}
 									if (!alreadyExists2) {
-										Blocking* block = new Blocking(objects[otherObject], objects[focusObject], glm::vec3(0, 0, -1));
+										BlockingPair* block = new BlockingPair(objects[otherObject], objects[focusObject], glm::vec3(0, 0, -1));
 										contacts.push_back(block);
 									}
 								} else {
@@ -351,11 +340,6 @@ std::vector<Blocking*> ModelSplitter::contactsAndBlocking(std::vector<Renderable
 			}
 		}
 	}
-
-	for (unsigned int i = 0; i < contacts.size(); i++) {
-		//printf("focusObject = %d otherObject = %d dir = %f, %f, %f\n", contacts[i]->focusPart->id, contacts[i]->otherPart->id, contacts[i]->direction.x, contacts[i]->direction.y, contacts[i]->direction.z);
-	}
-	printf("numContacts = %d\n", contacts.size());
 
 	return contacts;
 }
