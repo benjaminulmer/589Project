@@ -26,7 +26,8 @@ struct Node {
 	std::vector<Block> blocked;
 
 	glm::vec3 direction;
-	float selfDistance;
+	float minSelfDistance;
+	float curSelfDistance;
 	float totalDistance;
 
 	bool active;
@@ -37,6 +38,8 @@ class ExplosionGraph {
 
 public:
 	ExplosionGraph(std::vector<Renderable*> parts, std::vector<BlockingPair*> blockingPairs);
+
+	void updateDistances();
 
 	std::vector<std::vector<Node*>>& getSort();
 	Node* at(int index);
@@ -49,7 +52,6 @@ private:
 
 	std::vector<std::vector<Node*>> topologicalSort;
 
-	void fillDistances();
 	void constructInverse();
 	int sort();
 

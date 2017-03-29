@@ -175,6 +175,13 @@ void Program::_3Dpick() {
 	}
 }
 
+void Program::tempFuc(float inc) {
+	if (currentNode != nullptr) {
+		currentNode->curSelfDistance += inc;
+		graph->updateDistances();
+	}
+}
+
 // Updates buffer between objects when exploding
 void Program::updateDistanceBuffer(float inc) {
 	if (distBuffer + inc >= 0.99999f) {

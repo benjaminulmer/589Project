@@ -6,10 +6,10 @@
 Block::Block(Node* part, glm::vec3 direction) : part(part), direction(direction) {}
 
 // Default constructor. Zeros everything
-Node::Node() : part(0), index(0), selfDistance(0.0f), totalDistance(0.0f), active(false) {}
+Node::Node() : part(0), index(0), minSelfDistance(0.0f), totalDistance(0.0f), active(false) {}
 
 // Node for part with given index
-Node::Node(Renderable* part, int index) : part(part), index(index), selfDistance(0.0f), totalDistance(0.0f), active(false) {}
+Node::Node(Renderable* part, int index) : part(part), index(index), minSelfDistance(0.0f), totalDistance(0.0f), active(false) {}
 
 // Creates explosion graph for provided parts
 ExplosionGraph::ExplosionGraph(std::vector<Renderable*> parts, std::vector<BlockingPair*> blockingPairs) {
@@ -145,7 +145,8 @@ ExplosionGraph::ExplosionGraph(std::vector<Renderable*> parts, std::vector<Block
 			}
 
 			nodes[unblocked[m]].direction = unblockDirection;
-			nodes[unblocked[m]].selfDistance = minDistance;
+			nodes[unblocked[m]].minSelfDistance = minDistance;
+			nodes[unblocked[m]].curSelfDistance = minDistance;
 		}
 		if (activeSet.size() == 1) {
 			activeSet.clear();
@@ -156,7 +157,7 @@ ExplosionGraph::ExplosionGraph(std::vector<Renderable*> parts, std::vector<Block
 	if (sort() == -1) {
 		std::cout << "Error, graph contains cycle(s)" << std::endl;
 	}
-	fillDistances();
+	updateDistances();
 }
 
 // Finds escape distance for a node in given direction (sign combined with axis)
@@ -262,7 +263,7 @@ int ExplosionGraph::sort() {
 }
 
 // Fills in total distance of each node in graph based off of parent distances
-void ExplosionGraph::fillDistances() {
+void ExplosionGraph::updateDistances() {
 
 	// Loop over all nodes by level in the topological sort
 	for (std::vector<Node*> level : topologicalSort) {
@@ -277,7 +278,7 @@ void ExplosionGraph::fillDistances() {
 			}
 
 			// Update total distance by the largest found
-			node->totalDistance = node->selfDistance + max;
+			node->totalDistance = node->curSelfDistance + max;
 		}
 	}
 }

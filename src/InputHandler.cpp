@@ -52,6 +52,14 @@ void InputHandler::key(GLFWwindow* window, int key, int scancode, int action, in
 	else if (key == GLFW_KEY_G && action == GLFW_PRESS) {
 		program->updateExplosionTime(-0.1f);
 	}
+
+	else if (key == GLFW_KEY_Z && action == GLFW_PRESS) {
+		program->tempFuc(-0.25f);
+	}
+	else if (key == GLFW_KEY_X && action == GLFW_PRESS) {
+		program->tempFuc(0.25f);
+	}
+
 	else if (key == GLFW_KEY_ESCAPE) {
 		glfwDestroyWindow(window);
 		glfwTerminate();
