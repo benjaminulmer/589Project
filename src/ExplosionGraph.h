@@ -31,6 +31,8 @@ struct Node {
 	float totalDistance;
 
 	bool active;
+
+	void move(float dist);
 };
 
 

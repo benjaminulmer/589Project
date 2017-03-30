@@ -30,7 +30,7 @@ public:
 	void setWindowSize(int newWidth, int newHeight);
 	void setMousePos(int x, int y);
 
-	void tempFuc(float inc);
+	void moveCurrentPart(float inc);
 
 	void updateDistanceBuffer(float inc);
 	void updateExplosionTime(float inc);

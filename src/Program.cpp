@@ -175,9 +175,10 @@ void Program::_3Dpick() {
 	}
 }
 
-void Program::tempFuc(float inc) {
+// Moves currently selected part provided distance along its explosion direction
+void Program::moveCurrentPart(float dist) {
 	if (currentNode != nullptr) {
-		currentNode->curSelfDistance += inc;
+		currentNode->move(dist);
 		graph->updateDistances();
 	}
 }
@@ -192,6 +193,9 @@ void Program::updateDistanceBuffer(float inc) {
 // Updates buffer between objects when exploding
 void Program::updateExplosionTime(float inc) {
 	if (timeSPerLevel + inc >= 0.19999f) {
+
+		float ratio = counterS / timeSPerLevel;
 		timeSPerLevel += inc;
+		counterS = timeSPerLevel * ratio;
 	}
 }

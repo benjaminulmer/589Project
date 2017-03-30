@@ -6,10 +6,22 @@
 Block::Block(Node* part, glm::vec3 direction) : part(part), direction(direction) {}
 
 // Default constructor. Zeros everything
-Node::Node() : part(0), index(0), minSelfDistance(0.0f), totalDistance(0.0f), active(false) {}
+Node::Node() : part(0), index(0), minSelfDistance(0.0f), curSelfDistance(0.0f), totalDistance(0.0f), active(false) {}
 
 // Node for part with given index
-Node::Node(Renderable* part, int index) : part(part), index(index), minSelfDistance(0.0f), totalDistance(0.0f), active(false) {}
+Node::Node(Renderable* part, int index) : part(part), index(index), minSelfDistance(0.0f), curSelfDistance(0.0f), totalDistance(0.0f), active(false) {}
+
+// Moves node distance along its explosion direction within valid ranges
+void Node::move(float dist) {
+	if (minSelfDistance == 0.0f) {
+		return;
+	}
+
+	curSelfDistance += dist;
+	if (curSelfDistance < minSelfDistance) {
+		curSelfDistance = minSelfDistance;
+	}
+}
 
 // Creates explosion graph for provided parts
 ExplosionGraph::ExplosionGraph(std::vector<Renderable*> parts, std::vector<BlockingPair*> blockingPairs) {
@@ -264,6 +276,10 @@ int ExplosionGraph::sort() {
 
 // Fills in total distance of each node in graph based off of parent distances
 void ExplosionGraph::updateDistances() {
+
+	for (unsigned int i = 0; i < numParts; i++) {
+		nodes[i].totalDistance = 0.0f;
+	}
 
 	// Loop over all nodes by level in the topological sort
 	for (std::vector<Node*> level : topologicalSort) {
