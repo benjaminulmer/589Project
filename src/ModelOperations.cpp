@@ -1,11 +1,11 @@
-#include "ModelSplitter.h"
+#include "ModelOperations.h"
 
 #include <stdio.h>
 
 // Constructor for a block, always needs part and direction
 BlockingPair::BlockingPair(unsigned int focusPart, unsigned int otherPart, glm::vec3 direction) : focusPart(focusPart), otherPart(otherPart), direction(direction) {}
 
-std::vector<IndexedLists> ModelSplitter::split(IndexedLists& mainObject) {
+std::vector<UnpackedLists> ModelOperations::split(IndexedLists& mainObject) {
 
 	// Structures for tracking faces and verts that have been processed
 	std::vector<bool> vertsProcessed(mainObject.verts.size(), false);
@@ -13,11 +13,14 @@ std::vector<IndexedLists> ModelSplitter::split(IndexedLists& mainObject) {
 	unsigned int numVertsProcessed = 0;
 
 	// Split objects until all verts have been processed
-	std::vector<IndexedLists> splitObjects;
+	std::vector<UnpackedLists> splitObjects;
 	while (numVertsProcessed < mainObject.verts.size()) {
 
 		// Create a new renderable
-		IndexedLists r;
+		UnpackedLists r;
+		std::vector<GLushort> vIndices;
+		std::vector<GLushort> nIndices;
+		std::vector<GLushort> uvIndices;
 
 		// Create queue of verts to process and push a unprocessed vert to start with
 		std::deque<unsigned short> vertsToProcess;
@@ -79,19 +82,19 @@ std::vector<IndexedLists> ModelSplitter::split(IndexedLists& mainObject) {
 					}
 					if (!facesProcessed[first]) {
 						facesProcessed[first] = true;
-						r.vertIndices.push_back(mainObject.vertIndices[first]);
+						vIndices.push_back(mainObject.vertIndices[first]);
 						facesUpdated.push_back(false);
-						r.vertIndices.push_back(mainObject.vertIndices[second]);
+						vIndices.push_back(mainObject.vertIndices[second]);
 						facesUpdated.push_back(false);
-						r.vertIndices.push_back(mainObject.vertIndices[third]);
+						vIndices.push_back(mainObject.vertIndices[third]);
 						facesUpdated.push_back(false);
 
-						r.normalIndices.push_back(mainObject.normalIndices[first]);
-						r.normalIndices.push_back(mainObject.normalIndices[second]);
-						r.normalIndices.push_back(mainObject.normalIndices[third]);
-						r.uvIndices.push_back(mainObject.uvIndices[first]);
-						r.uvIndices.push_back(mainObject.uvIndices[second]);
-						r.uvIndices.push_back(mainObject.uvIndices[third]);
+						nIndices.push_back(mainObject.normalIndices[first]);
+						nIndices.push_back(mainObject.normalIndices[second]);
+						nIndices.push_back(mainObject.normalIndices[third]);
+						uvIndices.push_back(mainObject.uvIndices[first]);
+						uvIndices.push_back(mainObject.uvIndices[second]);
+						uvIndices.push_back(mainObject.uvIndices[third]);
 					}
 				}
 			}
@@ -100,10 +103,10 @@ std::vector<IndexedLists> ModelSplitter::split(IndexedLists& mainObject) {
 			vertsToProcess.pop_front();
 		}
 		// Push back data for new object
-		for (unsigned int i = 0; i < r.vertIndices.size(); i++) {
-			r.verts.push_back(mainObject.verts[r.vertIndices[i]]);
-			r.normals.push_back(mainObject.normals[r.normalIndices[i]]);
-			r.uvs.push_back(mainObject.uvs[r.uvIndices[i]]);
+		for (unsigned int i = 0; i < vIndices.size(); i++) {
+			r.verts.push_back(mainObject.verts[vIndices[i]]);
+			r.normals.push_back(mainObject.normals[nIndices[i]]);
+			r.uvs.push_back(mainObject.uvs[uvIndices[i]]);
 		}
 
 		splitObjects.push_back(r);
@@ -112,7 +115,7 @@ std::vector<IndexedLists> ModelSplitter::split(IndexedLists& mainObject) {
 	return splitObjects;
 }
 
-std::vector<BlockingPair> ModelSplitter::contactsAndBlocking(std::vector<IndexedLists>& objects) {
+std::vector<BlockingPair> ModelOperations::contactsAndBlocking(std::vector<UnpackedLists>& objects) {
 	std::vector<BlockingPair> contacts;
 
 	for (unsigned int focusObject = 0; focusObject < objects.size(); focusObject++) {
@@ -333,7 +336,56 @@ std::vector<BlockingPair> ModelSplitter::contactsAndBlocking(std::vector<Indexed
 	return contacts;
 }
 
-bool ModelSplitter::lineIntersect(glm::vec3 p1, glm::vec3 p2, glm::vec3 p3, glm::vec3 p4) {
+bool ModelOperations::getSimilarVertexIndex(
+		PackedVertex & packed,
+		std::map<PackedVertex,unsigned short> & VertexToOutIndex,
+		unsigned short & result)
+{
+	std::map<PackedVertex,unsigned short>::iterator it = VertexToOutIndex.find(packed);
+	if (it == VertexToOutIndex.end()) {
+		return false;
+	}
+	else {
+		result = it->second;
+		return true;
+	}
+}
+
+void ModelOperations::indexVBO(
+		std::vector<glm::vec3>& in_verts,
+		std::vector<glm::vec2>& in_uvs,
+		std::vector<glm::vec3>& in_normals,
+
+		std::vector<unsigned short>& out_faces,
+		std::vector<glm::vec3>& out_verts,
+		std::vector<glm::vec2>& out_uvs,
+		std::vector<glm::vec3>& out_normals)
+{
+	std::map<PackedVertex,unsigned short> VertexToOutIndex;
+
+	// For each input vertex
+	for ( unsigned int i=0; i<in_verts.size(); i++ ){
+
+		PackedVertex packed = {in_verts[i], in_uvs[i], in_normals[i]};
+
+		// Try to find a similar vertex in out_XXXX
+		unsigned short index;
+		bool found = getSimilarVertexIndex( packed, VertexToOutIndex, index);
+
+		if ( found ){ // A similar vertex is already in the VBO, use it instead !
+			out_faces.push_back( index );
+		}else{ // If not, it needs to be added in the output data.
+			out_verts.push_back( in_verts[i]);
+			out_uvs     .push_back( in_uvs[i]);
+			out_normals .push_back( in_normals[i]);
+			unsigned short newindex = (unsigned short)out_verts.size() - 1;
+			out_faces .push_back( newindex );
+			VertexToOutIndex[ packed ] = newindex;
+		}
+	}
+}
+
+bool ModelOperations::lineIntersect(glm::vec3 p1, glm::vec3 p2, glm::vec3 p3, glm::vec3 p4) {
 	//Code adapted from http://paulbourke.net/geometry/pointlineplane/lineline.c
 	//judge if line (p1,p2) intersects with line(p3,p4)
 	glm::vec3 p13,p43,p21;
@@ -404,7 +456,7 @@ bool ModelSplitter::lineIntersect(glm::vec3 p1, glm::vec3 p2, glm::vec3 p3, glm:
 	return false;
 }
 
-bool ModelSplitter::pointInTriangle(glm::vec3 A, glm::vec3 B, glm::vec3 C, glm::vec3 p) {
+bool ModelOperations::pointInTriangle(glm::vec3 A, glm::vec3 B, glm::vec3 C, glm::vec3 p) {
 	double s = 0.5 * glm::length(glm::cross(A - B, A - C));
 	double s1 = 0.5 * glm::length(glm::cross(B - p, C - p));
 	double s2 = 0.5 * glm::length(glm::cross(p - C, p - A));

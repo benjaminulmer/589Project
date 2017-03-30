@@ -5,7 +5,7 @@
 #include <list>
 #include <string>
 
-#include "ModelSplitter.h"
+#include "ModelOperations.h"
 #include "Renderable.h"
 
 struct Node;

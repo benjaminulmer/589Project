@@ -17,6 +17,12 @@ struct IndexedLists {
 	std::vector<glm::vec2> uvs;
 };
 
+struct UnpackedLists {
+	std::vector<glm::vec3> verts;
+	std::vector<glm::vec3> normals;
+	std::vector<glm::vec2> uvs;
+};
+
 class Renderable {
 
 public:

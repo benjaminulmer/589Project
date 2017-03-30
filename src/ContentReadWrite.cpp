@@ -9,27 +9,16 @@ std::pair<std::vector<Renderable*>, std::vector<BlockingPair>>  ContentReadWrite
 	ContentReadWrite::loadOBJ(modelFile.c_str(), obj);
 
 	// Split obj into separate parts
-	std::vector<IndexedLists> split = ModelSplitter::split(obj);
-	for (unsigned int i = 0; i < split.size(); i++) {
-		//output[i]->id = i;
-	}
+	std::vector<UnpackedLists> split = ModelOperations::split(obj);
 
 	// Compute contacts and blocking
-	std::vector<BlockingPair> blockings = ModelSplitter::contactsAndBlocking(split);
+	std::vector<BlockingPair> blockings = ModelOperations::contactsAndBlocking(split);
 
 	// Convert indexed lists into renderables
 	std::vector<Renderable*> renderables(split.size());
 	for (unsigned int i = 0; i < split.size(); i++) {
-		std::vector<unsigned short> indices;
-		std::vector<glm::vec3> indexedVertices;
-		std::vector<glm::vec2> indexedUvs;
-		std::vector<glm::vec3> indexedNormals;
-		ContentReadWrite::indexVBO(split[i].verts, split[i].uvs, split[i].normals, indices, indexedVertices, indexedUvs, indexedNormals);
 		renderables[i] = new Renderable();
-		renderables[i]->verts = indexedVertices;
-		renderables[i]->uvs = indexedUvs;
-		renderables[i]->normals = indexedNormals;
-		renderables[i]->faces = indices;
+		ModelOperations::indexVBO(split[i].verts, split[i].uvs, split[i].normals, renderables[i]->faces, renderables[i]->verts, renderables[i]->uvs, renderables[i]->normals);
 	}
 
 	return std::pair<std::vector<Renderable*>, std::vector<BlockingPair>>(renderables, blockings);
@@ -94,55 +83,6 @@ ExplosionGraph* ContentReadWrite::readExplosionGraph(std::string graphFile) {
 // Writes explosion graph to file
 void ContentReadWrite::writeExplosionGraph(ExplosionGraph* graph, std::string graphFile) {
 
-}
-
-bool ContentReadWrite::getSimilarVertexIndex( 
-		PackedVertex & packed,
-		std::map<PackedVertex,unsigned short> & VertexToOutIndex,
-		unsigned short & result)
-{
-	std::map<PackedVertex,unsigned short>::iterator it = VertexToOutIndex.find(packed);
-	if (it == VertexToOutIndex.end()) {
-		return false;
-	}
-	else {
-		result = it->second;
-		return true;
-	}
-}
-
-void ContentReadWrite::indexVBO(
-		std::vector<glm::vec3>& in_verts,
-		std::vector<glm::vec2>& in_uvs,
-		std::vector<glm::vec3>& in_normals,
-
-		std::vector<unsigned short>& out_faces,
-		std::vector<glm::vec3>& out_verts,
-		std::vector<glm::vec2>& out_uvs,
-		std::vector<glm::vec3>& out_normals)
-{
-	std::map<PackedVertex,unsigned short> VertexToOutIndex;
-
-	// For each input vertex
-	for ( unsigned int i=0; i<in_verts.size(); i++ ){
-
-		PackedVertex packed = {in_verts[i], in_uvs[i], in_normals[i]};
-		
-		// Try to find a similar vertex in out_XXXX
-		unsigned short index;
-		bool found = getSimilarVertexIndex( packed, VertexToOutIndex, index);
-
-		if ( found ){ // A similar vertex is already in the VBO, use it instead !
-			out_faces.push_back( index );
-		}else{ // If not, it needs to be added in the output data.
-			out_verts.push_back( in_verts[i]);
-			out_uvs     .push_back( in_uvs[i]);
-			out_normals .push_back( in_normals[i]);
-			unsigned short newindex = (unsigned short)out_verts.size() - 1;
-			out_faces .push_back( newindex );
-			VertexToOutIndex[ packed ] = newindex;
-		}
-	}
 }
 
 bool ContentReadWrite::loadOBJ(const char* path, IndexedLists& r) {
