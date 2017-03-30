@@ -49,8 +49,8 @@ ExplosionGraph::ExplosionGraph(std::vector<Renderable*> parts, std::vector<Block
 			bool xMinus = true;
 			bool zPlus = true;
 			bool zMinus = true;
-			//bool yPlus = true;
-			//bool yMinus = true;
+			bool yPlus = true;
+			bool yMinus = true;
 			for (Block block : nodes[activeSet[j]].blocked) {
 
 				// if blocking part is in the active set
@@ -59,18 +59,19 @@ ExplosionGraph::ExplosionGraph(std::vector<Renderable*> parts, std::vector<Block
 					else if (block.direction.x == -1.f) xMinus = false;
 					else if (block.direction.z == 1.f) zPlus = false;
 					else if (block.direction.z == -1.f) zMinus = false;
-					//else if (block.direction.y == 1.f) yPlus = false;
-					//else if (block.direction.y == -1.f)  yMinus = false;
+					else if (block.direction.y == 1.f) yPlus = false;
+					else if (block.direction.y == -1.f)  yMinus = false;
 				}
 			}
-			//if (((xPlus || xMinus) || (yPlus || yMinus)) || (zPlus || zMinus)) {
-			if ((xPlus || xMinus) || (zPlus || zMinus)) unblocked.push_back(activeSet[j]);
+			if (((xPlus || xMinus) || (yPlus || yMinus)) || (zPlus || zMinus)) {
+			/*if ((xPlus || xMinus) || (zPlus || zMinus))*/ unblocked.push_back(activeSet[j]);
+			}
 		}
 
 		//for each unblocked part
 		if (activeSet.size() == unblocked.size()) {
-			activeSet.clear();
-			activeSet.push_back(unblocked.front());
+			//activeSet.clear();
+			//activeSet.push_back(unblocked.front());
 		}
 
 		for (unsigned int m = 0; m < unblocked.size(); m++) {
@@ -82,8 +83,8 @@ ExplosionGraph::ExplosionGraph(std::vector<Renderable*> parts, std::vector<Block
 			bool xMinus = true;
 			bool zPlus = true;
 			bool zMinus = true;
-			//bool yPlus = true;
-			//bool yMinus = true;
+			bool yPlus = true;
+			bool yMinus = true;
 			for (Block block : nodes[unblocked[m]].blocked) {
 				// if blocking part is in the active set
 				if (std::find(activeSet.begin(), activeSet.end(), block.part->index) != activeSet.end()) {
@@ -92,6 +93,8 @@ ExplosionGraph::ExplosionGraph(std::vector<Renderable*> parts, std::vector<Block
 					else if (block.direction.x == -1.f) xMinus = false;
 					else if (block.direction.z == 1.f) zPlus = false;
 					else if (block.direction.z == -1.f) zMinus = false;
+					else if (block.direction.y == 1.f) yPlus = false;
+					else if (block.direction.y == -1.f) yMinus = false;
 				}
 			}
 			Node* curNode = &nodes[unblocked[m]];
@@ -125,11 +128,26 @@ ExplosionGraph::ExplosionGraph(std::vector<Renderable*> parts, std::vector<Block
 					minDistance = zminDist;
 				}
 			}
+			if (yPlus) {
+				float yplusDist = getEscapeDistance(curNode, 1, 'y', activeSet);
+				if (yplusDist < minDistance) {
+					unblockDirection = glm::vec3(0.f, 1.f, 0.f);
+					minDistance = yplusDist;
+				}
+			}
+			if (yMinus) {
+				float yminDist = getEscapeDistance(curNode, -1, 'y', activeSet);
+				if (yminDist < minDistance) {
+					unblockDirection = glm::vec3(0.f, -1.f, 0.f);
+					minDistance = yminDist;
+				}
+			}
+
 
 			// add edge to every active part that touches p
-			if (activeSet.size() != 1) {
+			//if (activeSet.size() != 1) {
 				activeSet.erase(std::find(activeSet.begin(), activeSet.end(), unblocked[m]));
-			}
+			//}
 
 			for (Block block : nodes[unblocked[m]].blocked) {
 				// if blocking part is in the active set
@@ -148,7 +166,7 @@ ExplosionGraph::ExplosionGraph(std::vector<Renderable*> parts, std::vector<Block
 			nodes[unblocked[m]].selfDistance = minDistance;
 		}
 		if (activeSet.size() == 1) {
-			activeSet.clear();
+		//	activeSet.clear();
 		}
 	}
 
