@@ -47,10 +47,10 @@ void InputHandler::key(GLFWwindow* window, int key, int scancode, int action, in
 		program->updateDistanceBuffer(-0.1f);
 	}
 	else if (key == GLFW_KEY_T && action == GLFW_PRESS) {
-		program->updateExplosionTime(0.1f);
+		program->updateExplosionTime(0.25f);
 	}
 	else if (key == GLFW_KEY_G && action == GLFW_PRESS) {
-		program->updateExplosionTime(-0.1f);
+		program->updateExplosionTime(-0.25f);
 	}
 
 	else if (key == GLFW_KEY_Z && action == GLFW_PRESS) {
