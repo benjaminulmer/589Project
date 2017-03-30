@@ -64,7 +64,7 @@ void Program::setupWindow() {
 
 // Loads and initializes all objects that can be viewed
 void Program::loadObjects() {
-	std::pair<std::vector<Renderable*>, std::vector<BlockingPair*>> result = ContentLoading::createRenderables("./models/FixedExample.obj");
+	std::pair<std::vector<Renderable*>, std::vector<BlockingPair>> result = ContentReadWrite::readRenderable("./models/FixedExample.obj");
 	std::vector<Renderable*> objects = result.first;
 	//o->textureID = (renderEngine->loadTexture("./textures/cube.png"));
 
@@ -162,16 +162,28 @@ void Program::_3Dpick() {
 
 	// Reset current active node (if there is one)
 	if (currentNode != nullptr) {
+		currentNode->move(-0.3f);
 		currentNode->active = false;
 	}
 
 	// Get new current node from mouse position (if mouse is on an object)
 	if (result != 0) {
 		currentNode = graph->at(result - 1);
+		currentNode->move(0.3f);
 		currentNode->active = true;
 	}
 	else {
 		currentNode = nullptr;
+	}
+
+	graph->updateDistances();
+}
+
+// Moves currently selected part provided distance along its explosion direction
+void Program::moveCurrentPart(float dist) {
+	if (currentNode != nullptr) {
+		currentNode->move(dist);
+		graph->updateDistances();
 	}
 }
 
@@ -184,7 +196,11 @@ void Program::updateDistanceBuffer(float inc) {
 
 // Updates buffer between objects when exploding
 void Program::updateExplosionTime(float inc) {
-	if (timeSPerLevel + inc >= 0.19999f) {
+	if (timeSPerLevel + inc >= 0.24999f) {
+
+		// Update counterS as well to preserve how far things have exploded
+		float ratio = counterS / timeSPerLevel;
 		timeSPerLevel += inc;
+		counterS = timeSPerLevel * ratio;
 	}
 }

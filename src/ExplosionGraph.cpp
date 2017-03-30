@@ -6,13 +6,25 @@
 Block::Block(Node* part, glm::vec3 direction) : part(part), direction(direction) {}
 
 // Default constructor. Zeros everything
-Node::Node() : part(0), index(0), selfDistance(0.0f), totalDistance(0.0f), active(false) {}
+Node::Node() : part(0), index(0), minSelfDistance(0.0f), curSelfDistance(0.0f), totalDistance(0.0f), active(false) {}
 
 // Node for part with given index
-Node::Node(Renderable* part, int index) : part(part), index(index), selfDistance(0.0f), totalDistance(0.0f), active(false) {}
+Node::Node(Renderable* part, int index) : part(part), index(index), minSelfDistance(0.0f), curSelfDistance(0.0f), totalDistance(0.0f), active(false) {}
+
+// Moves node distance along its explosion direction within valid ranges
+void Node::move(float dist) {
+	if (minSelfDistance == 0.0f) {
+		return;
+	}
+
+	curSelfDistance += dist;
+	if (curSelfDistance < minSelfDistance) {
+		curSelfDistance = minSelfDistance;
+	}
+}
 
 // Creates explosion graph for provided parts
-ExplosionGraph::ExplosionGraph(std::vector<Renderable*> parts, std::vector<BlockingPair*> blockingPairs) {
+ExplosionGraph::ExplosionGraph(std::vector<Renderable*> parts, std::vector<BlockingPair> blockingPairs) {
 
 	// Number of nodes in graph is number of parts in model
 	numParts = parts.size();
@@ -29,8 +41,8 @@ ExplosionGraph::ExplosionGraph(std::vector<Renderable*> parts, std::vector<Block
 	}
 
 	// Fill blocking data from provided blocking pairs
-	for (BlockingPair* block : blockingPairs) {
-		nodes[block->focusPart->id].blocked.push_back(Block(&nodes[block->otherPart->id], block->direction));
+	for (BlockingPair& block : blockingPairs) {
+		nodes[block.focusPart].blocked.push_back(Block(&nodes[block.otherPart], block.direction));
 	}
 
 	// Construct the explosion graph
@@ -145,7 +157,8 @@ ExplosionGraph::ExplosionGraph(std::vector<Renderable*> parts, std::vector<Block
 			}
 
 			nodes[unblocked[m]].direction = unblockDirection;
-			nodes[unblocked[m]].selfDistance = minDistance;
+			nodes[unblocked[m]].minSelfDistance = minDistance;
+			nodes[unblocked[m]].curSelfDistance = minDistance;
 		}
 		if (activeSet.size() == 1) {
 			activeSet.clear();
@@ -156,7 +169,7 @@ ExplosionGraph::ExplosionGraph(std::vector<Renderable*> parts, std::vector<Block
 	if (sort() == -1) {
 		std::cout << "Error, graph contains cycle(s)" << std::endl;
 	}
-	fillDistances();
+	updateDistances();
 }
 
 // Finds escape distance for a node in given direction (sign combined with axis)
@@ -262,7 +275,11 @@ int ExplosionGraph::sort() {
 }
 
 // Fills in total distance of each node in graph based off of parent distances
-void ExplosionGraph::fillDistances() {
+void ExplosionGraph::updateDistances() {
+
+	for (unsigned int i = 0; i < numParts; i++) {
+		nodes[i].totalDistance = 0.0f;
+	}
 
 	// Loop over all nodes by level in the topological sort
 	for (std::vector<Node*> level : topologicalSort) {
@@ -277,7 +294,7 @@ void ExplosionGraph::fillDistances() {
 			}
 
 			// Update total distance by the largest found
-			node->totalDistance = node->selfDistance + max;
+			node->totalDistance = node->curSelfDistance + max;
 		}
 	}
 }
