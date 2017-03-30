@@ -6,6 +6,7 @@
 #include <string>
 
 #include "Renderable.h"
+#include "ModelSplitter.h"
 
 struct Node;
 
@@ -22,26 +23,27 @@ struct Node {
 	Renderable* part;
 	int index;
 
-	std::vector<Block> blocking;
+	std::vector<Block> blocked;
 
 	glm::vec3 direction;
 	float selfDistance;
 	float totalDistance;
+
+	bool active;
 };
 
 
 class ExplosionGraph {
 
 public:
-	ExplosionGraph(); // Temporary
-	ExplosionGraph(std::vector<Renderable*> parts, bool test); // Temporary
-	ExplosionGraph(std::vector<Renderable*> parts);
+	ExplosionGraph(std::vector<Renderable*> parts, std::vector<BlockingPair*> blockingPairs);
 
 	std::vector<std::vector<Node*>>& getSort();
+	Node* at(int index);
 
 private:
 	Node* nodes;
-	int numParts;
+	unsigned int numParts;
 	std::vector<std::list<Node*>> graph;
 	std::vector<std::list<Node*>> iGraph;
 
@@ -50,6 +52,7 @@ private:
 	void fillDistances();
 	void constructInverse();
 	int sort();
-	void fillDistacnes();
+
+	float getEscapeDistance(Node* node, int sign, char dir, const std::vector<int>& activeSet);
 };
 
