@@ -5,8 +5,8 @@
 #include <list>
 #include <string>
 
-#include "Renderable.h"
 #include "ModelSplitter.h"
+#include "Renderable.h"
 
 struct Node;
 
@@ -39,7 +39,7 @@ struct Node {
 class ExplosionGraph {
 
 public:
-	ExplosionGraph(std::vector<Renderable*> parts, std::vector<BlockingPair*> blockingPairs);
+	ExplosionGraph(std::vector<Renderable*> parts, std::vector<BlockingPair> blockingPairs);
 
 	void updateDistances();
 

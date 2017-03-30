@@ -3,22 +3,21 @@
 #include <stdio.h>
 
 // Constructor for a block, always needs part and direction
-BlockingPair::BlockingPair(Renderable* focusPart, Renderable* otherPart, glm::vec3 direction) : focusPart(focusPart), otherPart(otherPart), direction(direction) {}
+BlockingPair::BlockingPair(unsigned int focusPart, unsigned int otherPart, glm::vec3 direction) : focusPart(focusPart), otherPart(otherPart), direction(direction) {}
 
-std::vector<Renderable*> ModelSplitter::split(Renderable* mainObject) {
+std::vector<IndexedLists> ModelSplitter::split(IndexedLists& mainObject) {
 
 	// Structures for tracking faces and verts that have been processed
-	std::vector<bool> vertsProcessed(mainObject->verts.size(), false);
-	std::vector<bool> facesProcessed(mainObject->vertIndices.size(), false);
+	std::vector<bool> vertsProcessed(mainObject.verts.size(), false);
+	std::vector<bool> facesProcessed(mainObject.vertIndices.size(), false);
 	unsigned int numVertsProcessed = 0;
 
 	// Split objects until all verts have been processed
-	std::vector<Renderable*> splitObjects;
-	while (numVertsProcessed < mainObject->verts.size()) {
+	std::vector<IndexedLists> splitObjects;
+	while (numVertsProcessed < mainObject.verts.size()) {
 
 		// Create a new renderable
-		Renderable* r = new Renderable();
-		splitObjects.push_back(r);
+		IndexedLists r;
 
 		// Create queue of verts to process and push a unprocessed vert to start with
 		std::deque<unsigned short> vertsToProcess;
@@ -31,8 +30,8 @@ std::vector<Renderable*> ModelSplitter::split(Renderable* mainObject) {
 		}
 		// Process all verts in the queue
 		while (vertsToProcess.size() != 0) {
-			for (unsigned int j = 0; j < mainObject->vertIndices.size(); j++) {
-				if (mainObject->vertIndices[j] == vertsToProcess.front()) {
+			for (unsigned int j = 0; j < mainObject.vertIndices.size(); j++) {
+				if (mainObject.vertIndices[j] == vertsToProcess.front()) {
 					unsigned int index = j % 3;
 					unsigned int first;
 					unsigned int second;
@@ -62,10 +61,10 @@ std::vector<Renderable*> ModelSplitter::split(Renderable* mainObject) {
 					bool inListThird = false;
 					//Change this so that we check vertsProcessed first
 					for (unsigned int k = 0; k < vertsToProcess.size(); k++) {
-						if (mainObject->vertIndices[secondIndex] == vertsToProcess[k] || vertsProcessed[mainObject->vertIndices[secondIndex]]) {
+						if (mainObject.vertIndices[secondIndex] == vertsToProcess[k] || vertsProcessed[mainObject.vertIndices[secondIndex]]) {
 							inListSecond = true;
 						}
-						if (mainObject->vertIndices[thirdIndex] == vertsToProcess[k] || vertsProcessed[mainObject->vertIndices[thirdIndex]]) {
+						if (mainObject.vertIndices[thirdIndex] == vertsToProcess[k] || vertsProcessed[mainObject.vertIndices[thirdIndex]]) {
 							inListThird = true;
 						}
 						if (inListSecond && inListThird) {
@@ -73,26 +72,26 @@ std::vector<Renderable*> ModelSplitter::split(Renderable* mainObject) {
 						}
 					}
 					if (!inListSecond) {
-						vertsToProcess.push_back(mainObject->vertIndices[secondIndex]);
+						vertsToProcess.push_back(mainObject.vertIndices[secondIndex]);
 					}
 					if (!inListThird) {
-						vertsToProcess.push_back(mainObject->vertIndices[thirdIndex]);
+						vertsToProcess.push_back(mainObject.vertIndices[thirdIndex]);
 					}
 					if (!facesProcessed[first]) {
 						facesProcessed[first] = true;
-						r->vertIndices.push_back(mainObject->vertIndices[first]);
+						r.vertIndices.push_back(mainObject.vertIndices[first]);
 						facesUpdated.push_back(false);
-						r->vertIndices.push_back(mainObject->vertIndices[second]);
+						r.vertIndices.push_back(mainObject.vertIndices[second]);
 						facesUpdated.push_back(false);
-						r->vertIndices.push_back(mainObject->vertIndices[third]);
+						r.vertIndices.push_back(mainObject.vertIndices[third]);
 						facesUpdated.push_back(false);
 
-						r->normalIndices.push_back(mainObject->normalIndices[first]);
-						r->normalIndices.push_back(mainObject->normalIndices[second]);
-						r->normalIndices.push_back(mainObject->normalIndices[third]);
-						r->uvIndices.push_back(mainObject->uvIndices[first]);
-						r->uvIndices.push_back(mainObject->uvIndices[second]);
-						r->uvIndices.push_back(mainObject->uvIndices[third]);
+						r.normalIndices.push_back(mainObject.normalIndices[first]);
+						r.normalIndices.push_back(mainObject.normalIndices[second]);
+						r.normalIndices.push_back(mainObject.normalIndices[third]);
+						r.uvIndices.push_back(mainObject.uvIndices[first]);
+						r.uvIndices.push_back(mainObject.uvIndices[second]);
+						r.uvIndices.push_back(mainObject.uvIndices[third]);
 					}
 				}
 			}
@@ -101,32 +100,34 @@ std::vector<Renderable*> ModelSplitter::split(Renderable* mainObject) {
 			vertsToProcess.pop_front();
 		}
 		// Push back data for new object
-		for (unsigned int i = 0; i < r->vertIndices.size(); i++) {
-			r->verts.push_back(mainObject->verts[r->vertIndices[i]]);
-			r->normals.push_back(mainObject->normals[r->normalIndices[i]]);
-			r->uvs.push_back(mainObject->uvs[r->uvIndices[i]]);
+		for (unsigned int i = 0; i < r.vertIndices.size(); i++) {
+			r.verts.push_back(mainObject.verts[r.vertIndices[i]]);
+			r.normals.push_back(mainObject.normals[r.normalIndices[i]]);
+			r.uvs.push_back(mainObject.uvs[r.uvIndices[i]]);
 		}
+
+		splitObjects.push_back(r);
 	}
 
 	return splitObjects;
 }
 
-std::vector<BlockingPair*> ModelSplitter::contactsAndBlocking(std::vector<Renderable*> objects) {
-	std::vector<BlockingPair*> contacts;
+std::vector<BlockingPair> ModelSplitter::contactsAndBlocking(std::vector<IndexedLists>& objects) {
+	std::vector<BlockingPair> contacts;
 
 	for (unsigned int focusObject = 0; focusObject < objects.size(); focusObject++) {
 		for (unsigned int otherObject = focusObject + 1; otherObject < objects.size(); otherObject++) {
-			for (unsigned int focusTriangle = 0; focusTriangle < objects[focusObject]->verts.size(); focusTriangle+=3) {
-				for (unsigned int otherTriangle = 0; otherTriangle < objects[otherObject]->verts.size(); otherTriangle+=3) {
+			for (unsigned int focusTriangle = 0; focusTriangle < objects[focusObject].verts.size(); focusTriangle+=3) {
+				for (unsigned int otherTriangle = 0; otherTriangle < objects[otherObject].verts.size(); otherTriangle+=3) {
 					glm::vec3 focusTriangleVerts[3];
-					focusTriangleVerts[0] = objects[focusObject]->verts[focusTriangle];
-					focusTriangleVerts[1] = objects[focusObject]->verts[focusTriangle + 1];
-					focusTriangleVerts[2] = objects[focusObject]->verts[focusTriangle + 2];
+					focusTriangleVerts[0] = objects[focusObject].verts[focusTriangle];
+					focusTriangleVerts[1] = objects[focusObject].verts[focusTriangle + 1];
+					focusTriangleVerts[2] = objects[focusObject].verts[focusTriangle + 2];
 
 					glm::vec3 otherTriangleVerts[3];
-					otherTriangleVerts[0] = objects[otherObject]->verts[otherTriangle];
-					otherTriangleVerts[1] = objects[otherObject]->verts[otherTriangle + 1];
-					otherTriangleVerts[2] = objects[otherObject]->verts[otherTriangle + 2];
+					otherTriangleVerts[0] = objects[otherObject].verts[otherTriangle];
+					otherTriangleVerts[1] = objects[otherObject].verts[otherTriangle + 1];
+					otherTriangleVerts[2] = objects[otherObject].verts[otherTriangle + 2];
 
 					//TODO Compute blocking information here
 
@@ -206,40 +207,36 @@ std::vector<BlockingPair*> ModelSplitter::contactsAndBlocking(std::vector<Render
 									bool alreadyExists2 = false;
 									//vectors form an acute angle, focus object cannot move in positive x, other cannot move in -x
 									for (unsigned int i = 0; i < contacts.size(); i++) {
-										if (contacts[i]->focusPart == objects[focusObject] && contacts[i]->otherPart == objects[otherObject] && contacts[i]->direction == glm::vec3(-1, 0, 0)) {
+										if (contacts[i].focusPart == focusObject && contacts[i].otherPart == otherObject && contacts[i].direction == glm::vec3(-1, 0, 0)) {
 											alreadyExists = true;
 										}
-										if (contacts[i]->focusPart == objects[otherObject] && contacts[i]->otherPart == objects[focusObject] && contacts[i]->direction == glm::vec3(1, 0, 0)) {
+										if (contacts[i].focusPart == otherObject && contacts[i].otherPart == focusObject && contacts[i].direction == glm::vec3(1, 0, 0)) {
 											alreadyExists2 = true;
 										}
 									}
 									if (!alreadyExists) {
-										BlockingPair* block = new BlockingPair(objects[focusObject], objects[otherObject], glm::vec3(-1, 0, 0));
-										contacts.push_back(block);
+										contacts.push_back(BlockingPair(focusObject, otherObject, glm::vec3(-1, 0, 0)));
 									}
 									if (!alreadyExists2) {
-										BlockingPair* block = new BlockingPair(objects[otherObject], objects[focusObject], glm::vec3(1, 0, 0));
-										contacts.push_back(block);
+										contacts.push_back(BlockingPair(otherObject, focusObject, glm::vec3(1, 0, 0)));
 									}
 								} else if (angle < 0.0) {
 									bool alreadyExists = false;
 									bool alreadyExists2 = false;
 									//vectors form an obtuse angle, focus object cannot move in negative x
 									for (unsigned int i = 0; i < contacts.size(); i++) {
-										if (contacts[i]->focusPart == objects[focusObject] && contacts[i]->otherPart == objects[otherObject] && contacts[i]->direction == glm::vec3(1, 0, 0)) {
+										if (contacts[i].focusPart == focusObject && contacts[i].otherPart == otherObject && contacts[i].direction == glm::vec3(1, 0, 0)) {
 											alreadyExists = true;
 										}
-										if (contacts[i]->focusPart == objects[otherObject] && contacts[i]->otherPart == objects[focusObject] && contacts[i]->direction == glm::vec3(-1, 0, 0)) {
+										if (contacts[i].focusPart == otherObject && contacts[i].otherPart == focusObject && contacts[i].direction == glm::vec3(-1, 0, 0)) {
 											alreadyExists2 = true;
 										}
 									}
 									if (!alreadyExists) {
-										BlockingPair* block = new BlockingPair(objects[focusObject], objects[otherObject], glm::vec3(1, 0, 0));
-										contacts.push_back(block);
+										contacts.push_back(BlockingPair(focusObject, otherObject, glm::vec3(1, 0, 0)));
 									}
 									if (!alreadyExists2) {
-										BlockingPair* block = new BlockingPair(objects[otherObject], objects[focusObject], glm::vec3(-1, 0, 0));
-										contacts.push_back(block);
+										contacts.push_back(BlockingPair(otherObject, focusObject, glm::vec3(-1, 0, 0)));
 									}
 								} else {
 									//focus object is unblocked in x direction
@@ -250,40 +247,36 @@ std::vector<BlockingPair*> ModelSplitter::contactsAndBlocking(std::vector<Render
 									bool alreadyExists2 = false;
 									//vectors form an acute angle, focus object cannot move in positive y
 									for (unsigned int i = 0; i < contacts.size(); i++) {
-										if (contacts[i]->focusPart == objects[focusObject] && contacts[i]->otherPart == objects[otherObject] && contacts[i]->direction == glm::vec3(0, -1, 0)) {
+										if (contacts[i].focusPart == focusObject && contacts[i].otherPart == otherObject && contacts[i].direction == glm::vec3(0, -1, 0)) {
 											alreadyExists = true;
 										}
-										if (contacts[i]->focusPart == objects[otherObject] && contacts[i]->otherPart == objects[focusObject] && contacts[i]->direction == glm::vec3(0, 1, 0)) {
+										if (contacts[i].focusPart == otherObject && contacts[i].otherPart == focusObject && contacts[i].direction == glm::vec3(0, 1, 0)) {
 											alreadyExists2 = true;
 										}
 									}
 									if (!alreadyExists) {
-										BlockingPair* block = new BlockingPair(objects[focusObject], objects[otherObject], glm::vec3(0, -1, 0));
-										contacts.push_back(block);
+										contacts.push_back(BlockingPair(focusObject, otherObject, glm::vec3(0, -1, 0)));
 									}
 									if (!alreadyExists2) {
-										BlockingPair* block = new BlockingPair(objects[otherObject], objects[focusObject], glm::vec3(0, 1, 0));
-										contacts.push_back(block);
+										contacts.push_back(BlockingPair(otherObject, focusObject, glm::vec3(0, 1, 0)));
 									}
 								} else if (angle < 0.0) {
 									bool alreadyExists = false;
 									bool alreadyExists2 = false;
 									//vectors form an obtuse angle, focus object cannot move in negative y
 									for (unsigned int i = 0; i < contacts.size(); i++) {
-										if (contacts[i]->focusPart == objects[focusObject] && contacts[i]->otherPart == objects[otherObject] && contacts[i]->direction == glm::vec3(0, 1, 0)) {
+										if (contacts[i].focusPart == focusObject && contacts[i].otherPart == otherObject && contacts[i].direction == glm::vec3(0, 1, 0)) {
 											alreadyExists = true;
 										}
-										if (contacts[i]->focusPart == objects[otherObject] && contacts[i]->otherPart == objects[focusObject] && contacts[i]->direction == glm::vec3(0, -1, 0)) {
+										if (contacts[i].focusPart == otherObject && contacts[i].otherPart == focusObject && contacts[i].direction == glm::vec3(0, -1, 0)) {
 											alreadyExists2 = true;
 										}
 									}
 									if (!alreadyExists) {
-										BlockingPair* block = new BlockingPair(objects[focusObject], objects[otherObject], glm::vec3(0, 1, 0));
-										contacts.push_back(block);
+										contacts.push_back(BlockingPair(focusObject, otherObject, glm::vec3(0, 1, 0)));
 									}
 									if (!alreadyExists2) {
-										BlockingPair* block = new BlockingPair(objects[otherObject], objects[focusObject], glm::vec3(0, -1, 0));
-										contacts.push_back(block);
+										contacts.push_back(BlockingPair(otherObject, focusObject, glm::vec3(0, -1, 0)));
 									}
 								} else {
 									//focus object is unblocked in y direction
@@ -294,40 +287,36 @@ std::vector<BlockingPair*> ModelSplitter::contactsAndBlocking(std::vector<Render
 									bool alreadyExists2 = false;
 									//vectors form an acute angle, focus object cannot move in positive z
 									for (unsigned int i = 0; i < contacts.size(); i++) {
-										if (contacts[i]->focusPart == objects[focusObject] && contacts[i]->otherPart == objects[otherObject] && contacts[i]->direction == glm::vec3(0, 0, -1)) {
+										if (contacts[i].focusPart == focusObject && contacts[i].otherPart == otherObject && contacts[i].direction == glm::vec3(0, 0, -1)) {
 											alreadyExists = true;
 										}
-										if (contacts[i]->focusPart == objects[otherObject] && contacts[i]->otherPart == objects[focusObject] && contacts[i]->direction == glm::vec3(0, 0, 1)) {
+										if (contacts[i].focusPart == otherObject && contacts[i].otherPart == focusObject && contacts[i].direction == glm::vec3(0, 0, 1)) {
 											alreadyExists2 = true;
 										}
 									}
 									if (!alreadyExists) {
-										BlockingPair* block = new BlockingPair(objects[focusObject], objects[otherObject], glm::vec3(0, 0, -1));
-										contacts.push_back(block);
+										contacts.push_back(BlockingPair(focusObject, otherObject, glm::vec3(0, 0, -1)));
 									}
 									if (!alreadyExists2) {
-										BlockingPair* block = new BlockingPair(objects[otherObject], objects[focusObject], glm::vec3(0, 0, 1));
-										contacts.push_back(block);
+										contacts.push_back(BlockingPair(otherObject, focusObject, glm::vec3(0, 0, 1)));
 									}
 								} else if (angle < 0.0) {
 									bool alreadyExists = false;
 									bool alreadyExists2 = false;
 									//vectors form an obtuse angle, focus object cannot move in negative z
 									for (unsigned int i = 0; i < contacts.size(); i++) {
-										if (contacts[i]->focusPart == objects[focusObject] && contacts[i]->otherPart == objects[otherObject] && contacts[i]->direction == glm::vec3(0, 0, 1)) {
+										if (contacts[i].focusPart == focusObject && contacts[i].otherPart == otherObject && contacts[i].direction == glm::vec3(0, 0, 1)) {
 											alreadyExists = true;
 										}
-										if (contacts[i]->focusPart == objects[otherObject] && contacts[i]->otherPart == objects[focusObject] && contacts[i]->direction == glm::vec3(0, 0, -1)) {
+										if (contacts[i].focusPart == otherObject && contacts[i].otherPart == focusObject && contacts[i].direction == glm::vec3(0, 0, -1)) {
 											alreadyExists2 = true;
 										}
 									}
 									if (!alreadyExists) {
-										BlockingPair* block = new BlockingPair(objects[focusObject], objects[otherObject], glm::vec3(0, 0, 1));
-										contacts.push_back(block);
+										contacts.push_back(BlockingPair(focusObject, otherObject, glm::vec3(0, 0, 1)));
 									}
 									if (!alreadyExists2) {
-										BlockingPair* block = new BlockingPair(objects[otherObject], objects[focusObject], glm::vec3(0, 0, -1));
-										contacts.push_back(block);
+										contacts.push_back(BlockingPair(otherObject, focusObject, glm::vec3(0, 0, -1)));
 									}
 								} else {
 									//focus object is unblocked in z direction

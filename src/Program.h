@@ -3,14 +3,12 @@
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 
-#include <map>
-
 #include "InputHandler.h"
 #include "RenderEngine.h"
-#include "Renderable.h"
-#include "ContentLoading.h"
 #include "Camera.h"
+#include "ContentReadWrite.h"
 #include "ExplosionGraph.h"
+#include "Renderable.h"
 
 enum class State {
 	NONE,

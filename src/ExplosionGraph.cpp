@@ -24,7 +24,7 @@ void Node::move(float dist) {
 }
 
 // Creates explosion graph for provided parts
-ExplosionGraph::ExplosionGraph(std::vector<Renderable*> parts, std::vector<BlockingPair*> blockingPairs) {
+ExplosionGraph::ExplosionGraph(std::vector<Renderable*> parts, std::vector<BlockingPair> blockingPairs) {
 
 	// Number of nodes in graph is number of parts in model
 	numParts = parts.size();
@@ -41,8 +41,8 @@ ExplosionGraph::ExplosionGraph(std::vector<Renderable*> parts, std::vector<Block
 	}
 
 	// Fill blocking data from provided blocking pairs
-	for (BlockingPair* block : blockingPairs) {
-		nodes[block->focusPart->id].blocked.push_back(Block(&nodes[block->otherPart->id], block->direction));
+	for (BlockingPair& block : blockingPairs) {
+		nodes[block.focusPart].blocked.push_back(Block(&nodes[block.otherPart], block.direction));
 	}
 
 	// Construct the explosion graph
