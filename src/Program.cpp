@@ -18,6 +18,17 @@ Program::Program() {
 
 	distBuffer = 1.5f;
 	startTime =  0;
+
+	filename = "./models/FixedExample.obj";
+	explosionFilename = "./graphs/FixedExample.json";
+}
+
+Program::Program(char* file) {
+
+}
+
+Program::Program(char* file, char* explosionfile) {
+
 }
 
 Program::~Program() {
@@ -77,7 +88,7 @@ void Program::setupWindow() {
 void Program::loadObjects() {
 
 	// Read in obj
-	std::vector<UnpackedLists> split = ContentReadWrite::partsFromObj("./models/FixedExample.obj");
+	std::vector<UnpackedLists> split = ContentReadWrite::partsFromObj(filename);
 
 	// Create renderables from split object
 	std::vector<Renderable*> renderables(split.size());
@@ -114,7 +125,7 @@ void Program::loadObjects() {
 	else {
 		std::cout << "Using explosion file" << std::endl;
 
-		rapidjson::Document d = ContentReadWrite::readExplosionGraph("./graphs/FixedExample.json");
+		rapidjson::Document d = ContentReadWrite::readExplosionGraph(explosionFilename);
 
 		if (!d.IsObject()) {
 			std::cout << "File is not valid JSON" << std::endl;

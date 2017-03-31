@@ -23,6 +23,8 @@ class Program {
 
 public:
 	Program();
+	Program(char* file);
+	Program(char* file, char* explosionfile);
 	virtual ~Program();
 
 	void start();
@@ -64,4 +66,7 @@ private:
 	void _3Dpick();
 
 	float startTime;
+
+	char* filename;
+	char* explosionFilename;
 };
