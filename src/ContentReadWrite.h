@@ -16,9 +16,10 @@
 class ContentReadWrite {
 
 public:
-	static std::pair<std::vector<Renderable*>, std::vector<BlockingPair>> readRenderable(std::string modelFile);
-	static ExplosionGraph* readExplosionGraph(std::string graphFile);
-	static void writeExplosionGraph(ExplosionGraph* graph, std::string graphFile);
+	static std::vector<UnpackedLists> partsFromObj(std::string modelFile);
+
+	static rapidjson::Document readExplosionGraph(std::string graphFile);
+	static void writeExplosionGraph(rapidjson::Document d, std::string graphFile);
 
 private:
 	static bool loadOBJ(const char* path, IndexedLists& r);

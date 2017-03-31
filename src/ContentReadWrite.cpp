@@ -1,15 +1,16 @@
 #include "ContentReadWrite.h"
 
 // Create renderable from obj file
-std::pair<std::vector<Renderable*>, std::vector<BlockingPair>>  ContentReadWrite::readRenderable(std::string modelFile) {
+std::vector<UnpackedLists> ContentReadWrite::partsFromObj(std::string modelFile) {
 	std::cout << "Creating renderables" << std::endl;
 
 	// Read data in from obj file
 	IndexedLists obj;
 	ContentReadWrite::loadOBJ(modelFile.c_str(), obj);
 
-	// Split obj into separate parts
-	std::vector<UnpackedLists> split = ModelOperations::split(obj);
+	return ModelOperations::split(obj);
+
+	/*
 
 	// Compute contacts and blocking
 	std::vector<BlockingPair> blockings = ModelOperations::contactsAndBlocking(split);
@@ -22,10 +23,13 @@ std::pair<std::vector<Renderable*>, std::vector<BlockingPair>>  ContentReadWrite
 	}
 
 	return std::pair<std::vector<Renderable*>, std::vector<BlockingPair>>(renderables, blockings);
+
+
+	*/
 }
 
 // Reads in explosion graph from file
-ExplosionGraph* ContentReadWrite::readExplosionGraph(std::string graphFile) {
+rapidjson::Document ContentReadWrite::readExplosionGraph(std::string graphFile) {
 	std::vector<glm::vec3> points;
 
 	std::ifstream file(graphFile);
@@ -49,39 +53,11 @@ ExplosionGraph* ContentReadWrite::readExplosionGraph(std::string graphFile) {
 	d.Parse(buffer);
 	delete[] buffer;
 
-	// Return if no points member
-	if (!d.HasMember("nodes")) {
-		std::cout << "Missing nodes" << std::endl;
-		return nullptr;
-	}
-
-	// Return if no points member
-	if (!d.HasMember("graph")) {
-		std::cout << "Missing graph" << std::endl;
-		return nullptr;
-	}
-
-	for (rapidjson::SizeType i = 0; i < d["points"].Size(); i++) {
-
-		// Return if entry not valid
-		rapidjson::Value& entry = d["points"][i];
-		if (!entry.HasMember("x") || !entry.HasMember("y") || !entry.HasMember("z")) {
-			continue;
-		}
-
-		// Read entry and add to points
-		glm::vec3 point;
-		point.x = (float)entry["x"].GetDouble();
-		point.y = (float)entry["y"].GetDouble();
-		point.z = (float)entry["z"].GetDouble();
-		points.push_back(point);
-	}
-
-	return 0;
+	return d;
 }
 
 // Writes explosion graph to file
-void ContentReadWrite::writeExplosionGraph(ExplosionGraph* graph, std::string graphFile) {
+void ContentReadWrite::writeExplosionGraph(rapidjson::Document d, std::string graphFile) {
 
 }
 

@@ -23,7 +23,7 @@ void Node::move(float dist) {
 	}
 }
 
-// Creates explosion graph for provided parts
+// Creates explosion graph from blocking constraints
 ExplosionGraph::ExplosionGraph(std::vector<Renderable*> parts, std::vector<BlockingPair> blockingPairs) {
 
 	// Number of nodes in graph is number of parts in model
@@ -165,6 +165,52 @@ ExplosionGraph::ExplosionGraph(std::vector<Renderable*> parts, std::vector<Block
 		}
 	}
 
+	// Construct other graph info
+	constructInverse();
+	if (sort() == -1) {
+		std::cout << "Error, graph contains cycle(s)" << std::endl;
+	}
+	updateDistances();
+}
+
+// Creates explosion graph input file
+ExplosionGraph::ExplosionGraph(std::vector<Renderable*> parts, rapidjson::Document& d) {
+
+	// Number of nodes in graph is number of parts in model
+	numParts = parts.size();
+	graph = std::vector<std::list<Node*>>(numParts);
+	iGraph = std::vector<std::list<Node*>>(numParts);
+
+	// Fill list of nodes
+	nodes = new Node[numParts];
+	for (unsigned int i = 0; i < numParts; i++) {
+		nodes[i] = Node(parts[i], i);
+	}
+
+	// Fill in node information
+	for (rapidjson::SizeType i = 0; i < d["nodes"].Size(); i++) {
+		rapidjson::Value& node = d["nodes"][i];
+
+		nodes[i].direction.x = (float)node["x"].GetDouble();
+		nodes[i].direction.y = (float)node["y"].GetDouble();
+		nodes[i].direction.z = (float)node["z"].GetDouble();
+
+		nodes[i].minSelfDistance = (float)node["distance"].GetDouble();
+		nodes[i].curSelfDistance = (float)node["distance"].GetDouble();
+	}
+
+	// Populate graph
+	for (rapidjson::SizeType i = 0; i < d["graph"].Size(); i++) {
+		rapidjson::Value& array = d["graph"][i];
+
+		for (rapidjson::SizeType j = 0; j < array.Size(); j++) {
+
+			int val = array[j].GetInt();
+			graph[i].push_back(&nodes[val]);
+		}
+	}
+
+	// Construct other graph info
 	constructInverse();
 	if (sort() == -1) {
 		std::cout << "Error, graph contains cycle(s)" << std::endl;

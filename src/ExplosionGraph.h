@@ -4,6 +4,7 @@
 #include <iostream>
 #include <list>
 #include <string>
+#include <rapidjson/document.h>
 
 #include "ModelOperations.h"
 #include "Renderable.h"
@@ -40,6 +41,7 @@ class ExplosionGraph {
 
 public:
 	ExplosionGraph(std::vector<Renderable*> parts, std::vector<BlockingPair> blockingPairs);
+	ExplosionGraph(std::vector<Renderable*> parts, rapidjson::Document& d);
 
 	void updateDistances();
 

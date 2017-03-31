@@ -64,20 +64,43 @@ void Program::setupWindow() {
 
 // Loads and initializes all objects that can be viewed
 void Program::loadObjects() {
-	std::pair<std::vector<Renderable*>, std::vector<BlockingPair>> result = ContentReadWrite::readRenderable("./models/FixedExample.obj");
-	std::vector<Renderable*> objects = result.first;
-	//o->textureID = (renderEngine->loadTexture("./textures/cube.png"));
 
+	// Read in obj
+	std::vector<UnpackedLists> split = ContentReadWrite::partsFromObj("./models/FixedExample.obj");
+
+	// Create renderables from split object
+	std::vector<Renderable*> renderables(split.size());
+	for (unsigned int i = 0; i < split.size(); i++) {
+		renderables[i] = new Renderable();
+		ModelOperations::indexVBO(split[i].verts, split[i].uvs, split[i].normals, renderables[i]->faces, renderables[i]->verts, renderables[i]->uvs, renderables[i]->normals);
+	}
+
+	// Set colours and assign buffers
 	float i = 0.f;
 	float j = 1.f;
-	for (Renderable* object : objects) {
+	for (Renderable* object : renderables) {
 		object->colour = glm::vec3(0, i, j);
-		i += (1.0 / objects.size());
-		j -= (1.0 / objects.size());
+		i += (1.0 / renderables.size());
+		j -= (1.0 / renderables.size());
 
 		renderEngine->assignBuffers(*object);
 	}
-	graph = new ExplosionGraph(objects, result.second);
+
+	int ver = 0;
+	if (ver == 1) {
+		// Compute contacts and blocking
+		std::vector<BlockingPair> blockings = ModelOperations::contactsAndBlocking(split);
+		graph = new ExplosionGraph(renderables, blockings);
+	}
+	else {
+		rapidjson::Document d = ContentReadWrite::readExplosionGraph("./test.json");
+
+		if (!d.IsObject()) {
+			std::cout << "File is not valid JSON" << std::endl;
+			exit(0);
+		}
+		graph = new ExplosionGraph(renderables, d);
+	}
 }
 
 // Main loop
