@@ -1,9 +1,9 @@
 #include "RenderEngine.h"
 
-RenderEngine::RenderEngine(GLFWwindow* window, Camera* camera) :
+RenderEngine::RenderEngine(SDL_Window* window, Camera* camera) :
 	window(window), camera(camera) {
 
-	glfwGetWindowSize(window, &width, &height);
+	SDL_GetWindowSize(window, &width, &height);
 
 	mainProgram = ShaderTools::compileShaders("./shaders/mesh.vert", "./shaders/mesh.frag");
 	lightProgram = ShaderTools::compileShaders("./shaders/light.vert", "./shaders/light.frag");
@@ -16,6 +16,7 @@ RenderEngine::RenderEngine(GLFWwindow* window, Camera* camera) :
 	// If you change state you must change back to default after
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_LINE_SMOOTH);
+	glEnable(GL_MULTISAMPLE);
 	glPointSize(30.0f);
 	glClearColor(0.3, 0.3, 0.4, 0.0);
 }

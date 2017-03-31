@@ -141,10 +141,10 @@ std::vector<BlockingPair> ModelOperations::contactsAndBlocking(std::vector<Unpac
 					glm::vec3 otherTriangleNormal = glm::normalize(glm::cross(otherTriangleVerts[0] - otherTriangleVerts[1], otherTriangleVerts[2] - otherTriangleVerts[1]));
 
 					//Decide if the normalized normals are the same
-					if (focusTriangleNormal.x == -otherTriangleNormal.x && focusTriangleNormal.y == -otherTriangleNormal.y && focusTriangleNormal.z == -otherTriangleNormal.z) {
+					//if (focusTriangleNormal.x == -otherTriangleNormal.x && focusTriangleNormal.y == -otherTriangleNormal.y && focusTriangleNormal.z == -otherTriangleNormal.z) {
 						glm::vec3 offset = focusTriangleVerts[0] - otherTriangleVerts[0];
 						//Test if the triangles are in the same plane
-						if (glm::dot(focusTriangleNormal, offset) == 0.0) {
+						//if (glm::dot(focusTriangleNormal, offset) == 0.0) {
 							//Determine if the triangles intersect
 							bool intersect = false;
 							int numIntersect = 0;
@@ -325,8 +325,8 @@ std::vector<BlockingPair> ModelOperations::contactsAndBlocking(std::vector<Unpac
 									//focus object is unblocked in z direction
 								}
 							}
-						}
-					}
+						//}//if1
+					//}//if2
 
 				}
 			}
@@ -392,7 +392,7 @@ bool ModelOperations::lineIntersect(glm::vec3 p1, glm::vec3 p2, glm::vec3 p3, gl
 	double d1343,d4321,d1321,d4343,d2121;
 	double numer,denom;
 	//Minimum distance below which lines are considered to intersect
-	double EPS = 0.01;
+	double EPS = 0.5;
 
 	if (p1 == p3 && p2 == p4) {
 		return true;

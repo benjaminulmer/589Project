@@ -1,7 +1,7 @@
 #pragma once
 
 #include <GL/glew.h>
-#include <GLFW/glfw3.h>
+#include <SDL2/SDL.h>
 #include <glm/glm.hpp>
 #include <glm/gtx/transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
@@ -17,7 +17,7 @@
 class RenderEngine {
 
 public:
-	RenderEngine(GLFWwindow* window, Camera* camera);
+	RenderEngine(SDL_Window* window, Camera* camera);
 	virtual ~RenderEngine();
 
 	void render(const std::vector<std::vector<Node*>>& graph, int level, float perc, float distBuffer);
@@ -31,7 +31,7 @@ public:
 	int pickerRender(const std::vector<std::vector<Node*>>& graph, int level, float perc, float distBuffer, int x, int y);
 
 private:
-	GLFWwindow* window;
+	SDL_Window* window;
 	int width, height;
 
 	GLuint mainProgram;
