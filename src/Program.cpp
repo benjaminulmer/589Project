@@ -62,7 +62,7 @@ void Program::setupWindow() {
 	SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
 
 
-	window = SDL_CreateWindow("CPSC589 Project", 200, 0, width, height, SDL_WINDOW_OPENGL);
+	window = SDL_CreateWindow("CPSC589 Project", 10, 30, width, height, SDL_WINDOW_OPENGL);
 	if (window == nullptr){
 		//TODO: cleanup methods upon exit
 		std::cout << "SDL_CreateWindow Error: " << SDL_GetError() << std::endl;
