@@ -17,15 +17,11 @@ Program::Program() {
 	timeSPerLevel = 1.f;
 
 	distBuffer = 1.5f;
+	startTime =  0;
 }
 
 Program::~Program() {
 	// nothing to do here, end of mainLoop performs clean up
-}
-
-// Error callback for glfw errors
-void Program::error(int error, const char* description) {
-	std::cerr << description << std::endl;
 }
 
 // Called to start the program. Conducts set up then enters the main loop
@@ -44,15 +40,13 @@ void Program::start() {
 	mainLoop();
 }
 
-// Creates GLFW window for the program and sets callbacks for input
+// Creates SDL window for the program and sets callbacks for input
 void Program::setupWindow() {
 	if (SDL_Init(SDL_INIT_VIDEO) != 0){
 		std::cout << "SDL_Init Error: " << SDL_GetError() << std::endl;
 		exit(EXIT_FAILURE);
 	}
 
-	//SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
-	//SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
 	SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
 	SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 16);
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
@@ -75,7 +69,6 @@ void Program::setupWindow() {
 	{
 		std::cout << "OpenGL context could not be created! SDL Error: " << SDL_GetError() << std::endl;
 	}
-	//SDL_GL_MakeCurrent(window, context);
 
 	SDL_GL_SetSwapInterval(1); // Vsync on
 }
@@ -103,7 +96,6 @@ void Program::mainLoop() {
 
 	startTime = SDL_GetTicks();
 
-	//while(!glfwWindowShouldClose(window)) {
 	while (true) {
 		SDL_Event e;
 		while (SDL_PollEvent(&e)) {
@@ -118,7 +110,6 @@ void Program::mainLoop() {
 			collapse();
 		}
 
-		//glfwSetTime(0.);
 		startTime = SDL_GetTicks();
 		renderEngine->render(graph->getSort(), level, counterS / timeSPerLevel, distBuffer);
 

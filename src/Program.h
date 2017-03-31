@@ -54,7 +54,6 @@ private:
 	float timeSPerLevel;
 	float distBuffer;
 
-	static void error(int error, const char* description);
 	void setupWindow();
 	void loadObjects();
 	void mainLoop();

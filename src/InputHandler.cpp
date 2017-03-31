@@ -29,6 +29,10 @@ void InputHandler::pollEvent(SDL_Event& e) {
 	else if (e.type == SDL_WINDOWEVENT) {
 		InputHandler::reshape(e.window);
 	}
+	else if (e.type == SDL_QUIT) {
+		SDL_Quit();
+		exit(0);
+	}
 }
 
 // Callback for key presses
@@ -67,6 +71,7 @@ void InputHandler::key(SDL_KeyboardEvent& e) {
 		break;
 	case(SDLK_t) :
 		program->updateExplosionTime(0.1f);
+		break;
 	case(SDLK_g) :
 		program->updateExplosionTime(-0.1f);
 		break;
