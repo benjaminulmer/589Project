@@ -6,10 +6,12 @@
 Block::Block(Node* part, glm::vec3 direction) : part(part), direction(direction) {}
 
 // Default constructor. Zeros everything
-Node::Node() : part(0), index(0), minSelfDistance(0.0f), curSelfDistance(0.0f), totalDistance(0.0f), active(false) {}
+Node::Node() : part(0), index(0), minSelfDistance(0.0f), curSelfDistance(0.0f), totalDistance(0.0f),
+		highlighted(false), selected(false) {}
 
 // Node for part with given index
-Node::Node(Renderable* part, int index) : part(part), index(index), minSelfDistance(0.0f), curSelfDistance(0.0f), totalDistance(0.0f), active(false) {}
+Node::Node(Renderable* part, int index) : part(part), index(index), minSelfDistance(0.0f), curSelfDistance(0.0f), totalDistance(0.0f),
+		highlighted(false), selected(false){}
 
 // Moves node distance along its explosion direction within valid ranges
 void Node::move(float dist) {

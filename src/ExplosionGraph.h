@@ -31,7 +31,8 @@ struct Node {
 	float curSelfDistance;
 	float totalDistance;
 
-	bool active;
+	bool highlighted;
+	bool selected;
 
 	void move(float dist);
 };
