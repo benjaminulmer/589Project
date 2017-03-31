@@ -1,7 +1,7 @@
 #pragma once
 
 #include <GL/glew.h>
-#include <SDL/SDL.h>
+#include <SDL2/SDL.h>
 //#include <GLFW/glfw3.h>
 
 #include "Camera.h"
