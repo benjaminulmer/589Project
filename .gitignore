@@ -1,5 +1,5 @@
 include/*
-!include/SDL/
+!include/SDL2/
 !include/rapidjson/
 lib/*
 !lib/SDL2/
