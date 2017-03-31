@@ -48,6 +48,8 @@ public:
 	std::vector<std::vector<Node*>>& getSort();
 	Node* at(int index);
 
+	rapidjson::Document getJSON();
+
 private:
 	Node* nodes;
 	unsigned int numParts;

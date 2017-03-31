@@ -86,14 +86,24 @@ void Program::loadObjects() {
 		renderEngine->assignBuffers(*object);
 	}
 
-	int ver = 0;
-	if (ver == 1) {
+	int ver = 1;
+	// Compute blocking and create explosion graph
+	if (ver == 0) {
+		std::cout << "Computing explosion" << std::endl;
+
 		// Compute contacts and blocking
 		std::vector<BlockingPair> blockings = ModelOperations::contactsAndBlocking(split);
 		graph = new ExplosionGraph(renderables, blockings);
+
+		rapidjson::Document d = graph->getJSON();
+		ContentReadWrite::writeExplosionGraph(d, "./graphs/FixedExample.json");
+
 	}
+	// Use file to create explosion graph
 	else {
-		rapidjson::Document d = ContentReadWrite::readExplosionGraph("./test.json");
+		std::cout << "Using explosion file" << std::endl;
+
+		rapidjson::Document d = ContentReadWrite::readExplosionGraph("./graphs/FixedExample.json");
 
 		if (!d.IsObject()) {
 			std::cout << "File is not valid JSON" << std::endl;

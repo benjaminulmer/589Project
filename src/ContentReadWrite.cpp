@@ -9,29 +9,12 @@ std::vector<UnpackedLists> ContentReadWrite::partsFromObj(std::string modelFile)
 	ContentReadWrite::loadOBJ(modelFile.c_str(), obj);
 
 	return ModelOperations::split(obj);
-
-	/*
-
-	// Compute contacts and blocking
-	std::vector<BlockingPair> blockings = ModelOperations::contactsAndBlocking(split);
-
-	// Convert indexed lists into renderables
-	std::vector<Renderable*> renderables(split.size());
-	for (unsigned int i = 0; i < split.size(); i++) {
-		renderables[i] = new Renderable();
-		ModelOperations::indexVBO(split[i].verts, split[i].uvs, split[i].normals, renderables[i]->faces, renderables[i]->verts, renderables[i]->uvs, renderables[i]->normals);
-	}
-
-	return std::pair<std::vector<Renderable*>, std::vector<BlockingPair>>(renderables, blockings);
-
-
-	*/
 }
 
 // Reads in explosion graph from file
 rapidjson::Document ContentReadWrite::readExplosionGraph(std::string graphFile) {
-	std::vector<glm::vec3> points;
 
+	// Open file
 	std::ifstream file(graphFile);
 	if (!file.is_open()) {
 		std::cout << "Could not open file" << std::endl;
@@ -49,6 +32,7 @@ rapidjson::Document ContentReadWrite::readExplosionGraph(std::string graphFile) 
 	file.close();
 	buffer[length] = 0;
 
+	// Create JSON document
 	rapidjson::Document d;
 	d.Parse(buffer);
 	delete[] buffer;
@@ -57,8 +41,25 @@ rapidjson::Document ContentReadWrite::readExplosionGraph(std::string graphFile) 
 }
 
 // Writes explosion graph to file
-void ContentReadWrite::writeExplosionGraph(rapidjson::Document d, std::string graphFile) {
+void ContentReadWrite::writeExplosionGraph(rapidjson::Document& d, std::string graphFile) {
 
+	// Open file
+	std::ofstream file(graphFile);
+	if (!file.is_open()) {
+		std::cout << "Could not open file" << std::endl;
+		return;
+	}
+
+	// Pretty writer for JSON document
+	rapidjson::StringBuffer buffer;
+	rapidjson::PrettyWriter<rapidjson::StringBuffer> writer(buffer);
+	d.Accept(writer);
+
+	// Get data and size then write to file
+	const char* output = buffer.GetString();
+	long size = buffer.GetSize();
+
+	file.write(output, size);
 }
 
 bool ContentReadWrite::loadOBJ(const char* path, IndexedLists& r) {

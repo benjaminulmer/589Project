@@ -359,3 +359,47 @@ Node* ExplosionGraph::at(int index) {
 		return &nodes[index];
 	}
 }
+
+// Returns JSON representation of explosion graph
+rapidjson::Document ExplosionGraph::getJSON() {
+	rapidjson::Document d;
+	d.SetObject();
+
+	rapidjson::Document::AllocatorType& alloc = d.GetAllocator();
+
+	// Create array of nodes
+	rapidjson::Value jNodes;
+	jNodes.SetArray();
+
+	// Make entry for each node
+	for (unsigned int i = 0; i < numParts; i++) {
+		rapidjson::Value node;
+		node.SetObject();
+		node.AddMember("x", nodes[i].direction.x, alloc);
+		node.AddMember("y", nodes[i].direction.y, alloc);
+		node.AddMember("z", nodes[i].direction.z, alloc);
+		node.AddMember("distance", nodes[i].minSelfDistance, alloc);
+
+		jNodes.PushBack(node, alloc);
+	}
+	d.AddMember("nodes", jNodes, alloc);
+
+	// Create array for graph
+	rapidjson::Value jGraph;
+	jGraph.SetArray();
+
+	// Create inner array for each node in graph
+	for (std::list<Node*> l : graph) {
+		rapidjson::Value array;
+		array.SetArray();
+
+		// Fill inner array
+		for (Node* n : l) {
+			array.PushBack(n->index, alloc);
+		}
+		jGraph.PushBack(array, alloc);
+	}
+	d.AddMember("graph", jGraph, alloc);
+
+	return d;
+}
