@@ -1,6 +1,7 @@
 include/*
 !include/SDL/
-lib/
+lib/*
+!lib/SDL2.lib
 Debug/
 packages/
 packages.config
