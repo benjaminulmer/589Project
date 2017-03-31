@@ -13,92 +13,110 @@ void InputHandler::setUp(Camera* camera, RenderEngine* renderEngine, Program* pr
 	InputHandler::program = program;
 }
 
+void InputHandler::pollEvent(SDL_Event& e) {
+	if (e.type == SDL_KEYDOWN) {
+		InputHandler::key(e.key);
+	}
+	else if (e.type == SDL_MOUSEBUTTONDOWN) {
+		InputHandler::mouse(e.button);
+	}
+	else if (e.type == SDL_MOUSEMOTION) {
+		InputHandler::motion(e.motion);
+	}
+	else if (e.type == SDL_MOUSEWHEEL) {
+		InputHandler::scroll(e.wheel);
+	}
+	else if (e.type == SDL_WINDOWEVENT) {
+		InputHandler::reshape(e.window);
+	}
+}
+
 // Callback for key presses
-void InputHandler::key(GLFWwindow* window, int key, int scancode, int action, int mods) {
+void InputHandler::key(SDL_KeyboardEvent& e) {
 	// Light controls
-	if (key == GLFW_KEY_W) {
+	switch (e.keysym.sym) {
+	case(SDLK_w) :
 		renderEngine->updateLightPos(glm::vec3(0.0, 0.1, 0.0));
-	}
-	else if (key == GLFW_KEY_S) {
+		break;
+	case(SDLK_s) :
 		renderEngine->updateLightPos(glm::vec3(0.0, -0.1, 0.0));
-	}
-	else if (key == GLFW_KEY_A) {
+		break;
+	case(SDLK_a) :
 		renderEngine->updateLightPos(glm::vec3(-0.1, 0.0, 0.0));
-	}
-	else if (key == GLFW_KEY_D) {
+		break;
+	case(SDLK_d) :
 		renderEngine->updateLightPos(glm::vec3(0.1, 0.0, 0.0));
-	}
-	else if (key == GLFW_KEY_E) {
+		break;
+	case(SDLK_e) :
 		renderEngine->updateLightPos(glm::vec3(0.0, 0.0, 0.1));
-	}
-	else if (key == GLFW_KEY_Q) {
+		break;
+	case(SDLK_q) :
 		renderEngine->updateLightPos(glm::vec3(0.0, 0.0, -0.1));
-	}
-	else if (key == GLFW_KEY_1 && action == GLFW_PRESS) {
+		break;
+	case(SDLK_1) :
 		program->setState(State::EXPLODE);
-	}
-	else if (key == GLFW_KEY_2 && action == GLFW_PRESS) {
+		break;
+	case(SDLK_2) :
 		program->setState(State::COLLAPSE);
-	}
-	else if (key == GLFW_KEY_R && action == GLFW_PRESS) {
+		break;
+	case(SDLK_r) :
 		program->updateDistanceBuffer(0.1f);
-	}
-	else if (key == GLFW_KEY_F && action == GLFW_PRESS) {
+		break;
+	case(SDLK_f) :
 		program->updateDistanceBuffer(-0.1f);
-	}
-	else if (key == GLFW_KEY_T && action == GLFW_PRESS) {
+		break;
+	case(SDLK_t) :
 		program->updateExplosionTime(0.1f);
-	}
-	else if (key == GLFW_KEY_G && action == GLFW_PRESS) {
+	case(SDLK_g) :
 		program->updateExplosionTime(-0.1f);
-	}
-	else if (key == GLFW_KEY_ESCAPE) {
-		glfwDestroyWindow(window);
-		glfwTerminate();
+		break;
+	case(SDLK_ESCAPE) :
+		SDL_Quit();
 		exit(0);
 	}
 }
 
 // Callback for mouse button presses
-void InputHandler::mouse(GLFWwindow* window, int button, int action, int mods) {
-	double x, y;
-	glfwGetCursorPos(window, &x, &y);
-	mouseOldX = x;
-	mouseOldY = y;
+void InputHandler::mouse(SDL_MouseButtonEvent& e) {
+	mouseOldX = e.x;
+	mouseOldY = e.y;
 }
 
 // Callback for mouse motion
-void InputHandler::motion(GLFWwindow* window, double x, double y) {
+void InputHandler::motion(SDL_MouseMotionEvent& e) {
 	double dx, dy;
-	dx = (x - mouseOldX);
-	dy = (y - mouseOldY);
+	dx = (e.x - mouseOldX);
+	dy = (e.y - mouseOldY);
 
-	// Right mouse moves camera
-	if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_1)) {
+	// left mouse button moves camera
+	if (SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_LEFT)) {
 		camera->updateLongitudeRotation(dx * 0.5);
 		camera->updateLatitudeRotation(dy * 0.5);
 	}
 
 	// Update current position of the mouse
 	int width, height;
-	glfwGetWindowSize(window, &width, &height);
+	SDL_Window* window = SDL_GetWindowFromID(e.windowID);
+	SDL_GetWindowSize(window, &width, &height);
 
-	int iX = (int)x;
-	int iY = height - (int)y;
+	int iX = (int)e.x;
+	int iY = height - (int)e.y;
 	program->setMousePos(iX, iY);
 
-	mouseOldX = x;
-	mouseOldY = y;
+	mouseOldX = e.x;
+	mouseOldY = e.y;
 }
 
 // Callback for mouse scroll
-void InputHandler::scroll(GLFWwindow* window, double x, double y) {
+void InputHandler::scroll(SDL_MouseWheelEvent& e) {
 	double dy;
-	dy = (x - y);
+	dy = (e.x - e.y);
 	camera->updatePosition(glm::vec3(dy * -1.0f, 0.0, 0.0));
 }
 
 // Callback for window reshape/resize
-void InputHandler::reshape(GLFWwindow* window, int width, int height) {
-	program->setWindowSize(width, height);
+void InputHandler::reshape(SDL_WindowEvent& e) {
+	if (e.event == SDL_WINDOWEVENT_RESIZED) {
+		program->setWindowSize(e.data1, e.data2);
+	}
 }

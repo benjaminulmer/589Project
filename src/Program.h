@@ -1,7 +1,10 @@
 #pragma once
 
 #include <GL/glew.h>
-#include <GLFW/glfw3.h>
+#include <SDL/SDL.h>
+#include <SDL/SDL_opengl.h>
+#undef main
+//#include <GLFW/glfw3.h>
 
 #include <map>
 
@@ -34,7 +37,7 @@ public:
 	void updateExplosionTime(float inc);
 
 private:
-	GLFWwindow* window;
+	SDL_Window* window;
 	int width, height;
 
 	RenderEngine* renderEngine;
@@ -60,4 +63,6 @@ private:
 	void collapse();
 
 	void _3Dpick();
+
+	float startTime;
 };

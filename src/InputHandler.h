@@ -1,7 +1,8 @@
 #pragma once
 
 #include <GL/glew.h>
-#include <GLFW/glfw3.h>
+#include <SDL/SDL.h>
+//#include <GLFW/glfw3.h>
 
 #include "Camera.h"
 #include "RenderEngine.h"
@@ -14,13 +15,15 @@ class InputHandler {
 public:
 	static void setUp(Camera* camera, RenderEngine* renderEngine, Program* program);
 
-	static void key(GLFWwindow* window, int key, int scancode, int action, int mods);
-	static void mouse(GLFWwindow* window, int button, int action, int mods);
-	static void motion(GLFWwindow* window, double x, double y);
-	static void scroll(GLFWwindow* window, double x, double y);
-	static void reshape(GLFWwindow* window, int width, int height);
+	static void pollEvent(SDL_Event& e);
 
-private:
+	static void key(SDL_KeyboardEvent& e);
+	static void mouse(SDL_MouseButtonEvent& e);
+	static void motion(SDL_MouseMotionEvent& e);
+	static void scroll(SDL_MouseWheelEvent& e);
+	static void reshape(SDL_WindowEvent& e);
+
+private: 
 	static Camera* camera;
 	static RenderEngine* renderEngine;
 	static Program* program;
