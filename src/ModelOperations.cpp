@@ -2,6 +2,8 @@
 
 #include <stdio.h>
 
+#include <glm/gtc/epsilon.hpp>
+
 // Constructor for a block, always needs part and direction
 ContactPair::ContactPair(unsigned int focusPart, unsigned int otherPart, glm::vec3 direction) : focusPart(focusPart), otherPart(otherPart), direction(direction) {}
 
@@ -445,12 +447,44 @@ std::vector<BlockingPair> ModelOperations::blocking(std::vector<UnpackedLists>& 
 							numIntersect++;
 						}
 						//Triangles that only share one edge are not in contact
-						if (numIntersect > 1 && numIntersect < 7) {
+						if (numIntersect > 1 && numIntersect < 4) {
 							intersect[i] = true;
 						}
 
 						if (std::abs(glm::dot(focusTriangleNormal, otherTriangleNormal)) < 0.001) {
 							intersect[0] = false;
+							intersect[1] = false;
+							intersect[2] = false;
+						}
+
+						if (glm::dot(focusTriangleNormal, otherTriangleNormal) > 0.999) {
+							intersect[0] = false;
+							intersect[1] = false;
+							intersect[2] = false;
+						}
+
+						if (glm::epsilonEqual(focusTriangleNormal, glm::vec3(1, 0, 0), 0.001f) == glm::bvec3(true, true, true)){
+							intersect[0] = false;
+							intersect[1] = false;
+						}
+						if (glm::epsilonEqual(focusTriangleNormal, glm::vec3(0, 1, 0), 0.001f) == glm::bvec3(true, true, true)){
+							intersect[0] = false;
+							intersect[2] = false;
+						}
+						if (glm::epsilonEqual(focusTriangleNormal, glm::vec3(0, 0, 1), 0.001f) == glm::bvec3(true, true, true)){
+							intersect[1] = false;
+							intersect[2] = false;
+						}
+
+						if (glm::epsilonEqual(otherTriangleNormal, glm::vec3(1, 0, 0), 0.001f) == glm::bvec3(true, true, true)){
+							intersect[0] = false;
+							intersect[1] = false;
+						}
+						if (glm::epsilonEqual(otherTriangleNormal, glm::vec3(0, 1, 0), 0.001f) == glm::bvec3(true, true, true)){
+							intersect[0] = false;
+							intersect[2] = false;
+						}
+						if (glm::epsilonEqual(otherTriangleNormal, glm::vec3(0, 0, 1), 0.001f) == glm::bvec3(true, true, true)){
 							intersect[1] = false;
 							intersect[2] = false;
 						}
