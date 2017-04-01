@@ -6,13 +6,25 @@
 Block::Block(Node* part, glm::vec3 direction) : part(part), direction(direction) {}
 
 // Default constructor. Zeros everything
-Node::Node() : part(0), index(0), selfDistance(0.0f), totalDistance(0.0f), active(false) {}
+Node::Node() : part(0), index(0), minSelfDistance(0.0f), curSelfDistance(0.0f), totalDistance(0.0f), active(false) {}
 
 // Node for part with given index
-Node::Node(Renderable* part, int index) : part(part), index(index), selfDistance(0.0f), totalDistance(0.0f), active(false) {}
+Node::Node(Renderable* part, int index) : part(part), index(index), minSelfDistance(0.0f), curSelfDistance(0.0f), totalDistance(0.0f), active(false) {}
 
-// Creates explosion graph for provided parts
-ExplosionGraph::ExplosionGraph(std::vector<Renderable*> parts, std::vector<BlockingPair*> blockingPairs) {
+// Moves node distance along its explosion direction within valid ranges
+void Node::move(float dist) {
+	if (minSelfDistance == 0.0f) {
+		return;
+	}
+
+	curSelfDistance += dist;
+	if (curSelfDistance < minSelfDistance) {
+		curSelfDistance = minSelfDistance;
+	}
+}
+
+// Creates explosion graph from blocking constraints
+ExplosionGraph::ExplosionGraph(std::vector<Renderable*> parts, std::vector<ContactPair> blockingPairs) {
 
 	// Number of nodes in graph is number of parts in model
 	numParts = parts.size();
@@ -29,8 +41,8 @@ ExplosionGraph::ExplosionGraph(std::vector<Renderable*> parts, std::vector<Block
 	}
 
 	// Fill blocking data from provided blocking pairs
-	for (BlockingPair* block : blockingPairs) {
-		nodes[block->focusPart->id].blocked.push_back(Block(&nodes[block->otherPart->id], block->direction));
+	for (ContactPair& block : blockingPairs) {
+		nodes[block.focusPart].blocked.push_back(Block(&nodes[block.otherPart], block.direction));
 	}
 
 	// Construct the explosion graph
@@ -163,18 +175,65 @@ ExplosionGraph::ExplosionGraph(std::vector<Renderable*> parts, std::vector<Block
 			}
 
 			nodes[unblocked[m]].direction = unblockDirection;
-			nodes[unblocked[m]].selfDistance = minDistance;
+			nodes[unblocked[m]].minSelfDistance = minDistance;
+			nodes[unblocked[m]].curSelfDistance = minDistance;
 		}
 		if (activeSet.size() == 1) {
 		//	activeSet.clear();
 		}
 	}
 
+	// Construct other graph info
 	constructInverse();
 	if (sort() == -1) {
 		std::cout << "Error, graph contains cycle(s)" << std::endl;
 	}
-	fillDistances();
+	updateDistances();
+}
+
+// Creates explosion graph input file
+ExplosionGraph::ExplosionGraph(std::vector<Renderable*> parts, rapidjson::Document& d) {
+
+	// Number of nodes in graph is number of parts in model
+	numParts = parts.size();
+	graph = std::vector<std::list<Node*>>(numParts);
+	iGraph = std::vector<std::list<Node*>>(numParts);
+
+	// Fill list of nodes
+	nodes = new Node[numParts];
+	for (unsigned int i = 0; i < numParts; i++) {
+		nodes[i] = Node(parts[i], i);
+	}
+
+	// Fill in node information
+	for (rapidjson::SizeType i = 0; i < d["nodes"].Size(); i++) {
+		rapidjson::Value& node = d["nodes"][i];
+
+		nodes[i].direction.x = (float)node["x"].GetDouble();
+		nodes[i].direction.y = (float)node["y"].GetDouble();
+		nodes[i].direction.z = (float)node["z"].GetDouble();
+
+		nodes[i].minSelfDistance = (float)node["distance"].GetDouble();
+		nodes[i].curSelfDistance = (float)node["distance"].GetDouble();
+	}
+
+	// Populate graph
+	for (rapidjson::SizeType i = 0; i < d["graph"].Size(); i++) {
+		rapidjson::Value& array = d["graph"][i];
+
+		for (rapidjson::SizeType j = 0; j < array.Size(); j++) {
+
+			int val = array[j].GetInt();
+			graph[i].push_back(&nodes[val]);
+		}
+	}
+
+	// Construct other graph info
+	constructInverse();
+	if (sort() == -1) {
+		std::cout << "Error, graph contains cycle(s)" << std::endl;
+	}
+	updateDistances();
 }
 
 // Finds escape distance for a node in given direction (sign combined with axis)
@@ -280,7 +339,11 @@ int ExplosionGraph::sort() {
 }
 
 // Fills in total distance of each node in graph based off of parent distances
-void ExplosionGraph::fillDistances() {
+void ExplosionGraph::updateDistances() {
+
+	for (unsigned int i = 0; i < numParts; i++) {
+		nodes[i].totalDistance = 0.0f;
+	}
 
 	// Loop over all nodes by level in the topological sort
 	for (std::vector<Node*> level : topologicalSort) {
@@ -295,7 +358,7 @@ void ExplosionGraph::fillDistances() {
 			}
 
 			// Update total distance by the largest found
-			node->totalDistance = node->selfDistance + max;
+			node->totalDistance = node->curSelfDistance + max;
 		}
 	}
 }
@@ -313,4 +376,48 @@ Node* ExplosionGraph::at(int index) {
 	else {
 		return &nodes[index];
 	}
+}
+
+// Returns JSON representation of explosion graph
+rapidjson::Document ExplosionGraph::getJSON() {
+	rapidjson::Document d;
+	d.SetObject();
+
+	rapidjson::Document::AllocatorType& alloc = d.GetAllocator();
+
+	// Create array of nodes
+	rapidjson::Value jNodes;
+	jNodes.SetArray();
+
+	// Make entry for each node
+	for (unsigned int i = 0; i < numParts; i++) {
+		rapidjson::Value node;
+		node.SetObject();
+		node.AddMember("x", nodes[i].direction.x, alloc);
+		node.AddMember("y", nodes[i].direction.y, alloc);
+		node.AddMember("z", nodes[i].direction.z, alloc);
+		node.AddMember("distance", nodes[i].minSelfDistance, alloc);
+
+		jNodes.PushBack(node, alloc);
+	}
+	d.AddMember("nodes", jNodes, alloc);
+
+	// Create array for graph
+	rapidjson::Value jGraph;
+	jGraph.SetArray();
+
+	// Create inner array for each node in graph
+	for (std::list<Node*> l : graph) {
+		rapidjson::Value array;
+		array.SetArray();
+
+		// Fill inner array
+		for (Node* n : l) {
+			array.PushBack(n->index, alloc);
+		}
+		jGraph.PushBack(array, alloc);
+	}
+	d.AddMember("graph", jGraph, alloc);
+
+	return d;
 }

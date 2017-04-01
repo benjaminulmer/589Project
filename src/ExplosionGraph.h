@@ -4,9 +4,10 @@
 #include <iostream>
 #include <list>
 #include <string>
+#include <rapidjson/document.h>
 
+#include "ModelOperations.h"
 #include "Renderable.h"
-#include "ModelSplitter.h"
 
 struct Node;
 
@@ -26,20 +27,28 @@ struct Node {
 	std::vector<Block> blocked;
 
 	glm::vec3 direction;
-	float selfDistance;
+	float minSelfDistance;
+	float curSelfDistance;
 	float totalDistance;
 
 	bool active;
+
+	void move(float dist);
 };
 
 
 class ExplosionGraph {
 
 public:
-	ExplosionGraph(std::vector<Renderable*> parts, std::vector<BlockingPair*> blockingPairs);
+	ExplosionGraph(std::vector<Renderable*> parts, std::vector<ContactPair> blockingPairs);
+	ExplosionGraph(std::vector<Renderable*> parts, rapidjson::Document& d);
+
+	void updateDistances();
 
 	std::vector<std::vector<Node*>>& getSort();
 	Node* at(int index);
+
+	rapidjson::Document getJSON();
 
 private:
 	Node* nodes;
@@ -49,7 +58,6 @@ private:
 
 	std::vector<std::vector<Node*>> topologicalSort;
 
-	void fillDistances();
 	void constructInverse();
 	int sort();
 

@@ -99,13 +99,13 @@ int RenderEngine::pickerRender(const std::vector<std::vector<Node*>>& graph, int
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_R32I, width, height, 0, GL_RED_INTEGER, GL_INT, NULL);
 
 	// Create depth buffer
-	glGenRenderbuffers(1, &depthBuffer);
-	glBindRenderbuffer(GL_RENDERBUFFER, depthBuffer);
-	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, width, height);
+	glGenRenderbuffersEXT(1, &depthBuffer);
+	glBindRenderbufferEXT(GL_RENDERBUFFER_EXT, depthBuffer);
+	glRenderbufferStorageEXT(GL_RENDERBUFFER_EXT, GL_DEPTH_COMPONENT24, width, height);
 
 	// Attack texture and depth buffer to framebuffer
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_2D, texID, 0);
-	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, depthBuffer);
+	glFramebufferRenderbufferEXT(GL_FRAMEBUFFER_EXT, GL_DEPTH_ATTACHMENT_EXT, GL_RENDERBUFFER_EXT, depthBuffer);
 
 
 	// Render IDs to textures in framebuffer
@@ -157,7 +157,8 @@ int RenderEngine::pickerRender(const std::vector<std::vector<Node*>>& graph, int
 	std::vector<int> pixelsVec(width*height);
 	int* pixels = pixelsVec.data();
 
-	glGetTextureImage(texID, 0, GL_RED_INTEGER, GL_INT, sizeof(int) * width * height, pixels);
+	glBindTexture(GL_TEXTURE_2D, texID);
+	glGetTexImage(GL_TEXTURE_2D, 0, GL_RED_INTEGER, GL_INT, pixels);
 
 	glDeleteTextures(1, &texID);
 	glDeleteRenderbuffers(1, &depthBuffer);

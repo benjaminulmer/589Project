@@ -64,20 +64,55 @@ void Program::setupWindow() {
 
 // Loads and initializes all objects that can be viewed
 void Program::loadObjects() {
-	std::pair<std::vector<Renderable*>, std::vector<BlockingPair*>> result = ContentLoading::createRenderables("./models/gba.obj");
-	std::vector<Renderable*> objects = result.first;
-	//o->textureID = (renderEngine->loadTexture("./textures/cube.png"));
 
+
+	// Read in obj
+	std::vector<UnpackedLists> split = ContentReadWrite::partsFromObj("./models/cubes.obj");
+
+	// Create renderables from split object
+	std::vector<Renderable*> renderables(split.size());
+	for (unsigned int i = 0; i < split.size(); i++) {
+		renderables[i] = new Renderable();
+		ModelOperations::indexVBO(split[i].verts, split[i].uvs, split[i].normals, renderables[i]->faces, renderables[i]->verts, renderables[i]->uvs, renderables[i]->normals);
+	}
+
+	// Set colours and assign buffers
 	float i = 0.f;
 	float j = 1.f;
-	for (Renderable* object : objects) {
+	for (Renderable* object : renderables) {
 		object->colour = glm::vec3(0, i, j);
-		i += (1.0 / objects.size());
-		j -= (1.0 / objects.size());
+		i += (1.0 / renderables.size());
+		j -= (1.0 / renderables.size());
 
 		renderEngine->assignBuffers(*object);
 	}
-	graph = new ExplosionGraph(objects, result.second);
+
+	int ver = 0;
+	// Compute blocking and create explosion graph
+	if (ver == 0) {
+		std::cout << "Computing explosion" << std::endl;
+
+		// Compute contacts and blocking
+		std::vector<ContactPair> blockings = ModelOperations::contacts(split);
+		std::vector<BlockingPair> blocks = ModelOperations::blocking(split);
+		graph = new ExplosionGraph(renderables, blockings);
+
+		rapidjson::Document d = graph->getJSON();
+		ContentReadWrite::writeExplosionGraph(d, "./graphs/FixedExample.json");
+
+	}
+	// Use file to create explosion graph
+	else {
+		std::cout << "Using explosion file" << std::endl;
+
+		rapidjson::Document d = ContentReadWrite::readExplosionGraph("./graphs/FixedExample.json");
+
+		if (!d.IsObject()) {
+			std::cout << "File is not valid JSON" << std::endl;
+			exit(0);
+		}
+		graph = new ExplosionGraph(renderables, d);
+	}
 }
 
 // Main loop
@@ -162,16 +197,28 @@ void Program::_3Dpick() {
 
 	// Reset current active node (if there is one)
 	if (currentNode != nullptr) {
+		currentNode->move(-0.3f);
 		currentNode->active = false;
 	}
 
 	// Get new current node from mouse position (if mouse is on an object)
 	if (result != 0) {
 		currentNode = graph->at(result - 1);
+		currentNode->move(0.3f);
 		currentNode->active = true;
 	}
 	else {
 		currentNode = nullptr;
+	}
+
+	graph->updateDistances();
+}
+
+// Moves currently selected part provided distance along its explosion direction
+void Program::moveCurrentPart(float dist) {
+	if (currentNode != nullptr) {
+		currentNode->move(dist);
+		graph->updateDistances();
 	}
 }
 
@@ -184,7 +231,11 @@ void Program::updateDistanceBuffer(float inc) {
 
 // Updates buffer between objects when exploding
 void Program::updateExplosionTime(float inc) {
-	if (timeSPerLevel + inc >= 0.19999f) {
+	if (timeSPerLevel + inc >= 0.24999f) {
+
+		// Update counterS as well to preserve how far things have exploded
+		float ratio = counterS / timeSPerLevel;
 		timeSPerLevel += inc;
+		counterS = timeSPerLevel * ratio;
 	}
 }
