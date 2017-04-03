@@ -39,9 +39,10 @@ public:
 	static std::vector<UnpackedLists> split(IndexedLists& object);
 	static std::vector<ContactPair> contacts(std::vector<UnpackedLists>& objects);
 	static std::vector<BlockingPair> blocking(std::vector<UnpackedLists>& objects);
-	static bool lineIntersect2D(glm::vec2 v1, glm::vec2 v2, glm::vec2 v3, glm::vec2 v4, glm::vec2 intersectionPoint);
+	static bool lineIntersect2D(glm::vec2 v1, glm::vec2 v2, glm::vec2 v3, glm::vec2 v4, glm::vec2* intersectionPoints, unsigned int* capacity);
 	static bool lineIntersect3D(glm::vec3 v1, glm::vec3 v2, glm::vec3 v3, glm::vec3 v4);
 	static bool pointInTriangle3D(glm::vec3 v1, glm::vec3 v2, glm::vec3 v3, glm::vec3 p);
+	static bool pointInTriangle2D(glm::vec2 v1, glm::vec2 v2, glm::vec2 v3, glm::vec2 p);
 
 	static bool getSimilarVertexIndex(
 		PackedVertex & packed,
