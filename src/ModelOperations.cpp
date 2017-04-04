@@ -347,21 +347,22 @@ std::vector<BlockingPair> ModelOperations::blocking(std::vector<UnpackedLists>& 
 
 	for (unsigned int focusObject = 0; focusObject < objects.size(); focusObject++) {
 		for (unsigned int otherObject = focusObject + 1; otherObject < objects.size(); otherObject++) {
-			for (unsigned int focusTriangle = 0; focusTriangle < objects[focusObject].verts.size(); focusTriangle+=3) {
-				for (unsigned int otherTriangle = 0; otherTriangle < objects[otherObject].verts.size(); otherTriangle+=3) {
-					glm::vec3 focusTriangleVerts[3];
-					focusTriangleVerts[0] = objects[focusObject].verts[focusTriangle];
-					focusTriangleVerts[1] = objects[focusObject].verts[focusTriangle + 1];
-					focusTriangleVerts[2] = objects[focusObject].verts[focusTriangle + 2];
+			for (unsigned int focusTriangleIndex = 0; focusTriangleIndex < objects[focusObject].verts.size(); focusTriangleIndex+=3) {
+				for (unsigned int otherTriangleIndex = 0; otherTriangleIndex < objects[otherObject].verts.size(); otherTriangleIndex+=3) {
 
-					glm::vec3 otherTriangleVerts[3];
-					otherTriangleVerts[0] = objects[otherObject].verts[otherTriangle];
-					otherTriangleVerts[1] = objects[otherObject].verts[otherTriangle + 1];
-					otherTriangleVerts[2] = objects[otherObject].verts[otherTriangle + 2];
+					Triangle3D focusTriangle(objects[focusObject].verts[focusTriangleIndex],
+							                 objects[focusObject].verts[focusTriangleIndex + 1],
+											 objects[focusObject].verts[focusTriangleIndex + 2], focusObject) ;
 
-					glm::vec3 focusTriangleNormal = glm::normalize(glm::cross(focusTriangleVerts[0] - focusTriangleVerts[1], focusTriangleVerts[2] - focusTriangleVerts[1]));
 
-					glm::vec3 otherTriangleNormal = glm::normalize(glm::cross(otherTriangleVerts[0] - otherTriangleVerts[1], otherTriangleVerts[2] - otherTriangleVerts[1]));
+					Triangle3D otherTriangle(objects[otherObject].verts[otherTriangleIndex],
+							                 objects[otherObject].verts[otherTriangleIndex + 1],
+											 objects[otherObject].verts[otherTriangleIndex + 2], otherObject);
+
+
+					glm::vec3 focusTriangleNormal = focusTriangle.getNormal();
+					glm::vec3 otherTriangleNormal = otherTriangle.getNormal();
+
 					int x = 0;
 					if (focusTriangleNormal.y == 1.0f && otherTriangleNormal.y == -1.0f) {
 						x++;
@@ -376,121 +377,103 @@ std::vector<BlockingPair> ModelOperations::blocking(std::vector<UnpackedLists>& 
 					for (unsigned int i = 0; i < 3; i++) {
 						int numIntersect = 0;
 
-						glm::vec2 projFocusTriangleVert0;
-						glm::vec2 projFocusTriangleVert1;
-						glm::vec2 projFocusTriangleVert2;
-						glm::vec2 projOtherTriangleVert0;
-						glm::vec2 projOtherTriangleVert1;
-						glm::vec2 projOtherTriangleVert2;
+						Triangle2D focusTriangleProj;
+						Triangle2D otherTriangleProj;
 
 						if (i == 0) {
-							projFocusTriangleVert0.x = focusTriangleVerts[0].x;
-							projFocusTriangleVert0.y = focusTriangleVerts[0].y;
-							projFocusTriangleVert1.x = focusTriangleVerts[1].x;
-							projFocusTriangleVert1.y = focusTriangleVerts[1].y;
-							projFocusTriangleVert2.x = focusTriangleVerts[2].x;
-							projFocusTriangleVert2.y = focusTriangleVerts[2].y;
+							focusTriangleProj = Triangle2D(glm::vec2(focusTriangle.v1.x, focusTriangle.v1.y),
+									          glm::vec2(focusTriangle.v2.x, focusTriangle.v2.y),
+											  glm::vec2(focusTriangle.v3.x, focusTriangle.v3.y));
 
-							projOtherTriangleVert0.x = otherTriangleVerts[0].x;
-							projOtherTriangleVert0.y = otherTriangleVerts[0].y;
-							projOtherTriangleVert1.x = otherTriangleVerts[1].x;
-							projOtherTriangleVert1.y = otherTriangleVerts[1].y;
-							projOtherTriangleVert2.x = otherTriangleVerts[2].x;
-							projOtherTriangleVert2.y = otherTriangleVerts[2].y;
+							otherTriangleProj = Triangle2D(glm::vec2(otherTriangle.v1.x, otherTriangle.v1.y),
+									          glm::vec2(otherTriangle.v2.x, otherTriangle.v2.y),
+											  glm::vec2(otherTriangle.v3.x, otherTriangle.v3.y));
 
 						} else if (i == 1) {
-							projFocusTriangleVert0.x = focusTriangleVerts[0].x;
-							projFocusTriangleVert0.y = focusTriangleVerts[0].z;
-							projFocusTriangleVert1.x = focusTriangleVerts[1].x;
-							projFocusTriangleVert1.y = focusTriangleVerts[1].z;
-							projFocusTriangleVert2.x = focusTriangleVerts[2].x;
-							projFocusTriangleVert2.y = focusTriangleVerts[2].z;
+							focusTriangleProj = Triangle2D(glm::vec2(focusTriangle.v1.x, focusTriangle.v1.z),
+									          glm::vec2(focusTriangle.v2.x, focusTriangle.v2.z),
+											  glm::vec2(focusTriangle.v3.x, focusTriangle.v3.z));
 
-							projOtherTriangleVert0.x = otherTriangleVerts[0].x;
-							projOtherTriangleVert0.y = otherTriangleVerts[0].z;
-							projOtherTriangleVert1.x = otherTriangleVerts[1].x;
-							projOtherTriangleVert1.y = otherTriangleVerts[1].z;
-							projOtherTriangleVert2.x = otherTriangleVerts[2].x;
-							projOtherTriangleVert2.y = otherTriangleVerts[2].z;
-						} else {
-							//i == 2
-							projFocusTriangleVert0.x = focusTriangleVerts[0].y;
-							projFocusTriangleVert0.y = focusTriangleVerts[0].z;
-							projFocusTriangleVert1.x = focusTriangleVerts[1].y;
-							projFocusTriangleVert1.y = focusTriangleVerts[1].z;
-							projFocusTriangleVert2.x = focusTriangleVerts[2].y;
-							projFocusTriangleVert2.y = focusTriangleVerts[2].z;
+							otherTriangleProj = Triangle2D(glm::vec2(otherTriangle.v1.x, otherTriangle.v1.z),
+									          glm::vec2(otherTriangle.v2.x, otherTriangle.v2.z),
+											  glm::vec2(otherTriangle.v3.x, otherTriangle.v3.z));
 
-							projOtherTriangleVert0.x = otherTriangleVerts[0].y;
-							projOtherTriangleVert0.y = otherTriangleVerts[0].z;
-							projOtherTriangleVert1.x = otherTriangleVerts[1].y;
-							projOtherTriangleVert1.y = otherTriangleVerts[1].z;
-							projOtherTriangleVert2.x = otherTriangleVerts[2].y;
-							projOtherTriangleVert2.y = otherTriangleVerts[2].z;
+						} else { //i == 2
+							focusTriangleProj = Triangle2D(glm::vec2(focusTriangle.v1.x, focusTriangle.v1.z),
+									          glm::vec2(focusTriangle.v2.x, focusTriangle.v2.z),
+											  glm::vec2(focusTriangle.v3.x, focusTriangle.v3.z));
+
+							otherTriangleProj = Triangle2D(glm::vec2(otherTriangle.v1.y, otherTriangle.v1.z),
+									          glm::vec2(otherTriangle.v2.y, otherTriangle.v2.z),
+											  glm::vec2(otherTriangle.v3.y, otherTriangle.v3.z));
 						}
 
 
-						if (lineIntersect2D(projFocusTriangleVert0,projFocusTriangleVert1,projOtherTriangleVert0,projOtherTriangleVert1,&(intersectionPoints[i][0]),&(capacity[i]))) {
+						if (lineIntersect2D(focusTriangleProj.v1, focusTriangleProj.v2, otherTriangleProj.v1, otherTriangleProj.v2, &(intersectionPoints[i][0]), capacity[i])) {
 							numIntersect++;
 						}
-						if (lineIntersect2D(projFocusTriangleVert0,projFocusTriangleVert1,projOtherTriangleVert0,projOtherTriangleVert2,&intersectionPoints[i][0],&capacity[i])) {
+						if (lineIntersect2D(focusTriangleProj.v1, focusTriangleProj.v2, otherTriangleProj.v1, otherTriangleProj.v3, &(intersectionPoints[i][0]), capacity[i])) {
 							numIntersect++;
 						}
-						if (lineIntersect2D(projFocusTriangleVert0,projFocusTriangleVert1,projOtherTriangleVert1,projOtherTriangleVert2,&intersectionPoints[i][0],&capacity[i])) {
+						if (lineIntersect2D(focusTriangleProj.v1, focusTriangleProj.v2, otherTriangleProj.v2, otherTriangleProj.v3, &(intersectionPoints[i][0]), capacity[i])) {
 							numIntersect++;
 						}
-						if (lineIntersect2D(projFocusTriangleVert0,projFocusTriangleVert2,projOtherTriangleVert0,projOtherTriangleVert1,&intersectionPoints[i][0],&capacity[i])) {
+						if (lineIntersect2D(focusTriangleProj.v1, focusTriangleProj.v3, otherTriangleProj.v1, otherTriangleProj.v2, &(intersectionPoints[i][0]), capacity[i])) {
 							numIntersect++;
 						}
-						if (lineIntersect2D(projFocusTriangleVert0,projFocusTriangleVert2,projOtherTriangleVert0,projOtherTriangleVert2,&intersectionPoints[i][0],&capacity[i])) {
+						if (lineIntersect2D(focusTriangleProj.v1, focusTriangleProj.v3, otherTriangleProj.v1, otherTriangleProj.v3, &(intersectionPoints[i][0]), capacity[i])) {
 							numIntersect++;
 						}
-						if (lineIntersect2D(projFocusTriangleVert0,projFocusTriangleVert2,projOtherTriangleVert1,projOtherTriangleVert2,&intersectionPoints[i][0],&capacity[i])) {
+						if (lineIntersect2D(focusTriangleProj.v1, focusTriangleProj.v3, otherTriangleProj.v2, otherTriangleProj.v3, &(intersectionPoints[i][0]), capacity[i])) {
 							numIntersect++;
 						}
-						if (lineIntersect2D(projFocusTriangleVert1,projFocusTriangleVert2,projOtherTriangleVert0,projOtherTriangleVert1,&intersectionPoints[i][0],&capacity[i])) {
+						if (lineIntersect2D(focusTriangleProj.v2, focusTriangleProj.v3, otherTriangleProj.v1, otherTriangleProj.v2, &(intersectionPoints[i][0]), capacity[i])) {
 							numIntersect++;
 						}
-						if (lineIntersect2D(projFocusTriangleVert1,projFocusTriangleVert2,projOtherTriangleVert0,projOtherTriangleVert2,&intersectionPoints[i][0],&capacity[i])) {
+						if (lineIntersect2D(focusTriangleProj.v2, focusTriangleProj.v3, otherTriangleProj.v1, otherTriangleProj.v3, &(intersectionPoints[i][0]), capacity[i])) {
 							numIntersect++;
 						}
-						if (lineIntersect2D(projFocusTriangleVert1,projFocusTriangleVert2,projOtherTriangleVert1,projOtherTriangleVert2,&intersectionPoints[i][0],&capacity[i])) {
+						if (lineIntersect2D(focusTriangleProj.v2, focusTriangleProj.v3, otherTriangleProj.v2, otherTriangleProj.v3, &(intersectionPoints[i][0]), capacity[i])) {
 							numIntersect++;
 						}
-						//Triangles that only share one edge are not in contact
+						// Triangles that only share one edge are not in contact
 						if (numIntersect > 1 && numIntersect < 7) {
 							intersect[i] = true;
 						}
 
-
-						if(pointInTriangle2D(projFocusTriangleVert0, projFocusTriangleVert1, projFocusTriangleVert2, projOtherTriangleVert0)) {
+						if(pointInTriangle2D(focusTriangleProj, otherTriangleProj.v1)) {
 							if (capacity[i] < 3) {
-								intersectionPoints[i][capacity[i]] = projOtherTriangleVert0;
+								intersectionPoints[i][capacity[i]] = otherTriangleProj.v1;
 								capacity[i]++;
 							}
-						} else if (pointInTriangle2D(projFocusTriangleVert0, projFocusTriangleVert1, projFocusTriangleVert2, projOtherTriangleVert1)) {
+						}
+						if (pointInTriangle2D(focusTriangleProj, otherTriangleProj.v2)) {
 							if (capacity[i] < 3) {
-								intersectionPoints[i][capacity[i]] = projOtherTriangleVert1;
+								intersectionPoints[i][capacity[i]] = otherTriangleProj.v2;
 								capacity[i]++;
 							}
-						} else if (pointInTriangle2D(projFocusTriangleVert0, projFocusTriangleVert1, projFocusTriangleVert2, projOtherTriangleVert2)) {
+						}
+						if (pointInTriangle2D(focusTriangleProj, otherTriangleProj.v3)) {
 							if (capacity[i] < 3) {
-								intersectionPoints[i][capacity[i]] = projOtherTriangleVert2;
+								intersectionPoints[i][capacity[i]] = otherTriangleProj.v3;
 								capacity[i]++;
 							}
-						} else if (pointInTriangle2D(projOtherTriangleVert0, projOtherTriangleVert1, projOtherTriangleVert2, projFocusTriangleVert0)) {
+						}
+						if (pointInTriangle2D(otherTriangleProj, focusTriangleProj.v1)) {
 							if (capacity[i] < 3) {
-								intersectionPoints[i][capacity[i]] = projFocusTriangleVert0;
+								intersectionPoints[i][capacity[i]] = focusTriangleProj.v1;
 								capacity[i]++;
 							}
-						} else if (pointInTriangle2D(projOtherTriangleVert0, projOtherTriangleVert1, projOtherTriangleVert2, projFocusTriangleVert1)) {
+						}
+						if (pointInTriangle2D(otherTriangleProj, focusTriangleProj.v2)) {
 							if (capacity[i] < 3) {
-								intersectionPoints[i][capacity[i]] = projFocusTriangleVert1;
+								intersectionPoints[i][capacity[i]] = focusTriangleProj.v2;
 								capacity[i]++;
 							}
-						} else if (pointInTriangle2D(projOtherTriangleVert0, projOtherTriangleVert1, projOtherTriangleVert2, projFocusTriangleVert2)) {
+						}
+						if (pointInTriangle2D(otherTriangleProj, focusTriangleProj.v3)) {
 							if (capacity[i] < 3) {
-								intersectionPoints[i][capacity[i]] = projFocusTriangleVert2;
+								intersectionPoints[i][capacity[i]] = focusTriangleProj.v3;
 								capacity[i]++;
 							}
 						}
@@ -832,7 +815,7 @@ bool ModelOperations::lineIntersect3D(glm::vec3 p1, glm::vec3 p2, glm::vec3 p3, 
 	return false;
 }
 
-bool ModelOperations::lineIntersect2D(glm::vec2 v1, glm::vec2 v2, glm::vec2 v3, glm::vec2 v4, glm::vec2* intersectionPoints, unsigned int* capacity) {
+bool ModelOperations::lineIntersect2D(glm::vec2 v1, glm::vec2 v2, glm::vec2 v3, glm::vec2 v4, glm::vec2* intersectionPoints, unsigned int& capacity) {
 
    double mua,mub;
    double denom,numera,numerb;
@@ -844,9 +827,9 @@ bool ModelOperations::lineIntersect2D(glm::vec2 v1, glm::vec2 v2, glm::vec2 v3, 
 
    //Are the line coincident?
    if (std::abs(numera) < EPS && std::abs(numerb) < EPS && std::abs(denom) < EPS) {
-	   if (*capacity < 3) {
-		   intersectionPoints[*capacity] = (0.5f * (v1 + v2));
-		   (*capacity)++;
+	   if (capacity < 3) {
+		   intersectionPoints[capacity] = (0.5f * (v1 + v2));
+		   capacity++;
 	   }
       return true;
    }
@@ -864,9 +847,9 @@ bool ModelOperations::lineIntersect2D(glm::vec2 v1, glm::vec2 v2, glm::vec2 v3, 
       return false;
    }
 
-   if (*capacity < 3) {
-	   intersectionPoints[*capacity] = (glm::vec2(v1.x + mua * (v2.x - v1.x), v1.y + mua * (v2.y - v1.y)));
-	   (*capacity)++;
+   if (capacity < 3) {
+	   intersectionPoints[capacity] = (glm::vec2(v1.x + mua * (v2.x - v1.x), v1.y + mua * (v2.y - v1.y)));
+	   (capacity)++;
    }
 
    return true;
@@ -887,10 +870,10 @@ bool ModelOperations::pointInTriangle3D(glm::vec3 A, glm::vec3 B, glm::vec3 C, g
 	return false;
 }
 
-bool ModelOperations::pointInTriangle2D(glm::vec2 p0, glm::vec2 p1, glm::vec2 p2, glm::vec2 p) {
-	double Area = 1.0f/2.0f * (-p1.y * p2.x + p0.y * (-p1.x + p2.x) + p0.x * (p1.y - p2.y) + p1.x * p2.y);
-    double s = (p0.y * p2.x - p0.x * p2.y + (p2.y - p0.y) * p.x + (p0.x - p2.x) * p.y);
-    double t = (p0.x * p1.y - p0.y * p1.x + (p0.y - p1.y) * p.x + (p1.x - p0.x) * p.y);
+bool ModelOperations::pointInTriangle2D(Triangle2D tri, glm::vec2 p) {
+	double Area = 1.0f/2.0f * (-tri.v2.y * tri.v3.x + tri.v1.y * (-tri.v2.x + tri.v3.x) + tri.v1.x * (tri.v2.y - tri.v3.y) + tri.v2.x * tri.v3.y);
+    double s = (tri.v1.y * tri.v3.x - tri.v1.x * tri.v3.y + (tri.v3.y - tri.v1.y) * p.x + (tri.v1.x - tri.v3.x) * p.y);
+    double t = (tri.v1.x * tri.v2.y - tri.v1.y * tri.v2.x + (tri.v1.y - tri.v2.y) * p.x + (tri.v2.x - tri.v1.x) * p.y);
 
     return s>=0 && t>=0 && (s + t) <= 2 * Area;
 }
