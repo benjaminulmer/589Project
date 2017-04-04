@@ -10,6 +10,28 @@
 
 #include "Renderable.h"
 
+struct Triangle3D {
+    Triangle3D(glm::vec3 v1, glm::vec3 v2, glm::vec3 v3, int object) :
+        v1(v1), v2(v2), v3(v3), object(object) {}
+
+    int object;
+
+    glm::vec3 v1;
+    glm::vec3 v2;
+    glm::vec3 v3;
+
+    inline glm::vec3 getNormal() { return glm::normalize(glm::cross(v1 - v2, v3 - v2)); }
+};
+
+struct Triangle2D {
+    Triangle2D(glm::vec2 v1, glm::vec2 v2, glm::vec2 v3) :
+        v1(v1), v2(v2), v3(v3) {}
+
+    glm::vec2 v1;
+    glm::vec2 v2;
+    glm::vec2 v3;
+};
+
 struct PackedVertex {
 	glm::vec3 position;
 	glm::vec2 uv;
@@ -39,6 +61,7 @@ public:
 	static std::vector<UnpackedLists> split(IndexedLists& object);
 	static std::vector<ContactPair> contacts(std::vector<UnpackedLists>& objects);
 	static std::vector<BlockingPair> blocking(std::vector<UnpackedLists>& objects);
+	static void reverseProject(glm::vec3 intersectionPoint1, glm::vec3 intersectionPoint2, glm::vec3 intersectionPoint3, glm::vec3 projectionAxis, Triangle3D focusTriangle, Triangle3D otherTriangle, std::vector<BlockingPair>& blockings);
 	static bool lineIntersect2D(glm::vec2 v1, glm::vec2 v2, glm::vec2 v3, glm::vec2 v4, glm::vec2* intersectionPoints, unsigned int* capacity);
 	static bool lineIntersect3D(glm::vec3 v1, glm::vec3 v2, glm::vec3 v3, glm::vec3 v4);
 	static bool pointInTriangle3D(glm::vec3 v1, glm::vec3 v2, glm::vec3 v3, glm::vec3 p);
