@@ -725,12 +725,17 @@ bool ModelOperations::lineIntersect2D(glm::vec2 v1, glm::vec2 v2, glm::vec2 v3, 
    if (std::abs(numera) < EPS && std::abs(numerb) < EPS && std::abs(denom) < EPS) {
 
 	   // Crazy ass logic starts here
-	   float a = fmax(glm::length(v3 - v1), glm::length(v3 - v2));
-	   float b = fmax(glm::length(v4 - v1), glm::length(v4 - v2));
+	   // Test if the lines segments are overlapping
 
-	   bool length1 = a > (glm::length(v1 - v2) - EPS);
-	   bool length2 = b > (glm::length(v1 - v2) - EPS);
-	   bool opDir = glm::dot(a, b) < 0;
+	   float l1ToV3 = fmax(glm::length(v3 - v1), glm::length(v3 - v2));
+	   float l1ToV4 = fmax(glm::length(v4 - v1), glm::length(v4 - v2));
+
+	   float l2ToV1 = fmax(glm::length(v1 - v3), glm::length(v1 - v4));
+	   float l2ToV2 = fmax(glm::length(v2 - v3), glm::length(v2 - v4));
+
+	   bool length1 = l1ToV3 > (glm::length(v1 - v2) - EPS);
+	   bool length2 = l1ToV4 > (glm::length(v1 - v2) - EPS);
+	   bool opDir = glm::dot(l1ToV3, l1ToV4) < 0;
 
 	   if (length1 && length2 && !opDir) {
 		   //return false;
@@ -779,42 +784,9 @@ bool ModelOperations::pointInTriangle3D(glm::vec3 A, glm::vec3 B, glm::vec3 C, g
 
 bool ModelOperations::pointInTriangle2D(Triangle2D tri, glm::vec2 p) {
 	double area = 0.5f * (-tri.v1.y * tri.v2.x + tri.v0.y * (-tri.v1.x + tri.v2.x) + tri.v0.x * (tri.v1.y - tri.v2.y) + tri.v1.x * tri.v2.y);
-	//area = abs(area);
+	int sign = (area < 0) ? -1 : 1;
+    double s = (tri.v0.y * tri.v2.x - tri.v0.x * tri.v2.y + (tri.v2.y - tri.v0.y) * p.x + (tri.v0.x - tri.v2.x) * p.y) * sign;
+    double t = (tri.v0.x * tri.v1.y - tri.v0.y * tri.v1.x + (tri.v0.y - tri.v1.y) * p.x + (tri.v1.x - tri.v0.x) * p.y) * sign;
 
-    double s = 1.f/(2.f*area) * (tri.v0.y * tri.v2.x - tri.v0.x * tri.v2.y + (tri.v2.y - tri.v0.y) * p.x + (tri.v0.x - tri.v2.x) * p.y);
-    double t = 1.f/(2.f*area) * (tri.v0.x * tri.v1.y - tri.v0.y * tri.v1.x + (tri.v0.y - tri.v1.y) * p.x + (tri.v1.x - tri.v0.x) * p.y);
-
-    return s>=0 && t>=0 && (1 - s - t) >= 0;
+    return s > 0 && t > 0 && ((s + t) < 2 * area * sign);
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
