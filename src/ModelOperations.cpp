@@ -376,10 +376,15 @@ std::vector<BlockingPair> ModelOperations::blocking(std::vector<UnpackedLists>& 
 						Triangle2D otherTriangleProj;
 						projectToPlane(i, focusTriangle, otherTriangle, focusTriangleProj, otherTriangleProj);
 
+						int x;
+						if (i == 1) {
+							x++;
+						}
+
 						int numIntersect = countIntersections(focusTriangleProj, otherTriangleProj, intersectionPoints[i]);
 
 						// Triangles that only share one edge are not in contact
-						if (numIntersect > 1 && numIntersect < 7) {
+						if (numIntersect >= 2 && numIntersect <= 6) {
 							intersect[i] = true;
 						}
 						addIntersections(focusTriangleProj, otherTriangleProj, intersectionPoints[i]);
@@ -525,15 +530,15 @@ void ModelOperations::reverseProject(glm::vec2 intersectionPoint1, glm::vec2 int
 	glm::vec3 barryPos;
 	glm::vec3 intersectionPoint;
 
-	bool a = glm::intersectLineTriangle(pa, projectionAxis, focusTriangle.v1, focusTriangle.v2, focusTriangle.v3, barryPos);
-	intersectionPoint = focusTriangle.v1 * (1 - barryPos.x - barryPos.y) + focusTriangle.v2 * barryPos.x + focusTriangle.v3 * barryPos.y;
+	glm::intersectLineTriangle(pa, projectionAxis, focusTriangle.v1, focusTriangle.v2, focusTriangle.v3, barryPos);
+	intersectionPoint = focusTriangle.v1 * (1 - barryPos.y - barryPos.z) + focusTriangle.v2 * barryPos.y + focusTriangle.v3 * barryPos.z;
 	float distanceFocus = glm::length(pa - intersectionPoint);
 	if (glm::dot(pa - intersectionPoint, projectionAxis) < 0.0f) {
 		distanceFocus*= -1;
 	}
 
-	bool b = glm::intersectLineTriangle(pa, projectionAxis, otherTriangle.v1, otherTriangle.v2, otherTriangle.v3, barryPos);
-	intersectionPoint = otherTriangle.v1 * (1 - barryPos.x - barryPos.y) + otherTriangle.v2 * barryPos.x + otherTriangle.v3 * barryPos.y;
+	glm::intersectLineTriangle(pa, projectionAxis, otherTriangle.v1, otherTriangle.v2, otherTriangle.v3, barryPos);
+	intersectionPoint = otherTriangle.v1 * (1 - barryPos.y - barryPos.z) + otherTriangle.v2 * barryPos.y + otherTriangle.v3 * barryPos.z;
 	float distanceOther = glm::length(pa - intersectionPoint);
 	if (glm::dot(pa - intersectionPoint, projectionAxis) < 0.0f) {
 		distanceOther*= -1;
@@ -541,7 +546,7 @@ void ModelOperations::reverseProject(glm::vec2 intersectionPoint1, glm::vec2 int
 
 	float angle = glm::dot(focusTriangle.getNormal(), projectionAxis);
 	if (angle < 0.0f) {
-		if (distanceFocus >= distanceOther) {
+		if (distanceFocus >= (distanceOther - 0.001f)) {
 			bool alreadyExists = false;
 			bool alreadyExists2 = false;
 			//vectors form an acute angle, focus object cannot move in positive y
@@ -561,7 +566,7 @@ void ModelOperations::reverseProject(glm::vec2 intersectionPoint1, glm::vec2 int
 			}
 		}
 	} else {
-		if (distanceFocus <= distanceOther) {
+		if (distanceFocus <= (distanceOther + 0.001f)) {
 			bool alreadyExists = false;
 			bool alreadyExists2 = false;
 			//vectors form an obtuse angle, focus object cannot move in negative y
@@ -715,6 +720,32 @@ bool ModelOperations::lineIntersect2D(glm::vec2 v1, glm::vec2 v2, glm::vec2 v3, 
 
    //Are the line coincident?
    if (std::abs(numera) < EPS && std::abs(numerb) < EPS && std::abs(denom) < EPS) {
+
+	   // Crazy ass logic starts here
+	   // Case 1
+	   glm::bvec2 equal1 = glm::epsilonEqual(v1, v3, (float)EPS);
+	   bool sameDir1 = glm::dot(v4 - v2, v1 - v2) > 0;
+	   bool result1 = sameDir1 && equal1.x && equal1.y && glm::length(v4 - v2) > glm::length(v1 - v2);
+
+	   // Case 2
+	   glm::bvec2 equal2 = glm::epsilonEqual(v2, v3, (float)EPS);
+	   bool sameDir2 = glm::dot(v4 - v1, v2 - v1) > 0;
+	   bool result2 = sameDir2 && equal2.x && equal2.y && glm::length(v4 - v1) > glm::length(v2 - v1);
+
+	   // Case 3
+	   glm::bvec2 equal3 = glm::epsilonEqual(v1, v4, (float)EPS);
+	   bool sameDir3 = glm::dot(v3 - v2, v1 - v2) > 0;
+	   bool result3 = sameDir3 && equal3.x && equal3.y && glm::length(v3 - v2) > glm::length(v1 - v2);
+
+	   // Case 4
+	   glm::bvec2 equal4 = glm::epsilonEqual(v2, v4, (float)EPS);
+	   bool sameDir4 = glm::dot(v3 - v1, v2 - v1) > 0;
+	   bool result4 = sameDir4 && equal4.x && equal4.y && glm::length(v3 - v1) > glm::length(v2 - v1);
+
+	   if (result1 || result2 || result3 || result4) {
+		   return false;
+	   }
+
 	   if (intersectionPoints.size() < 3) {
 		   intersectionPoints.push_back(0.5f * (v1 + v2));
 	   }
