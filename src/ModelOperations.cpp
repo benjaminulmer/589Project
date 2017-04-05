@@ -522,15 +522,18 @@ void ModelOperations::reverseProject(glm::vec2 intersectionPoint1, glm::vec2 int
 	} else {
 		pa = glm::vec3(center.x, center.y, 0.0f);
 	}
+	glm::vec3 barryPos;
 	glm::vec3 intersectionPoint;
 
-	glm::intersectLineTriangle(pa, projectionAxis, focusTriangle.v1, focusTriangle.v2, focusTriangle.v3, intersectionPoint);
+	bool a = glm::intersectLineTriangle(pa, projectionAxis, focusTriangle.v1, focusTriangle.v2, focusTriangle.v3, barryPos);
+	intersectionPoint = focusTriangle.v1 * (1 - barryPos.x - barryPos.y) + focusTriangle.v2 * barryPos.x + focusTriangle.v3 * barryPos.y;
 	float distanceFocus = glm::length(pa - intersectionPoint);
 	if (glm::dot(pa - intersectionPoint, projectionAxis) < 0.0f) {
 		distanceFocus*= -1;
 	}
 
-	glm::intersectLineTriangle(pa, projectionAxis, otherTriangle.v1, otherTriangle.v2, otherTriangle.v3, intersectionPoint);
+	bool b = glm::intersectLineTriangle(pa, projectionAxis, otherTriangle.v1, otherTriangle.v2, otherTriangle.v3, barryPos);
+	intersectionPoint = otherTriangle.v1 * (1 - barryPos.x - barryPos.y) + otherTriangle.v2 * barryPos.x + otherTriangle.v3 * barryPos.y;
 	float distanceOther = glm::length(pa - intersectionPoint);
 	if (glm::dot(pa - intersectionPoint, projectionAxis) < 0.0f) {
 		distanceOther*= -1;
@@ -542,26 +545,6 @@ void ModelOperations::reverseProject(glm::vec2 intersectionPoint1, glm::vec2 int
 			bool alreadyExists = false;
 			bool alreadyExists2 = false;
 			//vectors form an acute angle, focus object cannot move in positive y
-			for (unsigned int i = 0; i < blockings.size(); i++) {
-				if (blockings[i].focusPart == focusTriangle.object && blockings[i].otherPart == otherTriangle.object && blockings[i].direction == -projectionAxis) {
-					alreadyExists = true;
-				}
-				if (blockings[i].focusPart == otherTriangle.object && blockings[i].otherPart == focusTriangle.object && blockings[i].direction == projectionAxis) {
-					alreadyExists2 = true;
-				}
-			}
-			if (!alreadyExists) {
-				blockings.push_back(BlockingPair(focusTriangle.object, otherTriangle.object, -projectionAxis));
-			}
-			if (!alreadyExists2) {
-				blockings.push_back(BlockingPair(otherTriangle.object, focusTriangle.object, projectionAxis));
-			}
-		}
-	} else {
-		if (distanceFocus <= distanceOther) {
-			bool alreadyExists = false;
-			bool alreadyExists2 = false;
-			//vectors form an obtuse angle, focus object cannot move in negative y
 			for (unsigned int i = 0; i < blockings.size(); i++) {
 				if (blockings[i].focusPart == focusTriangle.object && blockings[i].otherPart == otherTriangle.object && blockings[i].direction == projectionAxis) {
 					alreadyExists = true;
@@ -575,6 +558,26 @@ void ModelOperations::reverseProject(glm::vec2 intersectionPoint1, glm::vec2 int
 			}
 			if (!alreadyExists2) {
 				blockings.push_back(BlockingPair(otherTriangle.object, focusTriangle.object, -projectionAxis));
+			}
+		}
+	} else {
+		if (distanceFocus <= distanceOther) {
+			bool alreadyExists = false;
+			bool alreadyExists2 = false;
+			//vectors form an obtuse angle, focus object cannot move in negative y
+			for (unsigned int i = 0; i < blockings.size(); i++) {
+				if (blockings[i].focusPart == focusTriangle.object && blockings[i].otherPart == otherTriangle.object && blockings[i].direction == -projectionAxis) {
+					alreadyExists = true;
+				}
+				if (blockings[i].focusPart == otherTriangle.object && blockings[i].otherPart == focusTriangle.object && blockings[i].direction == projectionAxis) {
+					alreadyExists2 = true;
+				}
+			}
+			if (!alreadyExists) {
+				blockings.push_back(BlockingPair(focusTriangle.object, otherTriangle.object, -projectionAxis));
+			}
+			if (!alreadyExists2) {
+				blockings.push_back(BlockingPair(otherTriangle.object, focusTriangle.object, projectionAxis));
 			}
 		}
 	}
