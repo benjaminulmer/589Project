@@ -65,9 +65,8 @@ void Program::setupWindow() {
 // Loads and initializes all objects that can be viewed
 void Program::loadObjects() {
 
-
 	// Read in obj
-	std::vector<UnpackedLists> split = ContentReadWrite::partsFromObj("./models/cubes.obj");
+	std::vector<UnpackedLists> split = ContentReadWrite::partsFromObj("./models/test.obj");
 
 	// Create renderables from split object
 	std::vector<Renderable*> renderables(split.size());

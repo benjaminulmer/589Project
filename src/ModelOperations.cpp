@@ -342,6 +342,14 @@ std::vector<ContactPair> ModelOperations::contacts(std::vector<UnpackedLists>& o
 	return contacts;
 }
 
+// ********************************************
+// ********************************************
+// ********************************************
+// ********************************************
+// ********************************************
+// ********************************************
+// ********************************************
+
 std::vector<BlockingPair> ModelOperations::blocking(std::vector<UnpackedLists>& objects) {
 	std::vector<BlockingPair> blockings;
 
@@ -360,9 +368,6 @@ std::vector<BlockingPair> ModelOperations::blocking(std::vector<UnpackedLists>& 
 											 objects[otherObject].verts[otherTriangleIndex + 2], otherObject);
 
 					//order is z, y, x
-					//glm::vec2 intersectionPoints[3][3];
-					//unsigned int capacity[3] = {0, 0, 0};
-
 					std::vector<glm::vec2> intersectionPoints[3];
 					bool intersect[3] = {false, false, false};
 
@@ -392,6 +397,7 @@ std::vector<BlockingPair> ModelOperations::blocking(std::vector<UnpackedLists>& 
 						intersect[2] = false;
 					}
 
+					// Crazy logic happens
 					if (intersect[0]) {
 						reverseProject(intersectionPoints[0][0], intersectionPoints[0][1], intersectionPoints[0][2], glm::vec3(0, 0, 1), focusTriangle, otherTriangle, blockings);
 					}
@@ -431,9 +437,9 @@ void ModelOperations::projectToPlane(int i, Triangle3D tri1, Triangle3D tri2, Tr
 						  glm::vec2(tri2.v3.x, tri2.v3.z));
 
 	} else { //i == 2
-		out1 = Triangle2D(glm::vec2(tri1.v1.x, tri1.v1.z),
-				          glm::vec2(tri1.v2.x, tri1.v2.z),
-						  glm::vec2(tri1.v3.x, tri1.v3.z));
+		out1 = Triangle2D(glm::vec2(tri1.v1.y, tri1.v1.z),
+				          glm::vec2(tri1.v2.y, tri1.v2.z),
+						  glm::vec2(tri1.v3.y, tri1.v3.z));
 
 		out2 = Triangle2D(glm::vec2(tri2.v1.y, tri2.v1.z),
 				          glm::vec2(tri2.v2.y, tri2.v2.z),
@@ -516,15 +522,15 @@ void ModelOperations::reverseProject(glm::vec2 intersectionPoint1, glm::vec2 int
 	} else {
 		pa = glm::vec3(center.x, center.y, 0.0f);
 	}
-	glm::vec3 baryPos;
-	glm::intersectRayTriangle(pa, projectionAxis, focusTriangle.v1, focusTriangle.v2, focusTriangle.v3, baryPos);
-	glm::vec3 intersectionPoint = focusTriangle.v1 * baryPos.x + focusTriangle.v2 * baryPos.y + focusTriangle.v3 + baryPos.z;
+	glm::vec3 intersectionPoint;
+
+	glm::intersectLineTriangle(pa, projectionAxis, focusTriangle.v1, focusTriangle.v2, focusTriangle.v3, intersectionPoint);
 	float distanceFocus = glm::length(pa - intersectionPoint);
 	if (glm::dot(pa - intersectionPoint, projectionAxis) < 0.0f) {
 		distanceFocus*= -1;
 	}
-	glm::intersectRayTriangle(pa, projectionAxis, otherTriangle.v1, otherTriangle.v2, otherTriangle.v3, baryPos);
-	intersectionPoint = otherTriangle.v1 * baryPos.x + otherTriangle.v2 * baryPos.y + otherTriangle.v3 + baryPos.z;
+
+	glm::intersectLineTriangle(pa, projectionAxis, otherTriangle.v1, otherTriangle.v2, otherTriangle.v3, intersectionPoint);
 	float distanceOther = glm::length(pa - intersectionPoint);
 	if (glm::dot(pa - intersectionPoint, projectionAxis) < 0.0f) {
 		distanceOther*= -1;
@@ -709,7 +715,7 @@ bool ModelOperations::lineIntersect2D(glm::vec2 v1, glm::vec2 v2, glm::vec2 v3, 
 	   if (intersectionPoints.size() < 3) {
 		   intersectionPoints.push_back(0.5f * (v1 + v2));
 	   }
-      return true;
+	   return true;
    }
 
    //Are the line parallel?
