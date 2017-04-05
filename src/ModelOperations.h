@@ -12,25 +12,25 @@
 
 struct Triangle3D {
 	Triangle3D(glm::vec3 v1, glm::vec3 v2, glm::vec3 v3, int object) :
-		v1(v1), v2(v2), v3(v3), object(object) {}
+		v0(v1), v1(v2), v2(v3), object(object) {}
 
+	glm::vec3 v0;
 	glm::vec3 v1;
 	glm::vec3 v2;
-	glm::vec3 v3;
 
 	unsigned int object;
 
-	inline glm::vec3 getNormal() { return glm::normalize(glm::cross(v1 - v2, v3 - v2)); }
+	inline glm::vec3 getNormal() { return glm::normalize(glm::cross(v0 - v1, v2 - v1)); }
 };
 
 struct Triangle2D {
 	Triangle2D() {}
     Triangle2D(glm::vec2 v1, glm::vec2 v2, glm::vec2 v3) :
-        v1(v1), v2(v2), v3(v3) {}
+        v0(v1), v1(v2), v2(v3) {}
 
+    glm::vec2 v0;
     glm::vec2 v1;
     glm::vec2 v2;
-    glm::vec2 v3;
 };
 
 struct PackedVertex {
@@ -65,7 +65,7 @@ public:
 
 	static void projectToPlane(int i, Triangle3D tri1, Triangle3D tri2, Triangle2D& out1, Triangle2D& out2);
 	static int countIntersections(Triangle2D tri1, Triangle2D tri2, std::vector<glm::vec2>& intersectionPoints);
-	static void addIntersections(Triangle2D tri1, Triangle2D tri2, std::vector<glm::vec2>& intersectionPoints);
+	static int countPointsInside(Triangle2D tri1, Triangle2D tri2, std::vector<glm::vec2>& intersectionPoints);
 
 	static void reverseProject(glm::vec2 intersectionPoint1, glm::vec2 intersectionPoint2, glm::vec2 intersectionPoint3, glm::vec3 projectionAxis,
 			                   Triangle3D focusTriangle, Triangle3D otherTriangle, std::vector<BlockingPair>& blockings);
