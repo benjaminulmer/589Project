@@ -359,139 +359,34 @@ std::vector<BlockingPair> ModelOperations::blocking(std::vector<UnpackedLists>& 
 							                 objects[otherObject].verts[otherTriangleIndex + 1],
 											 objects[otherObject].verts[otherTriangleIndex + 2], otherObject);
 
-
-					glm::vec3 focusTriangleNormal = focusTriangle.getNormal();
-					glm::vec3 otherTriangleNormal = otherTriangle.getNormal();
-
-					int x = 0;
-					if (focusTriangleNormal.y == 1.0f && otherTriangleNormal.y == -1.0f) {
-						x++;
-
-					}
-
-					if (focusTriangleNormal.y == -1.0f && otherTriangleNormal.y == 1.0f) {
-						x++;
-					}
-
-
 					//order is z, y, x
-					glm::vec2 intersectionPoints[3][3];
-					unsigned int capacity[3] = {0, 0, 0};
+					//glm::vec2 intersectionPoints[3][3];
+					//unsigned int capacity[3] = {0, 0, 0};
+
+					std::vector<glm::vec2> intersectionPoints[3];
 					bool intersect[3] = {false, false, false};
 
 					for (unsigned int i = 0; i < 3; i++) {
-						int numIntersect = 0;
-
 						Triangle2D focusTriangleProj;
 						Triangle2D otherTriangleProj;
+						projectToPlane(i, focusTriangle, otherTriangle, focusTriangleProj, otherTriangleProj);
 
-						if (i == 0) {
-							focusTriangleProj = Triangle2D(glm::vec2(focusTriangle.v1.x, focusTriangle.v1.y),
-									          glm::vec2(focusTriangle.v2.x, focusTriangle.v2.y),
-											  glm::vec2(focusTriangle.v3.x, focusTriangle.v3.y));
+						int numIntersect = countIntersections(focusTriangleProj, otherTriangleProj, intersectionPoints[i]);
 
-							otherTriangleProj = Triangle2D(glm::vec2(otherTriangle.v1.x, otherTriangle.v1.y),
-									          glm::vec2(otherTriangle.v2.x, otherTriangle.v2.y),
-											  glm::vec2(otherTriangle.v3.x, otherTriangle.v3.y));
-
-						} else if (i == 1) {
-							focusTriangleProj = Triangle2D(glm::vec2(focusTriangle.v1.x, focusTriangle.v1.z),
-									          glm::vec2(focusTriangle.v2.x, focusTriangle.v2.z),
-											  glm::vec2(focusTriangle.v3.x, focusTriangle.v3.z));
-
-							otherTriangleProj = Triangle2D(glm::vec2(otherTriangle.v1.x, otherTriangle.v1.z),
-									          glm::vec2(otherTriangle.v2.x, otherTriangle.v2.z),
-											  glm::vec2(otherTriangle.v3.x, otherTriangle.v3.z));
-
-						} else { //i == 2
-							focusTriangleProj = Triangle2D(glm::vec2(focusTriangle.v1.x, focusTriangle.v1.z),
-									          glm::vec2(focusTriangle.v2.x, focusTriangle.v2.z),
-											  glm::vec2(focusTriangle.v3.x, focusTriangle.v3.z));
-
-							otherTriangleProj = Triangle2D(glm::vec2(otherTriangle.v1.y, otherTriangle.v1.z),
-									          glm::vec2(otherTriangle.v2.y, otherTriangle.v2.z),
-											  glm::vec2(otherTriangle.v3.y, otherTriangle.v3.z));
-						}
-
-
-						if (lineIntersect2D(focusTriangleProj.v1, focusTriangleProj.v2, otherTriangleProj.v1, otherTriangleProj.v2, &(intersectionPoints[i][0]), capacity[i])) {
-							numIntersect++;
-						}
-						if (lineIntersect2D(focusTriangleProj.v1, focusTriangleProj.v2, otherTriangleProj.v1, otherTriangleProj.v3, &(intersectionPoints[i][0]), capacity[i])) {
-							numIntersect++;
-						}
-						if (lineIntersect2D(focusTriangleProj.v1, focusTriangleProj.v2, otherTriangleProj.v2, otherTriangleProj.v3, &(intersectionPoints[i][0]), capacity[i])) {
-							numIntersect++;
-						}
-						if (lineIntersect2D(focusTriangleProj.v1, focusTriangleProj.v3, otherTriangleProj.v1, otherTriangleProj.v2, &(intersectionPoints[i][0]), capacity[i])) {
-							numIntersect++;
-						}
-						if (lineIntersect2D(focusTriangleProj.v1, focusTriangleProj.v3, otherTriangleProj.v1, otherTriangleProj.v3, &(intersectionPoints[i][0]), capacity[i])) {
-							numIntersect++;
-						}
-						if (lineIntersect2D(focusTriangleProj.v1, focusTriangleProj.v3, otherTriangleProj.v2, otherTriangleProj.v3, &(intersectionPoints[i][0]), capacity[i])) {
-							numIntersect++;
-						}
-						if (lineIntersect2D(focusTriangleProj.v2, focusTriangleProj.v3, otherTriangleProj.v1, otherTriangleProj.v2, &(intersectionPoints[i][0]), capacity[i])) {
-							numIntersect++;
-						}
-						if (lineIntersect2D(focusTriangleProj.v2, focusTriangleProj.v3, otherTriangleProj.v1, otherTriangleProj.v3, &(intersectionPoints[i][0]), capacity[i])) {
-							numIntersect++;
-						}
-						if (lineIntersect2D(focusTriangleProj.v2, focusTriangleProj.v3, otherTriangleProj.v2, otherTriangleProj.v3, &(intersectionPoints[i][0]), capacity[i])) {
-							numIntersect++;
-						}
 						// Triangles that only share one edge are not in contact
 						if (numIntersect > 1 && numIntersect < 7) {
 							intersect[i] = true;
 						}
-
-						if(pointInTriangle2D(focusTriangleProj, otherTriangleProj.v1)) {
-							if (capacity[i] < 3) {
-								intersectionPoints[i][capacity[i]] = otherTriangleProj.v1;
-								capacity[i]++;
-							}
-						}
-						if (pointInTriangle2D(focusTriangleProj, otherTriangleProj.v2)) {
-							if (capacity[i] < 3) {
-								intersectionPoints[i][capacity[i]] = otherTriangleProj.v2;
-								capacity[i]++;
-							}
-						}
-						if (pointInTriangle2D(focusTriangleProj, otherTriangleProj.v3)) {
-							if (capacity[i] < 3) {
-								intersectionPoints[i][capacity[i]] = otherTriangleProj.v3;
-								capacity[i]++;
-							}
-						}
-						if (pointInTriangle2D(otherTriangleProj, focusTriangleProj.v1)) {
-							if (capacity[i] < 3) {
-								intersectionPoints[i][capacity[i]] = focusTriangleProj.v1;
-								capacity[i]++;
-							}
-						}
-						if (pointInTriangle2D(otherTriangleProj, focusTriangleProj.v2)) {
-							if (capacity[i] < 3) {
-								intersectionPoints[i][capacity[i]] = focusTriangleProj.v2;
-								capacity[i]++;
-							}
-						}
-						if (pointInTriangle2D(otherTriangleProj, focusTriangleProj.v3)) {
-							if (capacity[i] < 3) {
-								intersectionPoints[i][capacity[i]] = focusTriangleProj.v3;
-								capacity[i]++;
-							}
-						}
-
+						addIntersections(focusTriangleProj, otherTriangleProj, intersectionPoints[i]);
 					}
 
-					if (std::abs(glm::dot(focusTriangleNormal, otherTriangleNormal)) < 0.001) {
+					if (std::abs(glm::dot(focusTriangle.getNormal(), otherTriangle.getNormal())) < 0.001) {
 						intersect[0] = false;
 						intersect[1] = false;
 						intersect[2] = false;
 					}
 
-					if (glm::dot(focusTriangleNormal, otherTriangleNormal) > 0.999) {
+					if (glm::dot(focusTriangle.getNormal(), otherTriangle.getNormal()) > 0.999) {
 						intersect[0] = false;
 						intersect[1] = false;
 						intersect[2] = false;
@@ -514,6 +409,101 @@ std::vector<BlockingPair> ModelOperations::blocking(std::vector<UnpackedLists>& 
 		}
 	}
 	return blockings;
+}
+
+void ModelOperations::projectToPlane(int i, Triangle3D tri1, Triangle3D tri2, Triangle2D& out1, Triangle2D& out2) {
+	if (i == 0) {
+		out1 = Triangle2D(glm::vec2(tri1.v1.x, tri1.v1.y),
+				          glm::vec2(tri1.v2.x, tri1.v2.y),
+						  glm::vec2(tri1.v3.x, tri1.v3.y));
+
+		out2 = Triangle2D(glm::vec2(tri2.v1.x, tri2.v1.y),
+				          glm::vec2(tri2.v2.x, tri2.v2.y),
+						  glm::vec2(tri2.v3.x, tri2.v3.y));
+
+	} else if (i == 1) {
+		out1 = Triangle2D(glm::vec2(tri1.v1.x, tri1.v1.z),
+				          glm::vec2(tri1.v2.x, tri1.v2.z),
+						  glm::vec2(tri1.v3.x, tri1.v3.z));
+
+		out2 = Triangle2D(glm::vec2(tri2.v1.x, tri2.v1.z),
+				          glm::vec2(tri2.v2.x, tri2.v2.z),
+						  glm::vec2(tri2.v3.x, tri2.v3.z));
+
+	} else { //i == 2
+		out1 = Triangle2D(glm::vec2(tri1.v1.x, tri1.v1.z),
+				          glm::vec2(tri1.v2.x, tri1.v2.z),
+						  glm::vec2(tri1.v3.x, tri1.v3.z));
+
+		out2 = Triangle2D(glm::vec2(tri2.v1.y, tri2.v1.z),
+				          glm::vec2(tri2.v2.y, tri2.v2.z),
+						  glm::vec2(tri2.v3.y, tri2.v3.z));
+	}
+}
+
+int ModelOperations::countIntersections(Triangle2D tri1, Triangle2D tri2, std::vector<glm::vec2>& intersectionPoints) {
+	int numIntersects = 0;
+	if (lineIntersect2D(tri1.v1, tri1.v2, tri2.v1, tri2.v2, intersectionPoints)) {
+		numIntersects++;
+	}
+	if (lineIntersect2D(tri1.v1, tri1.v2, tri2.v1, tri2.v3, intersectionPoints)) {
+		numIntersects++;
+	}
+	if (lineIntersect2D(tri1.v1, tri1.v2, tri2.v2, tri2.v3, intersectionPoints)) {
+		numIntersects++;
+	}
+	if (lineIntersect2D(tri1.v1, tri1.v3, tri2.v1, tri2.v2, intersectionPoints)) {
+		numIntersects++;
+	}
+	if (lineIntersect2D(tri1.v1, tri1.v3, tri2.v1, tri2.v3, intersectionPoints)) {
+		numIntersects++;
+	}
+	if (lineIntersect2D(tri1.v1, tri1.v3, tri2.v2, tri2.v3, intersectionPoints)) {
+		numIntersects++;
+	}
+	if (lineIntersect2D(tri1.v2, tri1.v3, tri2.v1, tri2.v2, intersectionPoints)) {
+		numIntersects++;
+	}
+	if (lineIntersect2D(tri1.v2, tri1.v3, tri2.v1, tri2.v3, intersectionPoints)) {
+		numIntersects++;
+	}
+	if (lineIntersect2D(tri1.v2, tri1.v3, tri2.v2, tri2.v3, intersectionPoints)) {
+		numIntersects++;
+	}
+	return numIntersects;
+}
+
+void ModelOperations::addIntersections(Triangle2D tri1, Triangle2D tri2, std::vector<glm::vec2>& intersectionPoints) {
+	if(pointInTriangle2D(tri1, tri2.v1)) {
+		if (intersectionPoints.size() < 3) {
+			intersectionPoints.push_back(tri2.v1);
+		}
+	}
+	if (pointInTriangle2D(tri1, tri2.v2)) {
+		if (intersectionPoints.size() < 3) {
+			intersectionPoints.push_back(tri2.v2);
+		}
+	}
+	if (pointInTriangle2D(tri1, tri2.v3)) {
+		if (intersectionPoints.size() < 3) {
+			intersectionPoints.push_back(tri2.v3);
+		}
+	}
+	if (pointInTriangle2D(tri2, tri1.v1)) {
+		if (intersectionPoints.size() < 3) {
+			intersectionPoints.push_back(tri1.v1);
+		}
+	}
+	if (pointInTriangle2D(tri2, tri1.v2)) {
+		if (intersectionPoints.size() < 3) {
+			intersectionPoints.push_back(tri1.v2);
+		}
+	}
+	if (pointInTriangle2D(tri2, tri1.v3)) {
+		if (intersectionPoints.size() < 3) {
+			intersectionPoints.push_back(tri1.v3);
+		}
+	}
 }
 
 void ModelOperations::reverseProject(glm::vec2 intersectionPoint1, glm::vec2 intersectionPoint2, glm::vec2 intersectionPoint3, glm::vec3 projectionAxis, Triangle3D focusTriangle, Triangle3D otherTriangle, std::vector<BlockingPair>& blockings) {
@@ -704,7 +694,7 @@ bool ModelOperations::lineIntersect3D(glm::vec3 p1, glm::vec3 p2, glm::vec3 p3, 
 	return false;
 }
 
-bool ModelOperations::lineIntersect2D(glm::vec2 v1, glm::vec2 v2, glm::vec2 v3, glm::vec2 v4, glm::vec2* intersectionPoints, unsigned int& capacity) {
+bool ModelOperations::lineIntersect2D(glm::vec2 v1, glm::vec2 v2, glm::vec2 v3, glm::vec2 v4, std::vector<glm::vec2>& intersectionPoints) {
 
    double mua,mub;
    double denom,numera,numerb;
@@ -716,9 +706,8 @@ bool ModelOperations::lineIntersect2D(glm::vec2 v1, glm::vec2 v2, glm::vec2 v3, 
 
    //Are the line coincident?
    if (std::abs(numera) < EPS && std::abs(numerb) < EPS && std::abs(denom) < EPS) {
-	   if (capacity < 3) {
-		   intersectionPoints[capacity] = (0.5f * (v1 + v2));
-		   capacity++;
+	   if (intersectionPoints.size() < 3) {
+		   intersectionPoints.push_back(0.5f * (v1 + v2));
 	   }
       return true;
    }
@@ -736,9 +725,8 @@ bool ModelOperations::lineIntersect2D(glm::vec2 v1, glm::vec2 v2, glm::vec2 v3, 
       return false;
    }
 
-   if (capacity < 3) {
-	   intersectionPoints[capacity] = (glm::vec2(v1.x + mua * (v2.x - v1.x), v1.y + mua * (v2.y - v1.y)));
-	   (capacity)++;
+   if (intersectionPoints.size() < 3) {
+	   intersectionPoints.push_back(glm::vec2(v1.x + mua * (v2.x - v1.x), v1.y + mua * (v2.y - v1.y)));
    }
 
    return true;
