@@ -727,6 +727,26 @@ bool ModelOperations::lineIntersect2D(glm::vec2 v1, glm::vec2 v2, glm::vec2 v3, 
 	   // Crazy ass logic starts here
 	   // Test if the lines segments are overlapping
 
+	   /*
+	   glm::vec3 l1ToV3a = v3 - v1;
+	   glm::vec3 l1ToV3b = v3 - v2;
+	   glm::vec3 l1ToV3;
+
+	   if (glm::length(l1ToV3a) > glm::length(l1ToV3b)) {
+		   l1ToV3 = l1ToV3a;
+	   }
+	   else {
+		   l1ToV3 = l1ToV3b;
+	   }
+
+
+
+
+
+	   bool longer1 = glm::length(l1ToV3) > (glm::length(v1 - v2) - EPS);
+	   bool opDir1 = glm::dot(l1ToV3, l1ToV4) < 0;
+
+
 	   float l1ToV3 = fmax(glm::length(v3 - v1), glm::length(v3 - v2));
 	   float l1ToV4 = fmax(glm::length(v4 - v1), glm::length(v4 - v2));
 
@@ -736,9 +756,64 @@ bool ModelOperations::lineIntersect2D(glm::vec2 v1, glm::vec2 v2, glm::vec2 v3, 
 	   bool length1 = l1ToV3 > (glm::length(v1 - v2) - EPS);
 	   bool length2 = l1ToV4 > (glm::length(v1 - v2) - EPS);
 	   bool opDir = glm::dot(l1ToV3, l1ToV4) < 0;
+		*/
+	   bool interX = false;
+	   if (v1.x < v2.x) {
+		   interX = (interX || (v3.x > v1.x && v3.x < v2.x));
+		   interX = (interX || (v4.x > v1.x && v4.x < v2.x));
+	   }
+	   else if (v1.x > v2.x) {
+		   interX = (interX || (v3.x > v2.x && v3.x < v1.x));
+		   interX = (interX || (v4.x > v2.x && v4.x < v1.x));
+	   }
+	   else {
+		   interX = false;
+	   }
 
-	   if (length1 && length2 && !opDir) {
-		   //return false;
+	   bool interY = false;
+	   if (v1.y < v2.y) {
+		   interY = (interY || (v3.y > v1.y && v3.y < v2.y));
+		   interY = (interY || (v4.y > v1.y && v4.y < v2.y));
+	   }
+	   else if (v1.y > v2.y){
+		   interY = (interY || (v3.y > v2.y && v3.y < v1.y));
+		   interY = (interY || (v4.y > v2.y && v4.y < v1.y));
+	   }
+	   else {
+		   interY = false;
+	   }
+
+	   bool interX1 = false;
+	   if (v3.x < v4.x) {
+		   interX1 = (interX1 || (v1.x > v3.x && v1.x < v4.x));
+		   interX1 = (interX1 || (v2.x > v3.x && v2.x < v4.x));
+	   }
+	   else if (v1.x > v2.x) {
+		   interX1 = (interX1 || (v1.x > v4.x && v1.x < v3.x));
+		   interX1 = (interX1 || (v2.x > v4.x && v2.x < v3.x));
+	   }
+	   else {
+		   interX1 = false;
+	   }
+
+	   bool interY1 = false;
+	   if (v3.y < v4.y) {
+		   interY1 = (interY1 || (v1.y > v3.y && v1.y < v4.y));
+		   interY1 = (interY1 || (v2.y > v3.y && v2.y < v4.y));
+	   }
+	   else if (v1.y > v2.y) {
+		   interY1 = (interY1 || (v1.y > v4.y && v1.y < v3.y));
+		   interY1 = (interY1 || (v2.y > v4.y && v2.y < v3.y));
+	   }
+	   else {
+		   interY1 = false;
+	   }
+
+
+	   bool same = (v1 == v3 || v1 == v4) && ((v2 == v3 || v2 == v4));
+
+	   if (!(interX && interY) || !(interX1 && interY1) || !same) {
+		   return false;
 	   }
 
 	   if (intersectionPoints.size() < 3) {
