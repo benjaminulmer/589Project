@@ -78,7 +78,7 @@ void Program::setupWindow() {
 void Program::loadObjects() {
 
 	// Read in obj
-	std::vector<UnpackedLists> split = ContentReadWrite::partsFromObj("./models/FixedExample.obj");
+	std::vector<UnpackedLists> split = ContentReadWrite::partsFromObj("./models/example2.obj");
 
 	// Create renderables from split object
 	std::vector<Renderable*> renderables(split.size());
@@ -240,6 +240,7 @@ void Program::_3Dpick(bool select) {
 			highlightNode->highlighted = true;
 		}
 		else {
+			std::cout << result -1 << std::endl;
 			selectedNode = graph->at(result - 1);
 			selectedNode->selected = true;
 		}

@@ -1,6 +1,7 @@
 #include "ExplosionGraph.h"
 
 #include <iostream>
+#include <cfloat>
 
 // Constructor for a block, always needs part and direction
 Block::Block(Node* part, glm::vec3 direction) : part(part), direction(direction) {}
@@ -44,9 +45,9 @@ ExplosionGraph::ExplosionGraph(std::vector<Renderable*> parts, std::vector<Block
 
 	// Fill blocking data from provided blocking pairs
 	for (BlockingPair& block : blockingPairs) {
-		if (block.direction.y == 0) {
+		//if (block.direction.y == 0) {
 			nodes[block.focusPart].blocked.push_back(Block(&nodes[block.otherPart], block.direction));
-		}
+		//}
 	}
 
 	std::vector<int> moved;
@@ -66,8 +67,8 @@ ExplosionGraph::ExplosionGraph(std::vector<Renderable*> parts, std::vector<Block
 			bool xMinus = true;
 			bool zPlus = true;
 			bool zMinus = true;
-			//bool yPlus = true;
-			//bool yMinus = true;
+			bool yPlus = true;
+			bool yMinus = true;
 			for (Block block : nodes[activeSet[j]].blocked) {
 
 				// if blocking part is in the active set
@@ -76,12 +77,12 @@ ExplosionGraph::ExplosionGraph(std::vector<Renderable*> parts, std::vector<Block
 					else if (block.direction.x == -1.f) xMinus = false;
 					else if (block.direction.z == 1.f) zPlus = false;
 					else if (block.direction.z == -1.f) zMinus = false;
-					//else if (block.direction.y == 1.f) yPlus = false;
-					//else if (block.direction.y == -1.f)  yMinus = false;
+					else if (block.direction.y == 1.f) yPlus = false;
+					else if (block.direction.y == -1.f)  yMinus = false;
 				}
 			}
-			//if (((xPlus || xMinus) || (yPlus || yMinus)) || (zPlus || zMinus)) {
-			if ((xPlus || xMinus) || (zPlus || zMinus)) {
+			if (((xPlus || xMinus) || (yPlus || yMinus)) || (zPlus || zMinus)) {
+			//if ((xPlus || xMinus) || (zPlus || zMinus)) {
 				unblocked.push_back(activeSet[j]);
 			}
 		}
@@ -96,8 +97,8 @@ ExplosionGraph::ExplosionGraph(std::vector<Renderable*> parts, std::vector<Block
 			bool xMinus = true;
 			bool zPlus = true;
 			bool zMinus = true;
-			//bool yPlus = true;
-			//bool yMinus = true;
+			bool yPlus = true;
+			bool yMinus = true;
 			for (Block block : nodes[unblocked[m]].blocked) {
 				// if blocking part is in the active set
 				if (std::find(activeSet.begin(), activeSet.end(), block.part->index) != activeSet.end()) {
@@ -106,8 +107,8 @@ ExplosionGraph::ExplosionGraph(std::vector<Renderable*> parts, std::vector<Block
 					else if (block.direction.x == -1.f) xMinus = false;
 					else if (block.direction.z == 1.f) zPlus = false;
 					else if (block.direction.z == -1.f) zMinus = false;
-					//else if (block.direction.y == 1.f) yPlus = false;
-					//else if (block.direction.y == -1.f) yMinus = false;
+					else if (block.direction.y == 1.f) yPlus = false;
+					else if (block.direction.y == -1.f) yMinus = false;
 				}
 			}
 			Node* curNode = &nodes[unblocked[m]];
@@ -140,7 +141,7 @@ ExplosionGraph::ExplosionGraph(std::vector<Renderable*> parts, std::vector<Block
 					unblockDirection = glm::vec3(0.f, 0.f, -1.f);
 					minDistance = zminDist;
 				}
-			}/*
+			}
 			if (yPlus) {
 				float yplusDist = getEscapeDistance(curNode, 1, 'y', activeSet);
 				if (yplusDist < minDistance) {
@@ -155,7 +156,7 @@ ExplosionGraph::ExplosionGraph(std::vector<Renderable*> parts, std::vector<Block
 					unblockDirection = glm::vec3(0.f, -1.f, 0.f);
 					minDistance = yminDist;
 				}
-			}*/
+			}
 
 			nodes[unblocked[m]].direction = unblockDirection;
 			nodes[unblocked[m]].minSelfDistance = minDistance;
@@ -199,6 +200,7 @@ ExplosionGraph::ExplosionGraph(std::vector<Renderable*> parts, std::vector<Block
 		std::cout << "Error, graph contains cycle(s)" << std::endl;
 	}
 	updateDistances();
+	int x;
 }
 
 // Creates explosion graph input file
@@ -253,29 +255,56 @@ float ExplosionGraph::getEscapeDistance(Node* node, int sign, char dir, const st
 	glm::vec3 partPos = node->part->getPosition();
 	glm::vec3 partDimensions = node->part->getDimensions();
 
-	for (Block block : node->blocked) {
-		if (std::find(activeSet.begin(), activeSet.end(), block.part->index) != activeSet.end()) {
-			glm::vec3 blockDimensions = block.part->part->getDimensions();
-			glm::vec3 blockPos = block.part->part->getPosition();
+	float minX, maxX;
+	float minY, maxY;
+	float minZ, maxZ;
 
-			float newPos;
-			float newDist;
-			if (dir == 'x') {
-				newPos = blockPos.x + sign * ((0.5 * partDimensions.x) + (0.5 * blockDimensions.x));
-				newDist = abs(newPos - partPos.x);
-			}
-			else if (dir == 'y') {
-				newPos = blockPos.y + sign * ((0.5 * partDimensions.y) + (0.5 * blockDimensions.y));
-				newDist = abs(newPos - partPos.y);
-			}
-			else {
-				newPos = blockPos.z + sign * ((0.5 * partDimensions.z) + (0.5 * blockDimensions.z));
-				newDist = abs(newPos - partPos.z);
-			}
+	minX = minY = minZ = FLT_MAX;
+	maxX = maxY = maxZ = FLT_MIN;
 
-			if (newDist > toReturn) toReturn = newDist;
+	for (int i : activeSet) {
+		if (i == node->index) {
+			continue;
 		}
+		Renderable* part = nodes[i].part;
+
+		glm::vec3 curPos = part->getPosition();
+		glm::vec3 curDims = part->getDimensions();
+
+		float cMinX = curPos.x - 0.5f * curDims.x;
+		float cMaxX = curPos.x + 0.5f * curDims.x;
+		float cMinY = curPos.y - 0.5f * curDims.y;
+		float cMaxY = curPos.y + 0.5f * curDims.y;
+		float cMinZ = curPos.z - 0.5f * curDims.z;
+		float cMaxZ = curPos.z + 0.5f * curDims.z;
+
+		minX = glm::min(minX, cMinX);
+		maxX = glm::max(maxX, cMaxX);
+		minY = glm::min(minY, cMinY);
+		maxY = glm::max(maxY, cMaxY);
+		minZ = glm::min(minZ, cMinZ);
+		maxZ = glm::max(maxZ, cMaxZ);
 	}
+	glm::vec3 dimensions = glm::vec3(glm::abs(maxX - minX), glm::abs(maxY - minY), glm::abs(maxZ - minZ));
+	glm::vec3 position = glm::vec3(0.5f * (maxX + minX), 0.5f * (maxY + minY), 0.5f * (maxZ + minZ));
+
+	float newPos;
+	float newDist;
+	if (dir == 'x') {
+		newPos = position.x + sign * ((0.5 * partDimensions.x) + (0.5 * dimensions.x));
+		newDist = abs(newPos - partPos.x);
+	}
+	else if (dir == 'y') {
+		newPos = position.y + sign * ((0.5 * partDimensions.y) + (0.5 * dimensions.y));
+		newDist = abs(newPos - partPos.y);
+	}
+	else {
+		newPos = position.z + sign * ((0.5 * partDimensions.z) + (0.5 * dimensions.z));
+		newDist = abs(newPos - partPos.z);
+	}
+
+	if (newDist > toReturn) toReturn = newDist;
+
 	return toReturn;
 }
 
