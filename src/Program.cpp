@@ -17,21 +17,18 @@ Program::Program() {
 	timeSPerLevel = 1.f;
 
 	distBuffer = 1.5f;
+	startTime =  0;
 }
 
 Program::~Program() {
 	// nothing to do here, end of mainLoop performs clean up
 }
 
-// Error callback for glfw errors
-void Program::error(int error, const char* description) {
-	std::cerr << description << std::endl;
-}
-
 // Called to start the program. Conducts set up then enters the main loop
 void Program::start() {
 	setupWindow();
 	GLenum err = glewInit();
+	
 	if (glewInit() != GLEW_OK) {
 		std::cerr << glewGetErrorString(err) << std::endl;
 	}
@@ -43,23 +40,37 @@ void Program::start() {
 	mainLoop();
 }
 
-// Creates GLFW window for the program and sets callbacks for input
+// Creates SDL window for the program and sets callbacks for input
 void Program::setupWindow() {
-	glfwSetErrorCallback(Program::error);
-	if (glfwInit() == 0) {
+	if (SDL_Init(SDL_INIT_VIDEO) != 0){
+		std::cout << "SDL_Init Error: " << SDL_GetError() << std::endl;
 		exit(EXIT_FAILURE);
 	}
 
-	glfwWindowHint(GLFW_SAMPLES, 16);
-	window = glfwCreateWindow(width, height, "CPSC589 Project", NULL, NULL);
-	glfwMakeContextCurrent(window);
-	glfwSwapInterval(1); // Vsync on
+	SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
+	SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 16);
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
+	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
+	SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
+	
+	SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
 
-	glfwSetKeyCallback(window, InputHandler::key);
-	glfwSetMouseButtonCallback(window, InputHandler::mouse);
-	glfwSetCursorPosCallback(window, InputHandler::motion);
-	glfwSetScrollCallback(window, InputHandler::scroll);
-	glfwSetWindowSizeCallback(window, InputHandler::reshape);
+
+	window = SDL_CreateWindow("CPSC589 Project", 10, 30, width, height, SDL_WINDOW_OPENGL);
+	if (window == nullptr){
+		//TODO: cleanup methods upon exit
+		std::cout << "SDL_CreateWindow Error: " << SDL_GetError() << std::endl;
+		SDL_Quit();
+		exit(EXIT_FAILURE);
+	}
+
+	SDL_GLContext context = SDL_GL_CreateContext(window);
+	if (context == NULL)
+	{
+		std::cout << "OpenGL context could not be created! SDL Error: " << SDL_GetError() << std::endl;
+	}
+
+	SDL_GL_SetSwapInterval(1); // Vsync on
 }
 
 // Loads and initializes all objects that can be viewed
@@ -129,8 +140,13 @@ void Program::loadObjects() {
 // Main loop
 void Program::mainLoop() {
 
-	while(!glfwWindowShouldClose(window)) {
-		glfwPollEvents();
+	startTime = SDL_GetTicks();
+
+	while (true) {
+		SDL_Event e;
+		while (SDL_PollEvent(&e)) {
+			InputHandler::pollEvent(e);
+		}
 
 		_3Dpick();
 		if (state == State::EXPLODE) {
@@ -140,19 +156,19 @@ void Program::mainLoop() {
 			collapse();
 		}
 
-		glfwSetTime(0.);
+		startTime = SDL_GetTicks();
 		renderEngine->render(graph->getSort(), level, counterS / timeSPerLevel, distBuffer);
-		glfwSwapBuffers(window);
+
+		SDL_GL_SwapWindow(window);
 	}
 
 	// Clean up, program needs to exit
-	glfwDestroyWindow(window);
-	glfwTerminate();
+	SDL_Quit();
 }
 
 // Sets values to animate explosion of model
 void Program::explode() {
-	counterS += glfwGetTime();
+	counterS += (float)(SDL_GetTicks() - startTime) / 1000;
 
 	if (counterS > timeSPerLevel) {
 
@@ -169,7 +185,7 @@ void Program::explode() {
 
 // Sets values to animate collapse of model
 void Program::collapse() {
-	counterS -= glfwGetTime();
+	counterS -= (float)(SDL_GetTicks() - startTime) / 1000;
 
 	if (counterS < 0.f) {
 

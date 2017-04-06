@@ -1,5 +1,8 @@
-include/
-lib/
+include/*
+!include/SDL2/
+!include/rapidjson/
+lib/*
+!lib/SDL2/
 Debug/
 packages/
 packages.config
