@@ -376,11 +376,18 @@ std::vector<BlockingPair> ModelOperations::blocking(std::vector<UnpackedLists>& 
 						Triangle2D otherTriangleProj;
 						projectToPlane(i, focusTriangle, otherTriangle, focusTriangleProj, otherTriangleProj);
 
+						float area1 = focusTriangleProj.getArea();
+						float area2 = otherTriangleProj.getArea();
+
+						if (abs(area1) < 0.001f || abs(area2) < 0.001f) {
+							continue;
+						}
+
 						int numIntersect = countIntersections(focusTriangleProj, otherTriangleProj, intersectionPoints[i]);
 						int numPoints = countPointsInside(focusTriangleProj, otherTriangleProj, intersectionPoints[i]);
 
 						// Triangles that only share one edge are not in contact
-						if ((numIntersect >= 2 && numIntersect <= 6) || numPoints >= 1) {
+						if ((numIntersect >= 2) || numPoints >= 1) {
 							intersect[i] = true;
 						}
 					}
@@ -712,28 +719,28 @@ bool ModelOperations::lineIntersect3D(glm::vec3 p1, glm::vec3 p2, glm::vec3 p3, 
 }
 
 bool ModelOperations::pointInLine(glm::vec2 l1, glm::vec2 l2, glm::vec2 v1) {
-	  float EPS = 0.001f;
+	float EPS = 0.001f;
 
 	bool interX = false;
 	if (l1.x < l2.x) {
-		interX = (interX || (v1.x > l1.x && v1.x < l2.x));
+		interX = (interX || (v1.x > l1.x + EPS && v1.x + EPS < l2.x));
 	}
 	else if (l1.x > l2.x) {
-		interX = (interX || (v1.x > l2.x && v1.x < l1.x));
+		interX = (interX || (v1.x > l2.x + EPS && v1.x + EPS < l1.x));
 	}
 	else {
-		interX = (abs(l1.x - l2.x) < 0.001f) && (abs(l2.x - v1.x) < 0.001f);
+		interX = (abs(l1.x - l2.x) < 0.001f) && (abs(l2.x - v1.x) < EPS);
 	}
 
 	bool interY = false;
 	if (l1.y < l2.y) {
-		interY = (interY || (v1.y > l1.y && v1.y < l2.y));
+		interY = (interY || (v1.y > l1.y + EPS && v1.y + EPS < l2.y));
 	}
 	else if (l1.x > l2.x) {
-		interY = (interY || (v1.y > l2.y && v1.y < l1.y));
+		interY = (interY || (v1.y > l2.y + EPS && v1.y + EPS < l1.y));
 	}
 	else {
-		interY = (abs(l1.y - l2.y) < 0.001f) && (abs(l2.y - v1.y) < 0.001f);
+		interY = (abs(l1.y - l2.y) < 0.001f) && (abs(l2.y - v1.y) < EPS);
 	}
 	return interX && interY;
 }
@@ -811,7 +818,7 @@ bool ModelOperations::pointInTriangle3D(glm::vec3 A, glm::vec3 B, glm::vec3 C, g
 }
 
 bool ModelOperations::pointInTriangle2D(Triangle2D tri, glm::vec2 p) {
-	double area = 0.5f * (-tri.v1.y * tri.v2.x + tri.v0.y * (-tri.v1.x + tri.v2.x) + tri.v0.x * (tri.v1.y - tri.v2.y) + tri.v1.x * tri.v2.y);
+	double area = tri.getArea();
 	int sign = (area < 0) ? -1 : 1;
     double s = (tri.v0.y * tri.v2.x - tri.v0.x * tri.v2.y + (tri.v2.y - tri.v0.y) * p.x + (tri.v0.x - tri.v2.x) * p.y) * sign;
     double t = (tri.v0.x * tri.v1.y - tri.v0.y * tri.v1.x + (tri.v0.y - tri.v1.y) * p.x + (tri.v1.x - tri.v0.x) * p.y) * sign;

@@ -98,7 +98,7 @@ void Program::loadObjects() {
 		std::vector<int> counts(split.size(), 0);
 		for (unsigned int i = 0; i < blocks.size(); i++) {
 			counts[blocks[i].focusPart]++;
-			//if (blocks[i].focusPart == 5)
+			if (blocks[i].focusPart == 5)
 			printf("part %d, part %d, dir %f, %f, %f\n", blocks[i].focusPart, blocks[i].otherPart, blocks[i].direction.x, blocks[i].direction.y, blocks[i].direction.z);
 		}
 		std::cout << blocks.size() << std::endl;

@@ -28,6 +28,8 @@ struct Triangle2D {
     Triangle2D(glm::vec2 v1, glm::vec2 v2, glm::vec2 v3) :
         v0(v1), v1(v2), v2(v3) {}
 
+	float getArea() { return 0.5f * (-v1.y * v2.x + v0.y * (-v1.x + v2.x) + v0.x * (v1.y - v2.y) + v1.x * v2.y); }
+
     glm::vec2 v0;
     glm::vec2 v1;
     glm::vec2 v2;
