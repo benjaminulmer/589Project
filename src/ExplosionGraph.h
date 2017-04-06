@@ -41,7 +41,7 @@ struct Node {
 class ExplosionGraph {
 
 public:
-	ExplosionGraph(std::vector<Renderable*> parts, std::vector<ContactPair> blockingPairs);
+	ExplosionGraph(std::vector<Renderable*> parts, std::vector<BlockingPair> blockingPairs);
 	ExplosionGraph(std::vector<Renderable*> parts, rapidjson::Document& d);
 
 	void updateDistances();

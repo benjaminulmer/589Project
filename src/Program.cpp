@@ -104,17 +104,16 @@ void Program::loadObjects() {
 		std::cout << "Computing explosion" << std::endl;
 
 		// Compute contacts and blocking
-		std::vector<ContactPair> blockings = ModelOperations::contacts(split);
 		std::vector<BlockingPair> blocks = ModelOperations::blocking(split);
 
 		std::vector<int> counts(split.size(), 0);
 		for (unsigned int i = 0; i < blocks.size(); i++) {
 			counts[blocks[i].focusPart]++;
-			if (blocks[i].focusPart == 4)
-			printf("part %d, part %d, dir %f, %f, %f\n", blocks[i].focusPart, blocks[i].otherPart, blocks[i].direction.x, blocks[i].direction.y, blocks[i].direction.z);
+			//if (blocks[i].focusPart == 4)
+			//printf("part %d, part %d, dir %f, %f, %f\n", blocks[i].focusPart, blocks[i].otherPart, blocks[i].direction.x, blocks[i].direction.y, blocks[i].direction.z);
 		}
 		std::cout << blocks.size() << std::endl;
-		graph = new ExplosionGraph(renderables, blockings);
+		graph = new ExplosionGraph(renderables, blocks);
 
 		rapidjson::Document d = graph->getJSON();
 		ContentReadWrite::writeExplosionGraph(d, "./graphs/FixedExample.json");

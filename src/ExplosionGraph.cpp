@@ -26,7 +26,7 @@ void Node::move(float dist) {
 }
 
 // Creates explosion graph from blocking constraints
-ExplosionGraph::ExplosionGraph(std::vector<Renderable*> parts, std::vector<ContactPair> blockingPairs) {
+ExplosionGraph::ExplosionGraph(std::vector<Renderable*> parts, std::vector<BlockingPair> blockingPairs) {
 
 	// Number of nodes in graph is number of parts in model
 	numParts = parts.size();
@@ -43,20 +43,21 @@ ExplosionGraph::ExplosionGraph(std::vector<Renderable*> parts, std::vector<Conta
 	}
 
 	// Fill blocking data from provided blocking pairs
-	for (ContactPair& block : blockingPairs) {
+	for (BlockingPair& block : blockingPairs) {
 		nodes[block.focusPart].blocked.push_back(Block(&nodes[block.otherPart], block.direction));
 	}
 
 	// Construct the explosion graph
 	while (activeSet.size() > 0) {
-		//std::cout << "set: ";
+		std::cout << "set: ";
 		for (int active : activeSet) {
-			//std::cout << active << " ";
+			std::cout << active << " ";
 		}
-		//std::cout << std::endl;
+		std::cout << std::endl;
 
 		// Create subset of unblocked pieces
 		std::vector<int> unblocked;
+		std::vector<int> moved;
 		for (unsigned int j = 0; j < activeSet.size(); j++) {
 			// setup booleans for the six directions
 			bool xPlus = true;
@@ -82,12 +83,7 @@ ExplosionGraph::ExplosionGraph(std::vector<Renderable*> parts, std::vector<Conta
 			}
 		}
 
-		//for each unblocked part
-		if (activeSet.size() == unblocked.size()) {
-			//activeSet.clear();
-			//activeSet.push_back(unblocked.front());
-		}
-
+		std::vector<int> movedThisIteration;
 		for (unsigned int m = 0; m < unblocked.size(); m++) {
 			std::vector<int> blocking;
 			glm::vec3 unblockDirection;
@@ -157,32 +153,28 @@ ExplosionGraph::ExplosionGraph(std::vector<Renderable*> parts, std::vector<Conta
 				}
 			}
 
-
-			// add edge to every active part that touches p
-			//if (activeSet.size() != 1) {
-				activeSet.erase(std::find(activeSet.begin(), activeSet.end(), unblocked[m]));
-			//}
-
-			for (Block block : nodes[unblocked[m]].blocked) {
-				// if blocking part is in the active set
-				if (std::find(activeSet.begin(), activeSet.end(), block.part->index) != activeSet.end()) {
-					bool contains = false;
-					for (Node* n : graph[block.part->index]) {
-						if (n->index == unblocked[m]) contains = true;
-					}
-					if (!contains) {
-						graph[block.part->index].push_back(&nodes[unblocked[m]]);
-					}
-				}
-			}
+			activeSet.erase(std::find(activeSet.begin(), activeSet.end(), unblocked[m]));
+			moved.push_back(unblocked[m]);
+			movedThisIteration.push_back(unblocked[m]);
 
 			nodes[unblocked[m]].direction = unblockDirection;
 			nodes[unblocked[m]].minSelfDistance = minDistance;
 			nodes[unblocked[m]].curSelfDistance = minDistance;
 		}
-		if (activeSet.size() == 1) {
-		//	activeSet.clear();
+		for (int p : movedThisIteration) {
+			for (int m : moved) {
+
+				for (Block b : nodes[p].blocked) {
+					if ((b.direction == nodes[m].direction) && b.part == &nodes[m]) {
+						graph[p].push_back(&nodes[m]);
+					}
+				}
+			}
 		}
+		for (int i : movedThisIteration) {
+			moved.push_back(i);
+		}
+		movedThisIteration.clear();
 	}
 
 	// Construct other graph info
