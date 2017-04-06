@@ -145,6 +145,7 @@ ExplosionGraph::ExplosionGraph(std::vector<Renderable*> parts, std::vector<Block
 					minDistance = yplusDist;
 				}
 			}
+
 			if (yMinus) {
 				float yminDist = getEscapeDistance(curNode, -1, 'y', activeSet);
 				if (yminDist < minDistance) {
@@ -153,19 +154,31 @@ ExplosionGraph::ExplosionGraph(std::vector<Renderable*> parts, std::vector<Block
 				}
 			}
 
-			activeSet.erase(std::find(activeSet.begin(), activeSet.end(), unblocked[m]));
-			moved.push_back(unblocked[m]);
-			movedThisIteration.push_back(unblocked[m]);
-
 			nodes[unblocked[m]].direction = unblockDirection;
 			nodes[unblocked[m]].minSelfDistance = minDistance;
 			nodes[unblocked[m]].curSelfDistance = minDistance;
+
+			/*
+			if (activeSet.size() == 1) {
+				for (int i : movedThisIteration) {
+					graph[unblocked[m]].push_back(&nodes[i]);
+				}
+				for (int i : moved) {
+					graph[unblocked[m]].push_back(&nodes[i]);
+				}
+				activeSet.erase(std::find(activeSet.begin(), activeSet.end(), unblocked[m]));
+				break;
+			}
+			*/
+
+			activeSet.erase(std::find(activeSet.begin(), activeSet.end(), unblocked[m]));
+			movedThisIteration.push_back(unblocked[m]);
 		}
 		for (int p : movedThisIteration) {
 			for (int m : moved) {
 
 				for (Block b : nodes[p].blocked) {
-					if ((b.direction == nodes[m].direction) && b.part == &nodes[m]) {
+					if (b.part == &nodes[m]) {
 						graph[p].push_back(&nodes[m]);
 					}
 				}
