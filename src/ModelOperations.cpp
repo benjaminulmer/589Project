@@ -722,10 +722,10 @@ bool ModelOperations::pointInLine(glm::vec2 l1, glm::vec2 l2, glm::vec2 v1) {
 	float EPS = 0.001f;
 
 	bool interX = false;
-	if (l1.x < l2.x) {
+	if (l1.x + EPS < l2.x) {
 		interX = (interX || (v1.x > l1.x + EPS && v1.x + EPS < l2.x));
 	}
-	else if (l1.x > l2.x) {
+	else if (l1.x > l2.x + EPS) {
 		interX = (interX || (v1.x > l2.x + EPS && v1.x + EPS < l1.x));
 	}
 	else {
@@ -733,10 +733,10 @@ bool ModelOperations::pointInLine(glm::vec2 l1, glm::vec2 l2, glm::vec2 v1) {
 	}
 
 	bool interY = false;
-	if (l1.y < l2.y) {
+	if (l1.y + EPS < l2.y) {
 		interY = (interY || (v1.y > l1.y + EPS && v1.y + EPS < l2.y));
 	}
-	else if (l1.x > l2.x) {
+	else if (l1.x > l2.x + EPS) {
 		interY = (interY || (v1.y > l2.y + EPS && v1.y + EPS < l1.y));
 	}
 	else {
@@ -823,5 +823,5 @@ bool ModelOperations::pointInTriangle2D(Triangle2D tri, glm::vec2 p) {
     double s = (tri.v0.y * tri.v2.x - tri.v0.x * tri.v2.y + (tri.v2.y - tri.v0.y) * p.x + (tri.v0.x - tri.v2.x) * p.y) * sign;
     double t = (tri.v0.x * tri.v1.y - tri.v0.y * tri.v1.x + (tri.v0.y - tri.v1.y) * p.x + (tri.v1.x - tri.v0.x) * p.y) * sign;
 
-    return s > 0 && t > 0 && ((s + t) < 2 * area * sign);
+    return s > 0.001f && t > 0.001f && ((s + t) < 2 * area * sign);
 }
