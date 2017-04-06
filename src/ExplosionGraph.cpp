@@ -49,6 +49,7 @@ ExplosionGraph::ExplosionGraph(std::vector<Renderable*> parts, std::vector<Block
 		}
 	}
 
+	std::vector<int> moved;
 	// Construct the explosion graph
 	while (activeSet.size() > 0) {
 		std::cout << "set: ";
@@ -59,7 +60,6 @@ ExplosionGraph::ExplosionGraph(std::vector<Renderable*> parts, std::vector<Block
 
 		// Create subset of unblocked pieces
 		std::vector<int> unblocked;
-		std::vector<int> moved;
 		for (unsigned int j = 0; j < activeSet.size(); j++) {
 			// setup booleans for the six directions
 			bool xPlus = true;
