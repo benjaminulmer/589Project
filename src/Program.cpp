@@ -98,7 +98,7 @@ void Program::loadObjects() {
 		std::vector<int> counts(split.size(), 0);
 		for (unsigned int i = 0; i < blocks.size(); i++) {
 			counts[blocks[i].focusPart]++;
-			if (blocks[i].focusPart == 3)
+			//if (blocks[i].focusPart == 5)
 			printf("part %d, part %d, dir %f, %f, %f\n", blocks[i].focusPart, blocks[i].otherPart, blocks[i].direction.x, blocks[i].direction.y, blocks[i].direction.z);
 		}
 		std::cout << blocks.size() << std::endl;
@@ -109,7 +109,7 @@ void Program::loadObjects() {
 
 	}
 	// Use file to create explosion graph
-	else {
+	else if (ver == 1) {
 		std::cout << "Using explosion file" << std::endl;
 
 		rapidjson::Document d = ContentReadWrite::readExplosionGraph("./graphs/FixedExample.json");
@@ -119,6 +119,10 @@ void Program::loadObjects() {
 			exit(0);
 		}
 		graph = new ExplosionGraph(renderables, d);
+	}
+	else {
+		std::cout << std::boolalpha << ModelOperations::pointInLine(glm::vec2(0.f, 0.f), glm::vec2(1.f, 1.f), glm::vec2(0.f, 0.f)) << std::endl;
+		std::cout << std::boolalpha << ModelOperations::pointInLine(glm::vec2(0.f, 0.f), glm::vec2(1.f, 1.f), glm::vec2(1.5f, 1.5f)) << std::endl;
 	}
 }
 

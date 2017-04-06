@@ -711,11 +711,38 @@ bool ModelOperations::lineIntersect3D(glm::vec3 p1, glm::vec3 p2, glm::vec3 p3, 
 	return false;
 }
 
+bool ModelOperations::pointInLine(glm::vec2 l1, glm::vec2 l2, glm::vec2 v1) {
+	  float EPS = 0.001f;
+
+	bool interX = false;
+	if (l1.x < l2.x) {
+		interX = (interX || (v1.x > l1.x && v1.x < l2.x));
+	}
+	else if (l1.x > l2.x) {
+		interX = (interX || (v1.x > l2.x && v1.x < l1.x));
+	}
+	else {
+		interX = (abs(l1.x - l2.x) < 0.001f) && (abs(l2.x - v1.x) < 0.001f);
+	}
+
+	bool interY = false;
+	if (l1.y < l2.y) {
+		interY = (interY || (v1.y > l1.y && v1.y < l2.y));
+	}
+	else if (l1.x > l2.x) {
+		interY = (interY || (v1.y > l2.y && v1.y < l1.y));
+	}
+	else {
+		interY = (abs(l1.y - l2.y) < 0.001f) && (abs(l2.y - v1.y) < 0.001f);
+	}
+	return interX && interY;
+}
+
 bool ModelOperations::lineIntersect2D(glm::vec2 v1, glm::vec2 v2, glm::vec2 v3, glm::vec2 v4, std::vector<glm::vec2>& intersectionPoints) {
 
    double mua,mub;
    double denom,numera,numerb;
-   double EPS = 0.001;
+   float EPS = 0.001f;
 
    denom  = (v4.y-v3.y) * (v2.x-v1.x) - (v4.x-v3.x) * (v2.y-v1.y);
    numera = (v4.x-v3.x) * (v1.y-v3.y) - (v4.y-v3.y) * (v1.x-v3.x);
@@ -726,93 +753,19 @@ bool ModelOperations::lineIntersect2D(glm::vec2 v1, glm::vec2 v2, glm::vec2 v3, 
 
 	   // Crazy ass logic starts here
 	   // Test if the lines segments are overlapping
+	   bool v1In = pointInLine(v3, v4, v1);
+	   bool v2In = pointInLine(v3, v4, v2);
+	   bool v3In = pointInLine(v1, v2, v3);
+	   bool v4In = pointInLine(v1, v2, v4);
 
-	   /*
-	   glm::vec3 l1ToV3a = v3 - v1;
-	   glm::vec3 l1ToV3b = v3 - v2;
-	   glm::vec3 l1ToV3;
+	   glm::bvec2 a = glm::epsilonEqual(v1, v3, EPS);
+	   glm::bvec2 b = glm::epsilonEqual(v2, v4, EPS);
+	   glm::bvec2 c = glm::epsilonEqual(v1, v4, EPS);
+	   glm::bvec2 d = glm::epsilonEqual(v2, v3, EPS);
 
-	   if (glm::length(l1ToV3a) > glm::length(l1ToV3b)) {
-		   l1ToV3 = l1ToV3a;
-	   }
-	   else {
-		   l1ToV3 = l1ToV3b;
-	   }
+	   bool same = ((a.x && a.y) && (b.x && b.y)) || ((c.x && c.y) && (d.x && d.y));
 
-
-
-
-
-	   bool longer1 = glm::length(l1ToV3) > (glm::length(v1 - v2) - EPS);
-	   bool opDir1 = glm::dot(l1ToV3, l1ToV4) < 0;
-
-
-	   float l1ToV3 = fmax(glm::length(v3 - v1), glm::length(v3 - v2));
-	   float l1ToV4 = fmax(glm::length(v4 - v1), glm::length(v4 - v2));
-
-	   float l2ToV1 = fmax(glm::length(v1 - v3), glm::length(v1 - v4));
-	   float l2ToV2 = fmax(glm::length(v2 - v3), glm::length(v2 - v4));
-
-	   bool length1 = l1ToV3 > (glm::length(v1 - v2) - EPS);
-	   bool length2 = l1ToV4 > (glm::length(v1 - v2) - EPS);
-	   bool opDir = glm::dot(l1ToV3, l1ToV4) < 0;
-		*/
-	   bool interX = false;
-	   if (v1.x < v2.x) {
-		   interX = (interX || (v3.x > v1.x && v3.x < v2.x));
-		   interX = (interX || (v4.x > v1.x && v4.x < v2.x));
-	   }
-	   else if (v1.x > v2.x) {
-		   interX = (interX || (v3.x > v2.x && v3.x < v1.x));
-		   interX = (interX || (v4.x > v2.x && v4.x < v1.x));
-	   }
-	   else {
-		   interX = false;
-	   }
-
-	   bool interY = false;
-	   if (v1.y < v2.y) {
-		   interY = (interY || (v3.y > v1.y && v3.y < v2.y));
-		   interY = (interY || (v4.y > v1.y && v4.y < v2.y));
-	   }
-	   else if (v1.y > v2.y){
-		   interY = (interY || (v3.y > v2.y && v3.y < v1.y));
-		   interY = (interY || (v4.y > v2.y && v4.y < v1.y));
-	   }
-	   else {
-		   interY = false;
-	   }
-
-	   bool interX1 = false;
-	   if (v3.x < v4.x) {
-		   interX1 = (interX1 || (v1.x > v3.x && v1.x < v4.x));
-		   interX1 = (interX1 || (v2.x > v3.x && v2.x < v4.x));
-	   }
-	   else if (v1.x > v2.x) {
-		   interX1 = (interX1 || (v1.x > v4.x && v1.x < v3.x));
-		   interX1 = (interX1 || (v2.x > v4.x && v2.x < v3.x));
-	   }
-	   else {
-		   interX1 = false;
-	   }
-
-	   bool interY1 = false;
-	   if (v3.y < v4.y) {
-		   interY1 = (interY1 || (v1.y > v3.y && v1.y < v4.y));
-		   interY1 = (interY1 || (v2.y > v3.y && v2.y < v4.y));
-	   }
-	   else if (v1.y > v2.y) {
-		   interY1 = (interY1 || (v1.y > v4.y && v1.y < v3.y));
-		   interY1 = (interY1 || (v2.y > v4.y && v2.y < v3.y));
-	   }
-	   else {
-		   interY1 = false;
-	   }
-
-
-	   bool same = (v1 == v3 || v1 == v4) && ((v2 == v3 || v2 == v4));
-
-	   if (!(interX && interY) || !(interX1 && interY1) || !same) {
+	   if ((v1In || v2In || v3In || v4In) || !same) {
 		   return false;
 	   }
 
