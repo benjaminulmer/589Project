@@ -9,8 +9,9 @@ Program::Program() {
 	mouseX = mouseY = 0;
 	width = height = 1024;
 
-	state = State::NONE;
-	currentNode = nullptr;
+	state = AniamtionState::NONE;
+	highlightNode = nullptr;
+	selectedNode = nullptr;
 
 	level = 0;
 	counterS = 0.f;
@@ -148,11 +149,11 @@ void Program::mainLoop() {
 			InputHandler::pollEvent(e);
 		}
 
-		_3Dpick();
-		if (state == State::EXPLODE) {
+		_3Dpick(false);
+		if (state == AniamtionState::EXPLODE) {
 			explode();
 		}
-		else if (state == State::COLLAPSE) {
+		else if (state == AniamtionState::COLLAPSE) {
 			collapse();
 		}
 
@@ -174,7 +175,7 @@ void Program::explode() {
 
 		if (level == graph->getSort().size() - 2) {
 			counterS = timeSPerLevel;
-			state = State::NONE;
+			state = AniamtionState::NONE;
 		}
 		else {
 			counterS = 0.f;
@@ -191,7 +192,7 @@ void Program::collapse() {
 
 		if (level == 0) {
 			counterS = 0.f;
-			state = State::NONE;
+			state = AniamtionState::NONE;
 		}
 		else {
 			counterS = timeSPerLevel;
@@ -201,7 +202,7 @@ void Program::collapse() {
 }
 
 // Sets state to new state
-void Program::setState(State newState) {
+void Program::setState(AniamtionState newState) {
 	state = newState;
 }
 
@@ -218,24 +219,39 @@ void Program::setMousePos(int x, int y) {
 	mouseY = y;
 }
 
-// Finds objects mouse is over and makes it current
-void Program::_3Dpick() {
+// Finds objects mouse is over and sets it state to the provided
+void Program::_3Dpick(bool select) {
 	float result = renderEngine->pickerRender(graph->getSort(), level, counterS / timeSPerLevel, distBuffer, mouseX, mouseY);
 
 	// Reset current active node (if there is one)
-	if (currentNode != nullptr) {
-		currentNode->move(-0.3f);
-		currentNode->active = false;
+	if (highlightNode != nullptr && !select) {
+		highlightNode->move(-0.3f);
+		highlightNode->highlighted = false;
+	}
+	else if  (selectedNode != nullptr && select) {
+		selectedNode->selected = false;
 	}
 
 	// Get new current node from mouse position (if mouse is on an object)
 	if (result != 0) {
-		currentNode = graph->at(result - 1);
-		currentNode->move(0.3f);
-		currentNode->active = true;
+
+		if (!select) {
+			highlightNode = graph->at(result - 1);
+			highlightNode->move(0.3f);
+			highlightNode->highlighted = true;
+		}
+		else {
+			selectedNode = graph->at(result - 1);
+			selectedNode->selected = true;
+		}
 	}
 	else {
-		currentNode = nullptr;
+		if (!select) {
+			highlightNode = nullptr;
+		}
+		else {
+			selectedNode = nullptr;
+		}
 	}
 
 	graph->updateDistances();
@@ -243,8 +259,8 @@ void Program::_3Dpick() {
 
 // Moves currently selected part provided distance along its explosion direction
 void Program::moveCurrentPart(float dist) {
-	if (currentNode != nullptr) {
-		currentNode->move(dist);
+	if (selectedNode != nullptr) {
+		selectedNode->move(dist);
 		graph->updateDistances();
 	}
 }

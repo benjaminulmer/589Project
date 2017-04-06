@@ -13,7 +13,7 @@
 #include "ExplosionGraph.h"
 #include "Renderable.h"
 
-enum class State {
+enum class AniamtionState {
 	NONE,
 	EXPLODE,
 	COLLAPSE
@@ -27,10 +27,11 @@ public:
 
 	void start();
 
-	void setState(State newState);
+	void setState(AniamtionState newState);
 	void setWindowSize(int newWidth, int newHeight);
 	void setMousePos(int x, int y);
 
+	void _3Dpick(bool select);
 	void moveCurrentPart(float inc);
 
 	void updateDistanceBuffer(float inc);
@@ -44,9 +45,10 @@ private:
 	Camera* camera;
 	ExplosionGraph* graph;
 
-	State state;
+	AniamtionState state;
 
-	Node* currentNode;
+	Node* highlightNode;
+	Node* selectedNode;
 	int mouseX, mouseY;
 
 	unsigned int level;
@@ -60,8 +62,6 @@ private:
 
 	void explode();
 	void collapse();
-
-	void _3Dpick();
 
 	float startTime;
 };
