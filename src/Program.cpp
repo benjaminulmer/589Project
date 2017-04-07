@@ -132,8 +132,8 @@ void Program::loadObjects() {
 		graph = new ExplosionGraph(renderables, d);
 	}
 	else {
-		std::cout << std::boolalpha << ModelOperations::pointInLine(glm::vec2(0.f, 0.f), glm::vec2(1.f, 1.f), glm::vec2(0.f, 0.f)) << std::endl;
-		std::cout << std::boolalpha << ModelOperations::pointInLine(glm::vec2(0.f, 0.f), glm::vec2(1.f, 1.f), glm::vec2(1.5f, 1.5f)) << std::endl;
+		std::cout << std::boolalpha << ModelOperations::pointInLine2D(glm::vec2(0.f, 0.f), glm::vec2(1.f, 1.f), glm::vec2(0.f, 0.f)) << std::endl;
+		std::cout << std::boolalpha << ModelOperations::pointInLine2D(glm::vec2(0.f, 0.f), glm::vec2(1.f, 1.f), glm::vec2(1.5f, 1.5f)) << std::endl;
 	}
 }
 

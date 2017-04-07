@@ -66,7 +66,7 @@ public:
 
 	static bool lineIntersect2D(glm::vec2 v1, glm::vec2 v2, glm::vec2 v3, glm::vec2 v4, std::vector<glm::vec2>& intersectionPoints);
 
-	static bool pointInLine(glm::vec2 l1, glm::vec2 l2, glm::vec2 v1);
+	static bool pointInLine2D(glm::vec2 l1, glm::vec2 l2, glm::vec2 v1);
 
 	static bool pointInTriangle2D(Triangle2D tri, glm::vec2 p);
 

@@ -6,6 +6,8 @@
 #include <glm/gtc/epsilon.hpp>
 #include <glm/gtx/intersect.hpp>
 
+float EPS = 0.0001f;
+
 // Creates blocking pair with two parts and a direction
 BlockingPair::BlockingPair(unsigned int focusPart, unsigned int otherPart, glm::vec3 direction) : focusPart(focusPart), otherPart(otherPart), direction(direction) {}
 
@@ -170,14 +172,6 @@ void ModelOperations::indexVBO(
 	}
 }
 
-// ********************************************
-// ********************************************
-// ********************************************
-// ********************************************
-// ********************************************
-// ********************************************
-// ********************************************
-
 // Computes the set of all blockings for a set of objects
 std::vector<BlockingPair> ModelOperations::blocking(std::vector<UnpackedLists>& objects) {
 	std::vector<BlockingPair> blockings;
@@ -203,16 +197,14 @@ std::vector<BlockingPair> ModelOperations::blocking(std::vector<UnpackedLists>& 
 					std::vector<glm::vec2> intersectionPoints[3];
 					bool intersect[3] = {false, false, false};
 
-					int inters[3];
-					std::pair<int, int> points[3];
-
+					// Test for intersections on each axis
 					for (unsigned int i = 0; i < 3; i++) {
 						Triangle2D focusTriangleProj;
 						Triangle2D otherTriangleProj;
 						projectToPlane(i, focusTriangle, otherTriangle, focusTriangleProj, otherTriangleProj);
 
 						// If the area of a triangle is 0 it cannot intersect
-						if (abs(focusTriangleProj.getArea()) < 0.001f || abs(otherTriangleProj.getArea()) < 0.001f) {
+						if (abs(focusTriangleProj.getArea()) < EPS || abs(otherTriangleProj.getArea()) < EPS) {
 							continue;
 						}
 
@@ -220,27 +212,13 @@ std::vector<BlockingPair> ModelOperations::blocking(std::vector<UnpackedLists>& 
 						int numIntersect = countIntersections(focusTriangleProj, otherTriangleProj, intersectionPoints[i]);
 						std::pair<int, int> numPoints = countPointsInside(focusTriangleProj, otherTriangleProj, intersectionPoints[i]);
 
-						inters[i] = numIntersect;
-						points[i] = numPoints;
-
 						// One of these will be true if the triangles intersect
 						if ((numIntersect >= 2) || numPoints.first >= 3 || numPoints.second >= 3) {
 							intersect[i] = true;
 						}
 					}
 
-					if (std::abs(glm::dot(focusTriangle.getNormal(), otherTriangle.getNormal())) < 0.001) {
-						intersect[0] = false;
-						intersect[1] = false;
-						intersect[2] = false;
-					}
-
-					if (glm::dot(focusTriangle.getNormal(), otherTriangle.getNormal()) > 0.999) {
-						intersect[0] = false;
-						intersect[1] = false;
-						intersect[2] = false;
-					}
-
+					// Add blocking if there were intersections
 					if (intersect[0]) {
 						reverseProject(intersectionPoints[0][0], intersectionPoints[0][1], intersectionPoints[0][2], glm::vec3(0, 0, 1), focusTriangle, otherTriangle, blockings);
 					}
@@ -260,6 +238,7 @@ std::vector<BlockingPair> ModelOperations::blocking(std::vector<UnpackedLists>& 
 	return blockings;
 }
 
+// Projects 3D triangles to planar 2D triangles
 void ModelOperations::projectToPlane(int i, Triangle3D tri1, Triangle3D tri2, Triangle2D& out1, Triangle2D& out2) {
 	if (i == 0) {
 		out1 = Triangle2D(glm::vec2(tri1.v0.x, tri1.v0.y),
@@ -290,6 +269,7 @@ void ModelOperations::projectToPlane(int i, Triangle3D tri1, Triangle3D tri2, Tr
 	}
 }
 
+// Counts line to line intersections between two 2D triangles
 int ModelOperations::countIntersections(Triangle2D tri1, Triangle2D tri2, std::vector<glm::vec2>& intersectionPoints) {
 	int numIntersects = 0;
 	if (lineIntersect2D(tri1.v0, tri1.v1, tri2.v0, tri2.v1, intersectionPoints)) {
@@ -322,6 +302,7 @@ int ModelOperations::countIntersections(Triangle2D tri1, Triangle2D tri2, std::v
 	return numIntersects;
 }
 
+// Counts number of points tri1 has in tri2 and vis versa
 std::pair<int, int> ModelOperations::countPointsInside(Triangle2D tri1, Triangle2D tri2, std::vector<glm::vec2>& intersectionPoints) {
 	int numPointsA = 0;
 	int numPointsB = 0;
@@ -365,7 +346,10 @@ std::pair<int, int> ModelOperations::countPointsInside(Triangle2D tri1, Triangle
 	return std::pair<int, int>(numPointsA, numPointsB);
 }
 
-void ModelOperations::reverseProject(glm::vec2 intersectionPoint1, glm::vec2 intersectionPoint2, glm::vec2 intersectionPoint3, glm::vec3 projectionAxis, Triangle3D focusTriangle, Triangle3D otherTriangle, std::vector<BlockingPair>& blockings) {
+// Reverse projects the 2D triangles to see which one is blocking which
+void ModelOperations::reverseProject(glm::vec2 intersectionPoint1, glm::vec2 intersectionPoint2, glm::vec2 intersectionPoint3,
+		                             glm::vec3 projectionAxis, Triangle3D focusTriangle, Triangle3D otherTriangle, std::vector<BlockingPair>& blockings) {
+
 	glm::vec2 center = ((1.0f/3.0f) * intersectionPoint1) + ((1.0f/3.0f) * intersectionPoint2) + ((1.0f/3.0f) * intersectionPoint3);
 	glm::vec3 pa;
 	if (projectionAxis.x == 1.0f) {
@@ -399,7 +383,7 @@ void ModelOperations::reverseProject(glm::vec2 intersectionPoint1, glm::vec2 int
 
 	float angle = glm::dot(focusTriangle.getNormal(), projectionAxis);
 	if (angle < 0.0f) {
-		if (distanceFocus >= (distanceOther - 0.001f)) {
+		if (distanceFocus >= (distanceOther - EPS)) {
 			bool alreadyExists = false;
 			bool alreadyExists2 = false;
 			//vectors form an acute angle, focus object cannot move in positive y
@@ -419,7 +403,7 @@ void ModelOperations::reverseProject(glm::vec2 intersectionPoint1, glm::vec2 int
 			}
 		}
 	} else {
-		if (distanceFocus <= (distanceOther + 0.001f)) {
+		if (distanceFocus <= (distanceOther + EPS)) {
 			bool alreadyExists = false;
 			bool alreadyExists2 = false;
 			//vectors form an obtuse angle, focus object cannot move in negative y
@@ -441,9 +425,8 @@ void ModelOperations::reverseProject(glm::vec2 intersectionPoint1, glm::vec2 int
 	}
 }
 
-bool ModelOperations::pointInLine(glm::vec2 l1, glm::vec2 l2, glm::vec2 v1) {
-	float EPS = 0.001f;
-
+// Tests if a point is inside a line segment (2D)
+bool ModelOperations::pointInLine2D(glm::vec2 l1, glm::vec2 l2, glm::vec2 v1) {
 	bool interX = false;
 	if (l1.x + EPS < l2.x) {
 		interX = (interX || (v1.x > l1.x + EPS && v1.x + EPS < l2.x));
@@ -452,7 +435,7 @@ bool ModelOperations::pointInLine(glm::vec2 l1, glm::vec2 l2, glm::vec2 v1) {
 		interX = (interX || (v1.x > l2.x + EPS && v1.x + EPS < l1.x));
 	}
 	else {
-		interX = (abs(l1.x - l2.x) < 0.001f) && (abs(l2.x - v1.x) < EPS);
+		interX = (abs(l1.x - l2.x) < EPS) && (abs(l2.x - v1.x) < EPS);
 	}
 
 	bool interY = false;
@@ -463,16 +446,16 @@ bool ModelOperations::pointInLine(glm::vec2 l1, glm::vec2 l2, glm::vec2 v1) {
 		interY = (interY || (v1.y > l2.y + EPS && v1.y + EPS < l1.y));
 	}
 	else {
-		interY = (abs(l1.y - l2.y) < 0.001f) && (abs(l2.y - v1.y) < EPS);
+		interY = (abs(l1.y - l2.y) < EPS) && (abs(l2.y - v1.y) < EPS);
 	}
 	return interX && interY;
 }
 
+// Tests if two line segments intersect in 2D
 bool ModelOperations::lineIntersect2D(glm::vec2 v1, glm::vec2 v2, glm::vec2 v3, glm::vec2 v4, std::vector<glm::vec2>& intersectionPoints) {
 
    double mua,mub;
    double denom,numera,numerb;
-   float EPS = 0.001f;
 
    denom  = (v4.y-v3.y) * (v2.x-v1.x) - (v4.x-v3.x) * (v2.y-v1.y);
    numera = (v4.x-v3.x) * (v1.y-v3.y) - (v4.y-v3.y) * (v1.x-v3.x);
@@ -483,10 +466,10 @@ bool ModelOperations::lineIntersect2D(glm::vec2 v1, glm::vec2 v2, glm::vec2 v3, 
 
 	   // Crazy ass logic starts here
 	   // Test if the lines segments are overlapping
-	   bool v1In = pointInLine(v3, v4, v1);
-	   bool v2In = pointInLine(v3, v4, v2);
-	   bool v3In = pointInLine(v1, v2, v3);
-	   bool v4In = pointInLine(v1, v2, v4);
+	   bool v1In = pointInLine2D(v3, v4, v1);
+	   bool v2In = pointInLine2D(v3, v4, v2);
+	   bool v3In = pointInLine2D(v1, v2, v3);
+	   bool v4In = pointInLine2D(v1, v2, v4);
 
 	   glm::bvec2 a = glm::epsilonEqual(v1, v3, EPS);
 	   glm::bvec2 b = glm::epsilonEqual(v2, v4, EPS);
@@ -525,10 +508,11 @@ bool ModelOperations::lineIntersect2D(glm::vec2 v1, glm::vec2 v2, glm::vec2 v3, 
    return true;
 }
 
+// Tests if a point is inside of a triangle (2D)
 bool ModelOperations::pointInTriangle2D(Triangle2D tri, glm::vec2 p) {
 	double area = tri.getArea();
     double s = 1.f/(2.f*area) * (tri.v0.y * tri.v2.x - tri.v0.x * tri.v2.y + (tri.v2.y - tri.v0.y) * p.x + (tri.v0.x - tri.v2.x) * p.y);
     double t = 1.f/(2.f*area) * (tri.v0.x * tri.v1.y - tri.v0.y * tri.v1.x + (tri.v0.y - tri.v1.y) * p.x + (tri.v1.x - tri.v0.x) * p.y);
 
-    return s > -0.001f && t > -0.001f && (1 - s - t) > -0.001f;
+    return s > -EPS && t > -EPS && (1 - s - t) > -EPS;
 }
