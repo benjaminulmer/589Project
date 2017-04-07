@@ -44,13 +44,6 @@ struct PackedVertex {
 	};
 };
 
-struct ContactPair {
-	ContactPair(unsigned int focusPart, unsigned int otherPart, glm::vec3 direction);
-	unsigned int focusPart;
-	unsigned int otherPart;
-	glm::vec3 direction;
-};
-
 struct BlockingPair {
 	BlockingPair(unsigned int focusPart, unsigned int otherPart, glm::vec3 direction);
 	unsigned int focusPart;
@@ -62,12 +55,11 @@ class ModelOperations {
 
 public:
 	static std::vector<UnpackedLists> split(IndexedLists& object);
-	static std::vector<ContactPair> contacts(std::vector<UnpackedLists>& objects);
 	static std::vector<BlockingPair> blocking(std::vector<UnpackedLists>& objects);
 
 	static void projectToPlane(int i, Triangle3D tri1, Triangle3D tri2, Triangle2D& out1, Triangle2D& out2);
 	static int countIntersections(Triangle2D tri1, Triangle2D tri2, std::vector<glm::vec2>& intersectionPoints);
-	static int countPointsInside(Triangle2D tri1, Triangle2D tri2, std::vector<glm::vec2>& intersectionPoints);
+	static std::pair<int, int> countPointsInside(Triangle2D tri1, Triangle2D tri2, std::vector<glm::vec2>& intersectionPoints);
 
 	static void reverseProject(glm::vec2 intersectionPoint1, glm::vec2 intersectionPoint2, glm::vec2 intersectionPoint3, glm::vec3 projectionAxis,
 			                   Triangle3D focusTriangle, Triangle3D otherTriangle, std::vector<BlockingPair>& blockings);
@@ -76,8 +68,6 @@ public:
 
 	static bool pointInLine(glm::vec2 l1, glm::vec2 l2, glm::vec2 v1);
 
-	static bool lineIntersect3D(glm::vec3 v1, glm::vec3 v2, glm::vec3 v3, glm::vec3 v4);
-	static bool pointInTriangle3D(glm::vec3 v1, glm::vec3 v2, glm::vec3 v3, glm::vec3 p);
 	static bool pointInTriangle2D(Triangle2D tri, glm::vec2 p);
 
 	static bool getSimilarVertexIndex(

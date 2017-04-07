@@ -53,11 +53,11 @@ ExplosionGraph::ExplosionGraph(std::vector<Renderable*> parts, std::vector<Block
 	std::vector<int> moved;
 	// Construct the explosion graph
 	while (activeSet.size() > 0) {
-		std::cout << "set: ";
+		//std::cout << "set: ";
 		for (int active : activeSet) {
-			std::cout << active << " ";
+		//	std::cout << active << " ";
 		}
-		std::cout << std::endl;
+		//std::cout << std::endl;
 
 		// Create subset of unblocked pieces
 		std::vector<int> unblocked;
@@ -200,7 +200,6 @@ ExplosionGraph::ExplosionGraph(std::vector<Renderable*> parts, std::vector<Block
 		std::cout << "Error, graph contains cycle(s)" << std::endl;
 	}
 	updateDistances();
-	int x;
 }
 
 // Creates explosion graph input file
