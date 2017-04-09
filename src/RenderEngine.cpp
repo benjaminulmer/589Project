@@ -65,9 +65,18 @@ void RenderEngine::render(const std::vector<std::vector<Node*>>& graph, int leve
 			glUniformMatrix4fv(glGetUniformLocation(mainProgram, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
 			glUniform3fv(glGetUniformLocation(mainProgram, "lightPos"), 1, glm::value_ptr(lightPos));
 
-			glm::vec3 col = (node->active) ? glm::vec3(1.0f, 1.0f, 1.0f) : renderable->colour;
+			glm::vec3 colour;
+			if (node->selected) {
+				colour = glm::vec3(1.f, 1.f, 1.f);
+			}
+			else if (node->highlighted) {
+				colour = renderable->colour * 1.3f;
+			}
+			else {
+				colour = renderable->colour;
+			}
 
-			glUniform3fv(glGetUniformLocation(mainProgram, "objColour"), 1, glm::value_ptr(col));
+			glUniform3fv(glGetUniformLocation(mainProgram, "objColour"), 1, glm::value_ptr(colour));
 			glUniform1i(glGetUniformLocation(mainProgram, "hasTexture"), (renderable->textureID > 0 ? 1 : 0));
 
 			glDrawElements(GL_TRIANGLES, renderable->faces.size(), GL_UNSIGNED_SHORT, (void*)0);

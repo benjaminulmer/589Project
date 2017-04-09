@@ -1,15 +1,18 @@
 #include "ExplosionGraph.h"
 
 #include <iostream>
+#include <cfloat>
 
 // Constructor for a block, always needs part and direction
 Block::Block(Node* part, glm::vec3 direction) : part(part), direction(direction) {}
 
 // Default constructor. Zeros everything
-Node::Node() : part(0), index(0), minSelfDistance(0.0f), curSelfDistance(0.0f), totalDistance(0.0f), active(false) {}
+Node::Node() : part(0), index(0), minSelfDistance(0.0f), curSelfDistance(0.0f), totalDistance(0.0f),
+		highlighted(false), selected(false) {}
 
 // Node for part with given index
-Node::Node(Renderable* part, int index) : part(part), index(index), minSelfDistance(0.0f), curSelfDistance(0.0f), totalDistance(0.0f), active(false) {}
+Node::Node(Renderable* part, int index) : part(part), index(index), minSelfDistance(0.0f), curSelfDistance(0.0f), totalDistance(0.0f),
+		highlighted(false), selected(false){}
 
 // Moves node distance along its explosion direction within valid ranges
 void Node::move(float dist) {
@@ -42,16 +45,19 @@ ExplosionGraph::ExplosionGraph(std::vector<Renderable*> parts, std::vector<Block
 
 	// Fill blocking data from provided blocking pairs
 	for (BlockingPair& block : blockingPairs) {
-		nodes[block.focusPart].blocked.push_back(Block(&nodes[block.otherPart], block.direction));
+		//if (block.direction.y == 0) {
+			nodes[block.focusPart].blocked.push_back(Block(&nodes[block.otherPart], block.direction));
+		//}
 	}
 
+	std::vector<int> moved;
 	// Construct the explosion graph
 	while (activeSet.size() > 0) {
-		std::cout << "set: ";
+		//std::cout << "set: ";
 		for (int active : activeSet) {
-			std::cout << active << " ";
+		//	std::cout << active << " ";
 		}
-		std::cout << std::endl;
+		//std::cout << std::endl;
 
 		// Create subset of unblocked pieces
 		std::vector<int> unblocked;
@@ -76,16 +82,12 @@ ExplosionGraph::ExplosionGraph(std::vector<Renderable*> parts, std::vector<Block
 				}
 			}
 			if (((xPlus || xMinus) || (yPlus || yMinus)) || (zPlus || zMinus)) {
-			/*if ((xPlus || xMinus) || (zPlus || zMinus))*/ unblocked.push_back(activeSet[j]);
+			//if ((xPlus || xMinus) || (zPlus || zMinus)) {
+				unblocked.push_back(activeSet[j]);
 			}
 		}
 
-		//for each unblocked part
-		if (activeSet.size() == unblocked.size()) {
-			//activeSet.clear();
-			//activeSet.push_back(unblocked.front());
-		}
-
+		std::vector<int> movedThisIteration;
 		for (unsigned int m = 0; m < unblocked.size(); m++) {
 			std::vector<int> blocking;
 			glm::vec3 unblockDirection;
@@ -147,6 +149,7 @@ ExplosionGraph::ExplosionGraph(std::vector<Renderable*> parts, std::vector<Block
 					minDistance = yplusDist;
 				}
 			}
+
 			if (yMinus) {
 				float yminDist = getEscapeDistance(curNode, -1, 'y', activeSet);
 				if (yminDist < minDistance) {
@@ -155,32 +158,40 @@ ExplosionGraph::ExplosionGraph(std::vector<Renderable*> parts, std::vector<Block
 				}
 			}
 
-
-			// add edge to every active part that touches p
-			//if (activeSet.size() != 1) {
-				activeSet.erase(std::find(activeSet.begin(), activeSet.end(), unblocked[m]));
-			//}
-
-			for (Block block : nodes[unblocked[m]].blocked) {
-				// if blocking part is in the active set
-				if (std::find(activeSet.begin(), activeSet.end(), block.part->index) != activeSet.end()) {
-					bool contains = false;
-					for (Node* n : graph[block.part->index]) {
-						if (n->index == unblocked[m]) contains = true;
-					}
-					if (!contains) {
-						graph[block.part->index].push_back(&nodes[unblocked[m]]);
-					}
-				}
-			}
-
 			nodes[unblocked[m]].direction = unblockDirection;
 			nodes[unblocked[m]].minSelfDistance = minDistance;
 			nodes[unblocked[m]].curSelfDistance = minDistance;
+
+			//activeSet.erase(std::find(activeSet.begin(), activeSet.end(), unblocked[m]));
+			movedThisIteration.push_back(unblocked[m]);
 		}
-		if (activeSet.size() == 1) {
-		//	activeSet.clear();
+		for (int p : movedThisIteration) {
+			if (activeSet.size() == 1) {
+				for (int i : movedThisIteration) {
+					if (i != p) {
+						graph[p].push_back(&nodes[i]);
+
+					}
+				}
+				for (int i : moved) {
+					graph[p].push_back(&nodes[i]);
+				}
+			}
+			activeSet.erase(std::find(activeSet.begin(), activeSet.end(), p));
+			for (int m : moved) {
+
+				for (Block b : nodes[p].blocked) {
+
+					if ((b.direction == nodes[p].direction) && b.part == &nodes[m]) {
+						graph[p].push_back(&nodes[m]);
+					}
+				}
+			}
 		}
+		for (int i : movedThisIteration) {
+			moved.push_back(i);
+		}
+		movedThisIteration.clear();
 	}
 
 	// Construct other graph info
@@ -243,29 +254,56 @@ float ExplosionGraph::getEscapeDistance(Node* node, int sign, char dir, const st
 	glm::vec3 partPos = node->part->getPosition();
 	glm::vec3 partDimensions = node->part->getDimensions();
 
-	for (Block block : node->blocked) {
-		if (std::find(activeSet.begin(), activeSet.end(), block.part->index) != activeSet.end()) {
-			glm::vec3 blockDimensions = block.part->part->getDimensions();
-			glm::vec3 blockPos = block.part->part->getPosition();
+	float minX, maxX;
+	float minY, maxY;
+	float minZ, maxZ;
 
-			float newPos;
-			float newDist;
-			if (dir == 'x') {
-				newPos = blockPos.x + sign * ((0.5 * partDimensions.x) + (0.5 * blockDimensions.x));
-				newDist = abs(newPos - partPos.x);
-			}
-			else if (dir == 'y') {
-				newPos = blockPos.y + sign * ((0.5 * partDimensions.y) + (0.5 * blockDimensions.y));
-				newDist = abs(newPos - partPos.y);
-			}
-			else {
-				newPos = blockPos.z + sign * ((0.5 * partDimensions.z) + (0.5 * blockDimensions.z));
-				newDist = abs(newPos - partPos.z);
-			}
+	minX = minY = minZ = FLT_MAX;
+	maxX = maxY = maxZ = FLT_MIN;
 
-			if (newDist > toReturn) toReturn = newDist;
+	for (int i : activeSet) {
+		if (i == node->index) {
+			continue;
 		}
+		Renderable* part = nodes[i].part;
+
+		glm::vec3 curPos = part->getPosition();
+		glm::vec3 curDims = part->getDimensions();
+
+		float cMinX = curPos.x - 0.5f * curDims.x;
+		float cMaxX = curPos.x + 0.5f * curDims.x;
+		float cMinY = curPos.y - 0.5f * curDims.y;
+		float cMaxY = curPos.y + 0.5f * curDims.y;
+		float cMinZ = curPos.z - 0.5f * curDims.z;
+		float cMaxZ = curPos.z + 0.5f * curDims.z;
+
+		minX = glm::min(minX, cMinX);
+		maxX = glm::max(maxX, cMaxX);
+		minY = glm::min(minY, cMinY);
+		maxY = glm::max(maxY, cMaxY);
+		minZ = glm::min(minZ, cMinZ);
+		maxZ = glm::max(maxZ, cMaxZ);
 	}
+	glm::vec3 dimensions = glm::vec3(glm::abs(maxX - minX), glm::abs(maxY - minY), glm::abs(maxZ - minZ));
+	glm::vec3 position = glm::vec3(0.5f * (maxX + minX), 0.5f * (maxY + minY), 0.5f * (maxZ + minZ));
+
+	float newPos;
+	float newDist;
+	if (dir == 'x') {
+		newPos = position.x + sign * ((0.5 * partDimensions.x) + (0.5 * dimensions.x));
+		newDist = abs(newPos - partPos.x);
+	}
+	else if (dir == 'y') {
+		newPos = position.y + sign * ((0.5 * partDimensions.y) + (0.5 * dimensions.y));
+		newDist = abs(newPos - partPos.y);
+	}
+	else {
+		newPos = position.z + sign * ((0.5 * partDimensions.z) + (0.5 * dimensions.z));
+		newDist = abs(newPos - partPos.z);
+	}
+
+	if (newDist > toReturn) toReturn = newDist;
+
 	return toReturn;
 }
 

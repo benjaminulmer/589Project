@@ -62,6 +62,7 @@ void ContentReadWrite::writeExplosionGraph(rapidjson::Document& d, std::string g
 	file.write(output, size);
 }
 
+// Load obj file from path into indexed list data structure
 bool ContentReadWrite::loadOBJ(const char* path, IndexedLists& r) {
 	printf("Loading OBJ file %s...\n", path);
 

@@ -1,10 +1,17 @@
 #include "ModelOperations.h"
 
 #include <stdio.h>
+#include <iostream>
 
-// Constructor for a block, always needs part and direction
+#include <glm/gtc/epsilon.hpp>
+#include <glm/gtx/intersect.hpp>
+
+float EPS = 0.0001f;
+
+// Creates blocking pair with two parts and a direction
 BlockingPair::BlockingPair(unsigned int focusPart, unsigned int otherPart, glm::vec3 direction) : focusPart(focusPart), otherPart(otherPart), direction(direction) {}
 
+// Splits an object into its separate parts
 std::vector<UnpackedLists> ModelOperations::split(IndexedLists& mainObject) {
 
 	// Structures for tracking faces and verts that have been processed
@@ -115,226 +122,6 @@ std::vector<UnpackedLists> ModelOperations::split(IndexedLists& mainObject) {
 	return splitObjects;
 }
 
-std::vector<BlockingPair> ModelOperations::contactsAndBlocking(std::vector<UnpackedLists>& objects) {
-	std::vector<BlockingPair> contacts;
-
-	for (unsigned int focusObject = 0; focusObject < objects.size(); focusObject++) {
-		for (unsigned int otherObject = focusObject + 1; otherObject < objects.size(); otherObject++) {
-			for (unsigned int focusTriangle = 0; focusTriangle < objects[focusObject].verts.size(); focusTriangle+=3) {
-				for (unsigned int otherTriangle = 0; otherTriangle < objects[otherObject].verts.size(); otherTriangle+=3) {
-					glm::vec3 focusTriangleVerts[3];
-					focusTriangleVerts[0] = objects[focusObject].verts[focusTriangle];
-					focusTriangleVerts[1] = objects[focusObject].verts[focusTriangle + 1];
-					focusTriangleVerts[2] = objects[focusObject].verts[focusTriangle + 2];
-
-					glm::vec3 otherTriangleVerts[3];
-					otherTriangleVerts[0] = objects[otherObject].verts[otherTriangle];
-					otherTriangleVerts[1] = objects[otherObject].verts[otherTriangle + 1];
-					otherTriangleVerts[2] = objects[otherObject].verts[otherTriangle + 2];
-
-					//TODO Compute blocking information here
-
-					//Compute face normals of the two triangles
-					//Follow right hand rule
-					glm::vec3 focusTriangleNormal = glm::normalize(glm::cross(focusTriangleVerts[0] - focusTriangleVerts[1], focusTriangleVerts[2] - focusTriangleVerts[1]));
-
-					glm::vec3 otherTriangleNormal = glm::normalize(glm::cross(otherTriangleVerts[0] - otherTriangleVerts[1], otherTriangleVerts[2] - otherTriangleVerts[1]));
-
-					//Decide if the normalized normals are the same
-					//if (focusTriangleNormal.x == -otherTriangleNormal.x && focusTriangleNormal.y == -otherTriangleNormal.y && focusTriangleNormal.z == -otherTriangleNormal.z) {
-						glm::vec3 offset = focusTriangleVerts[0] - otherTriangleVerts[0];
-						//Test if the triangles are in the same plane
-						//if (glm::dot(focusTriangleNormal, offset) == 0.0) {
-							//Determine if the triangles intersect
-							bool intersect = false;
-							int numIntersect = 0;
-							if (lineIntersect(focusTriangleVerts[0],focusTriangleVerts[1],otherTriangleVerts[0],otherTriangleVerts[1])) {
-								numIntersect++;
-								//intersect = true;
-							}
-							if (lineIntersect(focusTriangleVerts[0],focusTriangleVerts[1],otherTriangleVerts[0],otherTriangleVerts[2])) {
-								numIntersect++;
-								//intersect = true;
-							}
-							if (lineIntersect(focusTriangleVerts[0],focusTriangleVerts[1],otherTriangleVerts[1],otherTriangleVerts[2])) {
-								numIntersect++;
-								//intersect = true;
-							}
-							if (lineIntersect(focusTriangleVerts[0],focusTriangleVerts[2],otherTriangleVerts[0],otherTriangleVerts[1])) {
-								numIntersect++;
-								//intersect = true;
-							}
-							if (lineIntersect(focusTriangleVerts[0],focusTriangleVerts[2],otherTriangleVerts[0],otherTriangleVerts[2])) {
-								numIntersect++;
-								//intersect = true;
-							}
-							if (lineIntersect(focusTriangleVerts[0],focusTriangleVerts[2],otherTriangleVerts[1],otherTriangleVerts[2])) {
-								numIntersect++;
-								//intersect = true;
-							}
-							if (lineIntersect(focusTriangleVerts[1],focusTriangleVerts[2],otherTriangleVerts[0],otherTriangleVerts[1])) {
-								numIntersect++;
-								//intersect = true;
-							}
-							if (lineIntersect(focusTriangleVerts[1],focusTriangleVerts[2],otherTriangleVerts[0],otherTriangleVerts[2])) {
-								numIntersect++;
-								//intersect = true;
-							}
-							if (lineIntersect(focusTriangleVerts[1],focusTriangleVerts[2],otherTriangleVerts[1],otherTriangleVerts[2])) {
-								numIntersect++;
-								//intersect = true;
-							}
-							//Triangles that only share one edge may not be in contact
-							if (numIntersect > 1) {
-								intersect = true;
-							}
-							bool inTri = true;
-							inTri = inTri && pointInTriangle(focusTriangleVerts[0],focusTriangleVerts[1],focusTriangleVerts[2], otherTriangleVerts[0]);
-							inTri = inTri && pointInTriangle(focusTriangleVerts[0],focusTriangleVerts[1],focusTriangleVerts[2], otherTriangleVerts[1]);
-							inTri = inTri && pointInTriangle(focusTriangleVerts[0],focusTriangleVerts[1],focusTriangleVerts[2], otherTriangleVerts[2]);
-							if (inTri) {
-								intersect = true;
-							}
-							inTri = true;
-							inTri = inTri && pointInTriangle(otherTriangleVerts[0],otherTriangleVerts[1],otherTriangleVerts[2], focusTriangleVerts[0]);
-							inTri = inTri && pointInTriangle(otherTriangleVerts[0],otherTriangleVerts[1],otherTriangleVerts[2], focusTriangleVerts[1]);
-							inTri = inTri && pointInTriangle(otherTriangleVerts[0],otherTriangleVerts[1],otherTriangleVerts[2], focusTriangleVerts[2]);
-							if (inTri) {
-								intersect = true;
-							}
-							if (intersect) {
-								//Determine blocking direction(s)
-								float angle = glm::dot(focusTriangleNormal, glm::vec3(1, 0, 0));
-								if (angle > 0.0) {
-									bool alreadyExists = false;
-									bool alreadyExists2 = false;
-									//vectors form an acute angle, focus object cannot move in positive x, other cannot move in -x
-									for (unsigned int i = 0; i < contacts.size(); i++) {
-										if (contacts[i].focusPart == focusObject && contacts[i].otherPart == otherObject && contacts[i].direction == glm::vec3(-1, 0, 0)) {
-											alreadyExists = true;
-										}
-										if (contacts[i].focusPart == otherObject && contacts[i].otherPart == focusObject && contacts[i].direction == glm::vec3(1, 0, 0)) {
-											alreadyExists2 = true;
-										}
-									}
-									if (!alreadyExists) {
-										contacts.push_back(BlockingPair(focusObject, otherObject, glm::vec3(-1, 0, 0)));
-									}
-									if (!alreadyExists2) {
-										contacts.push_back(BlockingPair(otherObject, focusObject, glm::vec3(1, 0, 0)));
-									}
-								} else if (angle < 0.0) {
-									bool alreadyExists = false;
-									bool alreadyExists2 = false;
-									//vectors form an obtuse angle, focus object cannot move in negative x
-									for (unsigned int i = 0; i < contacts.size(); i++) {
-										if (contacts[i].focusPart == focusObject && contacts[i].otherPart == otherObject && contacts[i].direction == glm::vec3(1, 0, 0)) {
-											alreadyExists = true;
-										}
-										if (contacts[i].focusPart == otherObject && contacts[i].otherPart == focusObject && contacts[i].direction == glm::vec3(-1, 0, 0)) {
-											alreadyExists2 = true;
-										}
-									}
-									if (!alreadyExists) {
-										contacts.push_back(BlockingPair(focusObject, otherObject, glm::vec3(1, 0, 0)));
-									}
-									if (!alreadyExists2) {
-										contacts.push_back(BlockingPair(otherObject, focusObject, glm::vec3(-1, 0, 0)));
-									}
-								} else {
-									//focus object is unblocked in x direction
-								}
-								angle = glm::dot(focusTriangleNormal, glm::vec3(0, 1, 0));
-								if (angle > 0.0) {
-									bool alreadyExists = false;
-									bool alreadyExists2 = false;
-									//vectors form an acute angle, focus object cannot move in positive y
-									for (unsigned int i = 0; i < contacts.size(); i++) {
-										if (contacts[i].focusPart == focusObject && contacts[i].otherPart == otherObject && contacts[i].direction == glm::vec3(0, -1, 0)) {
-											alreadyExists = true;
-										}
-										if (contacts[i].focusPart == otherObject && contacts[i].otherPart == focusObject && contacts[i].direction == glm::vec3(0, 1, 0)) {
-											alreadyExists2 = true;
-										}
-									}
-									if (!alreadyExists) {
-										contacts.push_back(BlockingPair(focusObject, otherObject, glm::vec3(0, -1, 0)));
-									}
-									if (!alreadyExists2) {
-										contacts.push_back(BlockingPair(otherObject, focusObject, glm::vec3(0, 1, 0)));
-									}
-								} else if (angle < 0.0) {
-									bool alreadyExists = false;
-									bool alreadyExists2 = false;
-									//vectors form an obtuse angle, focus object cannot move in negative y
-									for (unsigned int i = 0; i < contacts.size(); i++) {
-										if (contacts[i].focusPart == focusObject && contacts[i].otherPart == otherObject && contacts[i].direction == glm::vec3(0, 1, 0)) {
-											alreadyExists = true;
-										}
-										if (contacts[i].focusPart == otherObject && contacts[i].otherPart == focusObject && contacts[i].direction == glm::vec3(0, -1, 0)) {
-											alreadyExists2 = true;
-										}
-									}
-									if (!alreadyExists) {
-										contacts.push_back(BlockingPair(focusObject, otherObject, glm::vec3(0, 1, 0)));
-									}
-									if (!alreadyExists2) {
-										contacts.push_back(BlockingPair(otherObject, focusObject, glm::vec3(0, -1, 0)));
-									}
-								} else {
-									//focus object is unblocked in y direction
-								}
-								angle = glm::dot(focusTriangleNormal, glm::vec3(0, 0, 1));
-								if (angle > 0.0) {
-									bool alreadyExists = false;
-									bool alreadyExists2 = false;
-									//vectors form an acute angle, focus object cannot move in positive z
-									for (unsigned int i = 0; i < contacts.size(); i++) {
-										if (contacts[i].focusPart == focusObject && contacts[i].otherPart == otherObject && contacts[i].direction == glm::vec3(0, 0, -1)) {
-											alreadyExists = true;
-										}
-										if (contacts[i].focusPart == otherObject && contacts[i].otherPart == focusObject && contacts[i].direction == glm::vec3(0, 0, 1)) {
-											alreadyExists2 = true;
-										}
-									}
-									if (!alreadyExists) {
-										contacts.push_back(BlockingPair(focusObject, otherObject, glm::vec3(0, 0, -1)));
-									}
-									if (!alreadyExists2) {
-										contacts.push_back(BlockingPair(otherObject, focusObject, glm::vec3(0, 0, 1)));
-									}
-								} else if (angle < 0.0) {
-									bool alreadyExists = false;
-									bool alreadyExists2 = false;
-									//vectors form an obtuse angle, focus object cannot move in negative z
-									for (unsigned int i = 0; i < contacts.size(); i++) {
-										if (contacts[i].focusPart == focusObject && contacts[i].otherPart == otherObject && contacts[i].direction == glm::vec3(0, 0, 1)) {
-											alreadyExists = true;
-										}
-										if (contacts[i].focusPart == otherObject && contacts[i].otherPart == focusObject && contacts[i].direction == glm::vec3(0, 0, -1)) {
-											alreadyExists2 = true;
-										}
-									}
-									if (!alreadyExists) {
-										contacts.push_back(BlockingPair(focusObject, otherObject, glm::vec3(0, 0, 1)));
-									}
-									if (!alreadyExists2) {
-										contacts.push_back(BlockingPair(otherObject, focusObject, glm::vec3(0, 0, -1)));
-									}
-								} else {
-									//focus object is unblocked in z direction
-								}
-							}
-						//}//if1
-					//}//if2
-
-				}
-			}
-		}
-	}
-
-	return contacts;
-}
 
 bool ModelOperations::getSimilarVertexIndex(
 		PackedVertex & packed,
@@ -385,88 +172,347 @@ void ModelOperations::indexVBO(
 	}
 }
 
-bool ModelOperations::lineIntersect(glm::vec3 p1, glm::vec3 p2, glm::vec3 p3, glm::vec3 p4) {
-	//Code adapted from http://paulbourke.net/geometry/pointlineplane/lineline.c
-	//judge if line (p1,p2) intersects with line(p3,p4)
-	glm::vec3 p13,p43,p21;
-	double d1343,d4321,d1321,d4343,d2121;
-	double numer,denom;
-	//Minimum distance below which lines are considered to intersect
-	double EPS = 0.5;
+// Computes the set of all blockings for a set of objects
+std::vector<BlockingPair> ModelOperations::blocking(std::vector<UnpackedLists>& objects) {
+	std::vector<BlockingPair> blockings;
 
-	if (p1 == p3 && p2 == p4) {
-		return true;
+	// Compare all objects to each other
+	for (unsigned int focusObject = 0; focusObject < objects.size(); focusObject++) {
+		for (unsigned int otherObject = focusObject + 1; otherObject < objects.size(); otherObject++) {
+
+			// Compare all triangles in objects to each other
+			for (unsigned int focusTriangleIndex = 0; focusTriangleIndex < objects[focusObject].verts.size(); focusTriangleIndex+=3) {
+				for (unsigned int otherTriangleIndex = 0; otherTriangleIndex < objects[otherObject].verts.size(); otherTriangleIndex+=3) {
+
+					Triangle3D focusTriangle(objects[focusObject].verts[focusTriangleIndex],
+							                 objects[focusObject].verts[focusTriangleIndex + 1],
+											 objects[focusObject].verts[focusTriangleIndex + 2], focusObject) ;
+
+
+					Triangle3D otherTriangle(objects[otherObject].verts[otherTriangleIndex],
+							                 objects[otherObject].verts[otherTriangleIndex + 1],
+											 objects[otherObject].verts[otherTriangleIndex + 2], otherObject);
+
+					//order is z, y, x
+					std::vector<glm::vec2> intersectionPoints[3];
+					bool intersect[3] = {false, false, false};
+
+					// Test for intersections on each axis
+					for (unsigned int i = 0; i < 3; i++) {
+						Triangle2D focusTriangleProj;
+						Triangle2D otherTriangleProj;
+						projectToPlane(i, focusTriangle, otherTriangle, focusTriangleProj, otherTriangleProj);
+
+						// If the area of a triangle is 0 it cannot intersect
+						if (abs(focusTriangleProj.getArea()) < EPS || abs(otherTriangleProj.getArea()) < EPS) {
+							continue;
+						}
+
+						// Count number of line intersections and number of points inside
+						int numIntersect = countIntersections(focusTriangleProj, otherTriangleProj, intersectionPoints[i]);
+						std::pair<int, int> numPoints = countPointsInside(focusTriangleProj, otherTriangleProj, intersectionPoints[i]);
+
+						// One of these will be true if the triangles intersect
+						if ((numIntersect >= 2) || numPoints.first >= 3 || numPoints.second >= 3) {
+							intersect[i] = true;
+						}
+					}
+
+					// Add blocking if there were intersections
+					if (intersect[0]) {
+						reverseProject(intersectionPoints[0][0], intersectionPoints[0][1], intersectionPoints[0][2], glm::vec3(0, 0, 1), focusTriangle, otherTriangle, blockings);
+					}
+
+					if (intersect[1]) {
+						reverseProject(intersectionPoints[1][0], intersectionPoints[1][1], intersectionPoints[1][2], glm::vec3(0, 1, 0), focusTriangle, otherTriangle, blockings);
+					}
+
+					if (intersect[2]) {
+						reverseProject(intersectionPoints[2][0], intersectionPoints[2][1], intersectionPoints[2][2], glm::vec3(1, 0, 0), focusTriangle, otherTriangle, blockings);
+					}
+
+				}
+			}
+		}
 	}
-
-	if (p1 == p4 && p2 == p3) {
-		return true;
-	}
-
-	//Make sure the lines are not degenerate
-	p13.x = p1.x - p3.x;
-	p13.y = p1.y - p3.y;
-	p13.z = p1.z - p3.z;
-	p43.x = p4.x - p3.x;
-	p43.y = p4.y - p3.y;
-	p43.z = p4.z - p3.z;
-	if (std::abs(p43.x) < EPS && std::abs(p43.y) < EPS && std::abs(p43.z) < EPS) {
-		return false;
-	}
-
-	p21.x = p2.x - p1.x;
-	p21.y = p2.y - p1.y;
-	p21.z = p2.z - p1.z;
-	if (std::abs(p21.x) < EPS && std::abs(p21.y) < EPS && std::abs(p21.z) < EPS) {
-		return false;
-	}
-
-	d1343 = p13.x * p43.x + p13.y * p43.y + p13.z * p43.z;
-	d4321 = p43.x * p21.x + p43.y * p21.y + p43.z * p21.z;
-	d1321 = p13.x * p21.x + p13.y * p21.y + p13.z * p21.z;
-	d4343 = p43.x * p43.x + p43.y * p43.y + p43.z * p43.z;
-	d2121 = p21.x * p21.x + p21.y * p21.y + p21.z * p21.z;
-
-	denom = d2121 * d4343 - d4321 * d4321;
-	if (std::abs(denom) < EPS) {
-		return false;
-	}
-
-	numer = d1343 * d4321 - d1321 * d4343;
-
-	double mua = numer / denom;
-	double mub = (d1343 + d4321 * mua) / d4343;
-
-	//TODO carefully consider this line
-	if (mua <= 0 || mua >= 1 || mub <= 0 || mub >= 1) {
-		return false;
-	}
-
-	glm::vec3 pa, pb;
-	pa.x = p1.x + mua * p21.x;
-	pa.y = p1.y + mua * p21.y;
-	pa.z = p1.z + mua * p21.z;
-	pb.x = p3.x + mub * p43.x;
-	pb.y = p3.y + mub * p43.y;
-	pb.z = p3.z + mub * p43.z;
-
-	if (glm::length(pa - pb) < EPS) {
-		return true;
-	}
-
-	return false;
+	return blockings;
 }
 
-bool ModelOperations::pointInTriangle(glm::vec3 A, glm::vec3 B, glm::vec3 C, glm::vec3 p) {
-	double s = 0.5 * glm::length(glm::cross(A - B, A - C));
-	double s1 = 0.5 * glm::length(glm::cross(B - p, C - p));
-	double s2 = 0.5 * glm::length(glm::cross(p - C, p - A));
+// Projects 3D triangles to planar 2D triangles
+void ModelOperations::projectToPlane(int i, Triangle3D tri1, Triangle3D tri2, Triangle2D& out1, Triangle2D& out2) {
+	if (i == 0) {
+		out1 = Triangle2D(glm::vec2(tri1.v0.x, tri1.v0.y),
+				          glm::vec2(tri1.v1.x, tri1.v1.y),
+						  glm::vec2(tri1.v2.x, tri1.v2.y));
 
-	double a = s1 / s;
-	double b = s2 / s;
-	double c = 1.0 - a - b;
+		out2 = Triangle2D(glm::vec2(tri2.v0.x, tri2.v0.y),
+				          glm::vec2(tri2.v1.x, tri2.v1.y),
+						  glm::vec2(tri2.v2.x, tri2.v2.y));
 
-	if (a > 0.0 && a < 1.0 && b > 0.0 && b < 1.0 && c > 0.0 && c < 1.0) {
-		return true;
+	} else if (i == 1) {
+		out1 = Triangle2D(glm::vec2(tri1.v0.x, tri1.v0.z),
+				          glm::vec2(tri1.v1.x, tri1.v1.z),
+						  glm::vec2(tri1.v2.x, tri1.v2.z));
+
+		out2 = Triangle2D(glm::vec2(tri2.v0.x, tri2.v0.z),
+				          glm::vec2(tri2.v1.x, tri2.v1.z),
+						  glm::vec2(tri2.v2.x, tri2.v2.z));
+
+	} else { //i == 2
+		out1 = Triangle2D(glm::vec2(tri1.v0.y, tri1.v0.z),
+				          glm::vec2(tri1.v1.y, tri1.v1.z),
+						  glm::vec2(tri1.v2.y, tri1.v2.z));
+
+		out2 = Triangle2D(glm::vec2(tri2.v0.y, tri2.v0.z),
+				          glm::vec2(tri2.v1.y, tri2.v1.z),
+						  glm::vec2(tri2.v2.y, tri2.v2.z));
 	}
-	return false;
+}
+
+// Counts line to line intersections between two 2D triangles
+int ModelOperations::countIntersections(Triangle2D tri1, Triangle2D tri2, std::vector<glm::vec2>& intersectionPoints) {
+	int numIntersects = 0;
+	if (lineIntersect2D(tri1.v0, tri1.v1, tri2.v0, tri2.v1, intersectionPoints)) {
+		numIntersects++;
+	}
+	if (lineIntersect2D(tri1.v0, tri1.v1, tri2.v0, tri2.v2, intersectionPoints)) {
+		numIntersects++;
+	}
+	if (lineIntersect2D(tri1.v0, tri1.v1, tri2.v1, tri2.v2, intersectionPoints)) {
+		numIntersects++;
+	}
+	if (lineIntersect2D(tri1.v0, tri1.v2, tri2.v0, tri2.v1, intersectionPoints)) {
+		numIntersects++;
+	}
+	if (lineIntersect2D(tri1.v0, tri1.v2, tri2.v0, tri2.v2, intersectionPoints)) {
+		numIntersects++;
+	}
+	if (lineIntersect2D(tri1.v0, tri1.v2, tri2.v1, tri2.v2, intersectionPoints)) {
+		numIntersects++;
+	}
+	if (lineIntersect2D(tri1.v1, tri1.v2, tri2.v0, tri2.v1, intersectionPoints)) {
+		numIntersects++;
+	}
+	if (lineIntersect2D(tri1.v1, tri1.v2, tri2.v0, tri2.v2, intersectionPoints)) {
+		numIntersects++;
+	}
+	if (lineIntersect2D(tri1.v1, tri1.v2, tri2.v1, tri2.v2, intersectionPoints)) {
+		numIntersects++;
+	}
+	return numIntersects;
+}
+
+// Counts number of points tri1 has in tri2 and vis versa
+std::pair<int, int> ModelOperations::countPointsInside(Triangle2D tri1, Triangle2D tri2, std::vector<glm::vec2>& intersectionPoints) {
+	int numPointsA = 0;
+	int numPointsB = 0;
+
+	if(pointInTriangle2D(tri1, tri2.v0)) {
+		if (intersectionPoints.size() < 3) {
+			intersectionPoints.push_back(tri2.v0);
+		}
+		numPointsA++;
+	}
+	if (pointInTriangle2D(tri1, tri2.v1)) {
+		if (intersectionPoints.size() < 3) {
+			intersectionPoints.push_back(tri2.v1);
+		}
+		numPointsA++;
+	}
+	if (pointInTriangle2D(tri1, tri2.v2)) {
+		if (intersectionPoints.size() < 3) {
+			intersectionPoints.push_back(tri2.v2);
+		}
+		numPointsA++;
+	}
+	if (pointInTriangle2D(tri2, tri1.v0)) {
+		if (intersectionPoints.size() < 3) {
+			intersectionPoints.push_back(tri1.v0);
+		}
+		numPointsB++;
+	}
+	if (pointInTriangle2D(tri2, tri1.v1)) {
+		if (intersectionPoints.size() < 3) {
+			intersectionPoints.push_back(tri1.v1);
+		}
+		numPointsB++;
+	}
+	if (pointInTriangle2D(tri2, tri1.v2)) {
+		if (intersectionPoints.size() < 3) {
+			intersectionPoints.push_back(tri1.v2);
+		}
+		numPointsB++;
+	}
+	return std::pair<int, int>(numPointsA, numPointsB);
+}
+
+// Reverse projects the 2D triangles to see which one is blocking which
+void ModelOperations::reverseProject(glm::vec2 intersectionPoint1, glm::vec2 intersectionPoint2, glm::vec2 intersectionPoint3,
+		                             glm::vec3 projectionAxis, Triangle3D focusTriangle, Triangle3D otherTriangle, std::vector<BlockingPair>& blockings) {
+
+	glm::vec2 center = ((1.0f/3.0f) * intersectionPoint1) + ((1.0f/3.0f) * intersectionPoint2) + ((1.0f/3.0f) * intersectionPoint3);
+	glm::vec3 pa;
+	if (projectionAxis.x == 1.0f) {
+		pa = glm::vec3(0.0f, center.x, center.y);
+	} else if (projectionAxis.y == 1.0f) {
+		pa = glm::vec3(center.x, 0.0f, center.y);
+	} else {
+		pa = glm::vec3(center.x, center.y, 0.0f);
+	}
+	glm::vec3 barryPos;
+	glm::vec3 intersectionPoint;
+
+	bool a = glm::intersectLineTriangle(pa, projectionAxis, focusTriangle.v0, focusTriangle.v1, focusTriangle.v2, barryPos);
+	intersectionPoint = focusTriangle.v0 * (1 - barryPos.y - barryPos.z) + focusTriangle.v1 * barryPos.y + focusTriangle.v2 * barryPos.z;
+	float distanceFocus = glm::length(pa - intersectionPoint);
+	if (glm::dot(pa - intersectionPoint, projectionAxis) < 0.0f) {
+		distanceFocus*= -1;
+	}
+
+	bool b = glm::intersectLineTriangle(pa, projectionAxis, otherTriangle.v0, otherTriangle.v1, otherTriangle.v2, barryPos);
+	intersectionPoint = otherTriangle.v0 * (1 - barryPos.y - barryPos.z) + otherTriangle.v1 * barryPos.y + otherTriangle.v2 * barryPos.z;
+	float distanceOther = glm::length(pa - intersectionPoint);
+	if (glm::dot(pa - intersectionPoint, projectionAxis) < 0.0f) {
+		distanceOther*= -1;
+	}
+
+	// No intersection, we probably didn't want this case anyway
+	if (!a || !b) {
+		return;
+	}
+
+	float angle = glm::dot(focusTriangle.getNormal(), projectionAxis);
+	if (angle < 0.0f) {
+		if (distanceFocus >= (distanceOther - EPS)) {
+			bool alreadyExists = false;
+			bool alreadyExists2 = false;
+			//vectors form an acute angle, focus object cannot move in positive y
+			for (unsigned int i = 0; i < blockings.size(); i++) {
+				if (blockings[i].focusPart == focusTriangle.object && blockings[i].otherPart == otherTriangle.object && blockings[i].direction == projectionAxis) {
+					alreadyExists = true;
+				}
+				if (blockings[i].focusPart == otherTriangle.object && blockings[i].otherPart == focusTriangle.object && blockings[i].direction == -projectionAxis) {
+					alreadyExists2 = true;
+				}
+			}
+			if (!alreadyExists) {
+				blockings.push_back(BlockingPair(focusTriangle.object, otherTriangle.object, projectionAxis));
+			}
+			if (!alreadyExists2) {
+				blockings.push_back(BlockingPair(otherTriangle.object, focusTriangle.object, -projectionAxis));
+			}
+		}
+	} else {
+		if (distanceFocus <= (distanceOther + EPS)) {
+			bool alreadyExists = false;
+			bool alreadyExists2 = false;
+			//vectors form an obtuse angle, focus object cannot move in negative y
+			for (unsigned int i = 0; i < blockings.size(); i++) {
+				if (blockings[i].focusPart == focusTriangle.object && blockings[i].otherPart == otherTriangle.object && blockings[i].direction == -projectionAxis) {
+					alreadyExists = true;
+				}
+				if (blockings[i].focusPart == otherTriangle.object && blockings[i].otherPart == focusTriangle.object && blockings[i].direction == projectionAxis) {
+					alreadyExists2 = true;
+				}
+			}
+			if (!alreadyExists) {
+				blockings.push_back(BlockingPair(focusTriangle.object, otherTriangle.object, -projectionAxis));
+			}
+			if (!alreadyExists2) {
+				blockings.push_back(BlockingPair(otherTriangle.object, focusTriangle.object, projectionAxis));
+			}
+		}
+	}
+}
+
+// Tests if a point is inside a line segment (2D)
+bool ModelOperations::pointInLine2D(glm::vec2 l1, glm::vec2 l2, glm::vec2 v1) {
+	bool interX = false;
+	if (l1.x + EPS < l2.x) {
+		interX = (interX || (v1.x > l1.x + EPS && v1.x + EPS < l2.x));
+	}
+	else if (l1.x > l2.x + EPS) {
+		interX = (interX || (v1.x > l2.x + EPS && v1.x + EPS < l1.x));
+	}
+	else {
+		interX = (abs(l1.x - l2.x) < EPS) && (abs(l2.x - v1.x) < EPS);
+	}
+
+	bool interY = false;
+	if (l1.y + EPS < l2.y) {
+		interY = (interY || (v1.y > l1.y + EPS && v1.y + EPS < l2.y));
+	}
+	else if (l1.x > l2.x + EPS) {
+		interY = (interY || (v1.y > l2.y + EPS && v1.y + EPS < l1.y));
+	}
+	else {
+		interY = (abs(l1.y - l2.y) < EPS) && (abs(l2.y - v1.y) < EPS);
+	}
+	return interX && interY;
+}
+
+// Tests if two line segments intersect in 2D
+bool ModelOperations::lineIntersect2D(glm::vec2 v1, glm::vec2 v2, glm::vec2 v3, glm::vec2 v4, std::vector<glm::vec2>& intersectionPoints) {
+
+   double mua,mub;
+   double denom,numera,numerb;
+
+   denom  = (v4.y-v3.y) * (v2.x-v1.x) - (v4.x-v3.x) * (v2.y-v1.y);
+   numera = (v4.x-v3.x) * (v1.y-v3.y) - (v4.y-v3.y) * (v1.x-v3.x);
+   numerb = (v2.x-v1.x) * (v1.y-v3.y) - (v2.y-v1.y) * (v1.x-v3.x);
+
+   //Are the line coincident?
+   if (std::abs(numera) < EPS && std::abs(numerb) < EPS && std::abs(denom) < EPS) {
+
+	   // Crazy ass logic starts here
+	   // Test if the lines segments are overlapping
+	   bool v1In = pointInLine2D(v3, v4, v1);
+	   bool v2In = pointInLine2D(v3, v4, v2);
+	   bool v3In = pointInLine2D(v1, v2, v3);
+	   bool v4In = pointInLine2D(v1, v2, v4);
+
+	   glm::bvec2 a = glm::epsilonEqual(v1, v3, EPS);
+	   glm::bvec2 b = glm::epsilonEqual(v2, v4, EPS);
+	   glm::bvec2 c = glm::epsilonEqual(v1, v4, EPS);
+	   glm::bvec2 d = glm::epsilonEqual(v2, v3, EPS);
+
+	   bool same = ((a.x && a.y) && (b.x && b.y)) || ((c.x && c.y) && (d.x && d.y));
+
+	   if ((v1In || v2In || v3In || v4In) || !same) {
+		   return false;
+	   }
+
+	   if (intersectionPoints.size() < 3) {
+		   intersectionPoints.push_back(0.5f * (v1 + v2));
+	   }
+	   return true;
+   }
+
+   //Are the line parallel?
+   if (std::abs(denom) < EPS) {
+      return false;
+   }
+
+   //Is the intersection along the the segments?
+   mua = numera / denom;
+   mub = numerb / denom;
+   //TODO carefully consider this line
+   if (mua <= 0 || mua >= 1 || mub <= 0 || mub >= 1) {
+      return false;
+   }
+
+   if (intersectionPoints.size() < 3) {
+	   intersectionPoints.push_back(glm::vec2(v1.x + mua * (v2.x - v1.x), v1.y + mua * (v2.y - v1.y)));
+   }
+
+   return true;
+}
+
+// Tests if a point is inside of a triangle (2D)
+bool ModelOperations::pointInTriangle2D(Triangle2D tri, glm::vec2 p) {
+	double area = tri.getArea();
+    double s = 1.f/(2.f*area) * (tri.v0.y * tri.v2.x - tri.v0.x * tri.v2.y + (tri.v2.y - tri.v0.y) * p.x + (tri.v0.x - tri.v2.x) * p.y);
+    double t = 1.f/(2.f*area) * (tri.v0.x * tri.v1.y - tri.v0.y * tri.v1.x + (tri.v0.y - tri.v1.y) * p.x + (tri.v1.x - tri.v0.x) * p.y);
+
+    return s > -EPS && t > -EPS && (1 - s - t) > -EPS;
 }

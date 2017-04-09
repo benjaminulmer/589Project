@@ -58,10 +58,10 @@ void InputHandler::key(SDL_KeyboardEvent& e) {
 		renderEngine->updateLightPos(glm::vec3(0.0, 0.0, -0.1));
 		break;
 	case(SDLK_1) :
-		program->setState(State::EXPLODE);
+		program->setState(AniamtionState::EXPLODE);
 		break;
 	case(SDLK_2) :
-		program->setState(State::COLLAPSE);
+		program->setState(AniamtionState::COLLAPSE);
 		break;
 	case(SDLK_r) :
 		program->updateDistanceBuffer(0.1f);
@@ -75,12 +75,6 @@ void InputHandler::key(SDL_KeyboardEvent& e) {
 	case(SDLK_g) :
 		program->updateExplosionTime(-0.25f);
 		break;
-	case(SDLK_z) :
-		program->moveCurrentPart(-0.25f);
-		break;
-	case(SDLK_x) :
-		program->moveCurrentPart(0.25f);
-		break;
 	case(SDLK_ESCAPE) :
 		SDL_Quit();
 		exit(0);
@@ -91,6 +85,10 @@ void InputHandler::key(SDL_KeyboardEvent& e) {
 void InputHandler::mouse(SDL_MouseButtonEvent& e) {
 	mouseOldX = e.x;
 	mouseOldY = e.y;
+
+	if (e.button == SDL_BUTTON_LEFT) {
+		program->_3Dpick(true);
+	}
 }
 
 // Callback for mouse motion
@@ -122,7 +120,14 @@ void InputHandler::motion(SDL_MouseMotionEvent& e) {
 void InputHandler::scroll(SDL_MouseWheelEvent& e) {
 	double dy;
 	dy = (e.x - e.y);
-	camera->updatePosition(glm::vec3(dy * -1.0f, 0.0, 0.0));
+
+	const Uint8 *state = SDL_GetKeyboardState(0);
+	if (state[SDL_SCANCODE_LSHIFT]) {
+		program->moveCurrentPart(dy * -0.25f);
+	}
+	else {
+		camera->updatePosition(glm::vec3(dy * -1.0f, 0.0, 0.0));
+	}
 }
 
 // Callback for window reshape/resize

@@ -9,8 +9,9 @@ Program::Program() {
 	mouseX = mouseY = 0;
 	width = height = 1024;
 
-	state = State::NONE;
-	currentNode = nullptr;
+	state = AniamtionState::NONE;
+	highlightNode = nullptr;
+	selectedNode = nullptr;
 
 	level = 0;
 	counterS = 0.f;
@@ -108,21 +109,29 @@ void Program::loadObjects() {
 		renderEngine->assignBuffers(*object);
 	}
 
-	int ver = 1;
+	int ver = 0;
 	// Compute blocking and create explosion graph
 	if (ver == 0) {
 		std::cout << "Computing explosion" << std::endl;
 
 		// Compute contacts and blocking
-		std::vector<BlockingPair> blockings = ModelOperations::contactsAndBlocking(split);
-		graph = new ExplosionGraph(renderables, blockings);
+		std::vector<BlockingPair> blocks = ModelOperations::blocking(split);
+
+		std::vector<int> counts(split.size(), 0);
+		for (unsigned int i = 0; i < blocks.size(); i++) {
+			counts[blocks[i].focusPart]++;
+			if (blocks[i].focusPart == 3)
+			printf("part %d, part %d, dir %f, %f, %f\n", blocks[i].focusPart, blocks[i].otherPart, blocks[i].direction.x, blocks[i].direction.y, blocks[i].direction.z);
+		}
+		std::cout << blocks.size() << std::endl;
+		graph = new ExplosionGraph(renderables, blocks);
 
 		rapidjson::Document d = graph->getJSON();
 		ContentReadWrite::writeExplosionGraph(d, "./graphs/FixedExample.json");
 
 	}
 	// Use file to create explosion graph
-	else {
+	else if (ver == 1) {
 		std::cout << "Using explosion file" << std::endl;
 
 		rapidjson::Document d = ContentReadWrite::readExplosionGraph(explosionFilename);
@@ -132,6 +141,10 @@ void Program::loadObjects() {
 			exit(0);
 		}
 		graph = new ExplosionGraph(renderables, d);
+	}
+	else {
+		std::cout << std::boolalpha << ModelOperations::pointInLine2D(glm::vec2(0.f, 0.f), glm::vec2(1.f, 1.f), glm::vec2(0.f, 0.f)) << std::endl;
+		std::cout << std::boolalpha << ModelOperations::pointInLine2D(glm::vec2(0.f, 0.f), glm::vec2(1.f, 1.f), glm::vec2(1.5f, 1.5f)) << std::endl;
 	}
 }
 
@@ -146,11 +159,11 @@ void Program::mainLoop() {
 			InputHandler::pollEvent(e);
 		}
 
-		_3Dpick();
-		if (state == State::EXPLODE) {
+		_3Dpick(false);
+		if (state == AniamtionState::EXPLODE) {
 			explode();
 		}
-		else if (state == State::COLLAPSE) {
+		else if (state == AniamtionState::COLLAPSE) {
 			collapse();
 		}
 
@@ -172,7 +185,7 @@ void Program::explode() {
 
 		if (level == graph->getSort().size() - 2) {
 			counterS = timeSPerLevel;
-			state = State::NONE;
+			state = AniamtionState::NONE;
 		}
 		else {
 			counterS = 0.f;
@@ -189,7 +202,7 @@ void Program::collapse() {
 
 		if (level == 0) {
 			counterS = 0.f;
-			state = State::NONE;
+			state = AniamtionState::NONE;
 		}
 		else {
 			counterS = timeSPerLevel;
@@ -199,7 +212,7 @@ void Program::collapse() {
 }
 
 // Sets state to new state
-void Program::setState(State newState) {
+void Program::setState(AniamtionState newState) {
 	state = newState;
 }
 
@@ -216,24 +229,40 @@ void Program::setMousePos(int x, int y) {
 	mouseY = y;
 }
 
-// Finds objects mouse is over and makes it current
-void Program::_3Dpick() {
+// Finds objects mouse is over and sets it state to the provided
+void Program::_3Dpick(bool select) {
 	float result = renderEngine->pickerRender(graph->getSort(), level, counterS / timeSPerLevel, distBuffer, mouseX, mouseY);
 
 	// Reset current active node (if there is one)
-	if (currentNode != nullptr) {
-		currentNode->move(-0.3f);
-		currentNode->active = false;
+	if (highlightNode != nullptr && !select) {
+		highlightNode->move(-0.3f);
+		highlightNode->highlighted = false;
+	}
+	else if  (selectedNode != nullptr && select) {
+		selectedNode->selected = false;
 	}
 
 	// Get new current node from mouse position (if mouse is on an object)
 	if (result != 0) {
-		currentNode = graph->at(result - 1);
-		currentNode->move(0.3f);
-		currentNode->active = true;
+
+		if (!select) {
+			highlightNode = graph->at(result - 1);
+			highlightNode->move(0.3f);
+			highlightNode->highlighted = true;
+		}
+		else {
+			std::cout << result -1 << std::endl;
+			selectedNode = graph->at(result - 1);
+			selectedNode->selected = true;
+		}
 	}
 	else {
-		currentNode = nullptr;
+		if (!select) {
+			highlightNode = nullptr;
+		}
+		else {
+			selectedNode = nullptr;
+		}
 	}
 
 	graph->updateDistances();
@@ -241,8 +270,8 @@ void Program::_3Dpick() {
 
 // Moves currently selected part provided distance along its explosion direction
 void Program::moveCurrentPart(float dist) {
-	if (currentNode != nullptr) {
-		currentNode->move(dist);
+	if (selectedNode != nullptr) {
+		selectedNode->move(dist);
 		graph->updateDistances();
 	}
 }
