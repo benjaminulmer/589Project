@@ -78,7 +78,7 @@ void Program::setupWindow() {
 void Program::loadObjects() {
 
 	// Read in obj
-	std::vector<UnpackedLists> split = ContentReadWrite::partsFromObj("./models/mechanical.obj");
+	std::vector<UnpackedLists> split = ContentReadWrite::partsFromObj("./models/drawers.obj");
 
 	// Create renderables from split object
 	std::vector<Renderable*> renderables(split.size());
