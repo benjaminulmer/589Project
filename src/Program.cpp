@@ -78,7 +78,7 @@ void Program::setupWindow() {
 void Program::loadObjects() {
 
 	// Read in obj
-	std::vector<UnpackedLists> split = ContentReadWrite::partsFromObj("./models/tube.obj");
+	std::vector<UnpackedLists> split = ContentReadWrite::partsFromObj("./models/mechanical.obj");
 
 	// Create renderables from split object
 	std::vector<Renderable*> renderables(split.size());
@@ -116,7 +116,7 @@ void Program::loadObjects() {
 		graph = new ExplosionGraph(renderables, blocks);
 
 		rapidjson::Document d = graph->getJSON();
-		ContentReadWrite::writeExplosionGraph(d, "./graphs/FixedExample.json");
+		ContentReadWrite::writeExplosionGraph(d, "./graphs/mechanical.json");
 
 	}
 	// Use file to create explosion graph

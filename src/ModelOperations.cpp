@@ -180,6 +180,8 @@ std::vector<BlockingPair> ModelOperations::blocking(std::vector<UnpackedLists>& 
 	for (unsigned int focusObject = 0; focusObject < objects.size(); focusObject++) {
 		for (unsigned int otherObject = focusObject + 1; otherObject < objects.size(); otherObject++) {
 
+			std::cout << focusObject << " : " << otherObject <<  std::endl;
+
 			// Compare all triangles in objects to each other
 			for (unsigned int focusTriangleIndex = 0; focusTriangleIndex < objects[focusObject].verts.size(); focusTriangleIndex+=3) {
 				for (unsigned int otherTriangleIndex = 0; otherTriangleIndex < objects[otherObject].verts.size(); otherTriangleIndex+=3) {
