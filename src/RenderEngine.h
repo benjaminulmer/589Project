@@ -43,7 +43,5 @@ private:
 	glm::vec3 lightPos;
 
 	GLuint pickerProgram;
-
-	void renderLight();
 };
 
