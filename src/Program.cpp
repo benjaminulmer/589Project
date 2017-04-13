@@ -25,11 +25,51 @@ Program::Program() {
 }
 
 Program::Program(char* file) {
+	window = nullptr;
+	renderEngine = nullptr;
+	camera = nullptr;
+	graph = nullptr;
 
+	mouseX = mouseY = 0;
+	width = height = 1024;
+
+	state = AniamtionState::NONE;
+	highlightNode = nullptr;
+	selectedNode = nullptr;
+
+	level = 0;
+	counterS = 0.f;
+	timeSPerLevel = 1.f;
+
+	distBuffer = 1.5f;
+	startTime = 0;
+
+	filename = file;
+	explosionFilename = "";
 }
 
-Program::Program(char* file, char* explosionfile) {
+Program::Program(char* file, char* explosionFile) {
+	window = nullptr;
+	renderEngine = nullptr;
+	camera = nullptr;
+	graph = nullptr;
 
+	mouseX = mouseY = 0;
+	width = height = 1024;
+
+	state = AniamtionState::NONE;
+	highlightNode = nullptr;
+	selectedNode = nullptr;
+
+	level = 0;
+	counterS = 0.f;
+	timeSPerLevel = 1.f;
+
+	distBuffer = 1.5f;
+	startTime = 0;
+
+	filename = file;
+	explosionFilename = explosionFile;
 }
 
 Program::~Program() {
@@ -89,6 +129,7 @@ void Program::setupWindow() {
 void Program::loadObjects() {
 
 	// Read in obj
+	std::cout << filename << std::endl;
 	std::vector<UnpackedLists> split = ContentReadWrite::partsFromObj(filename);
 
 	// Create renderables from split object
@@ -109,9 +150,8 @@ void Program::loadObjects() {
 		renderEngine->assignBuffers(*object);
 	}
 
-	int ver = 0;
 	// Compute blocking and create explosion graph
-	if (ver == 0) {
+	if (explosionFilename.length() == 0) {
 		std::cout << "Computing explosion" << std::endl;
 
 		// Compute contacts and blocking
@@ -131,8 +171,8 @@ void Program::loadObjects() {
 
 	}
 	// Use file to create explosion graph
-	else if (ver == 1) {
-		std::cout << "Using explosion file" << std::endl;
+	else {
+		std::cout << "Using explosion file " << explosionFilename << std::endl;
 
 		rapidjson::Document d = ContentReadWrite::readExplosionGraph(explosionFilename);
 
@@ -141,10 +181,6 @@ void Program::loadObjects() {
 			exit(0);
 		}
 		graph = new ExplosionGraph(renderables, d);
-	}
-	else {
-		std::cout << std::boolalpha << ModelOperations::pointInLine2D(glm::vec2(0.f, 0.f), glm::vec2(1.f, 1.f), glm::vec2(0.f, 0.f)) << std::endl;
-		std::cout << std::boolalpha << ModelOperations::pointInLine2D(glm::vec2(0.f, 0.f), glm::vec2(1.f, 1.f), glm::vec2(1.5f, 1.5f)) << std::endl;
 	}
 }
 
