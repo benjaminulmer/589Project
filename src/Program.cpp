@@ -132,6 +132,7 @@ void Program::loadObjects() {
 	std::cout << filename << std::endl;
 	std::vector<UnpackedLists> split = ContentReadWrite::partsFromObj(filename);
 
+
 	// Create renderables from split object
 	std::vector<Renderable*> renderables(split.size());
 	for (unsigned int i = 0; i < split.size(); i++) {
@@ -154,16 +155,8 @@ void Program::loadObjects() {
 	if (explosionFilename.length() == 0) {
 		std::cout << "Computing explosion" << std::endl;
 
-		// Compute contacts and blocking
+		// Compute blockings
 		std::vector<BlockingPair> blocks = ModelOperations::blocking(split);
-
-		std::vector<int> counts(split.size(), 0);
-		for (unsigned int i = 0; i < blocks.size(); i++) {
-			counts[blocks[i].focusPart]++;
-			if (blocks[i].focusPart == 3)
-			printf("part %d, part %d, dir %f, %f, %f\n", blocks[i].focusPart, blocks[i].otherPart, blocks[i].direction.x, blocks[i].direction.y, blocks[i].direction.z);
-		}
-		std::cout << blocks.size() << std::endl;
 		graph = new ExplosionGraph(renderables, blocks);
 
 		rapidjson::Document d = graph->getJSON();
@@ -187,7 +180,6 @@ void Program::loadObjects() {
 
 		// Write to JSON file
 		ContentReadWrite::writeExplosionGraph(d, "./graphs/" + parseFilename[0] + ".json");
-
 	}
 	// Use file to create explosion graph
 	else {
@@ -290,7 +282,6 @@ void Program::_3Dpick(bool select) {
 
 	// Reset current active node (if there is one)
 	if (highlightNode != nullptr && !select) {
-		highlightNode->move(-0.3f);
 		highlightNode->highlighted = false;
 	}
 	else if  (selectedNode != nullptr && select) {
@@ -302,11 +293,9 @@ void Program::_3Dpick(bool select) {
 
 		if (!select) {
 			highlightNode = graph->at(result - 1);
-			highlightNode->move(0.3f);
 			highlightNode->highlighted = true;
 		}
 		else {
-			std::cout << result -1 << std::endl;
 			selectedNode = graph->at(result - 1);
 			selectedNode->selected = true;
 		}
