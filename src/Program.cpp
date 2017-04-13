@@ -19,6 +19,57 @@ Program::Program() {
 
 	distBuffer = 1.5f;
 	startTime =  0;
+
+	filename = "./models/FixedExample.obj";
+	explosionFilename = "./graphs/FixedExample.json";
+}
+
+Program::Program(char* file) {
+	window = nullptr;
+	renderEngine = nullptr;
+	camera = nullptr;
+	graph = nullptr;
+
+	mouseX = mouseY = 0;
+	width = height = 1024;
+
+	state = AniamtionState::NONE;
+	highlightNode = nullptr;
+	selectedNode = nullptr;
+
+	level = 0;
+	counterS = 0.f;
+	timeSPerLevel = 1.f;
+
+	distBuffer = 1.5f;
+	startTime = 0;
+
+	filename = file;
+	explosionFilename = "";
+}
+
+Program::Program(char* file, char* explosionFile) {
+	window = nullptr;
+	renderEngine = nullptr;
+	camera = nullptr;
+	graph = nullptr;
+
+	mouseX = mouseY = 0;
+	width = height = 1024;
+
+	state = AniamtionState::NONE;
+	highlightNode = nullptr;
+	selectedNode = nullptr;
+
+	level = 0;
+	counterS = 0.f;
+	timeSPerLevel = 1.f;
+
+	distBuffer = 1.5f;
+	startTime = 0;
+
+	filename = file;
+	explosionFilename = explosionFile;
 }
 
 Program::~Program() {
@@ -78,7 +129,8 @@ void Program::setupWindow() {
 void Program::loadObjects() {
 
 	// Read in obj
-	std::vector<UnpackedLists> split = ContentReadWrite::partsFromObj("./models/SNES.obj");
+	std::cout << filename << std::endl;
+	std::vector<UnpackedLists> split = ContentReadWrite::partsFromObj(filename);
 
 	// Create renderables from split object
 	std::vector<Renderable*> renderables(split.size());
@@ -98,23 +150,41 @@ void Program::loadObjects() {
 		renderEngine->assignBuffers(*object);
 	}
 
-	int ver = 0;
 	// Compute blocking and create explosion graph
-	if (ver == 0) {
+	if (explosionFilename.length() == 0) {
+		std::cout << "Computing explosion" << std::endl;
 
 		// Compute blockings
 		std::vector<BlockingPair> blocks = ModelOperations::blocking(split);
 		graph = new ExplosionGraph(renderables, blocks);
 
 		rapidjson::Document d = graph->getJSON();
-		ContentReadWrite::writeExplosionGraph(d, "./graphs/clock.json");
 
+		// Parse the model's filename to get the proper name for the JSON file
+		std::stringstream ss;
+		ss.str(filename);
+		std::string item;
+		std::vector<std::string> parseFilename;
+		while (std::getline(ss, item, '/')) {
+			parseFilename.push_back(item);
+		}
+		std::cout << parseFilename[parseFilename.size() - 1] << std::endl;
+		std::string tail = parseFilename[parseFilename.size() - 1];
+		parseFilename.clear();
+		std::stringstream ss2;
+		ss2.str(tail);
+		while (std::getline(ss2, item, '.')) {
+			parseFilename.push_back(item);
+		}
+
+		// Write to JSON file
+		ContentReadWrite::writeExplosionGraph(d, "./graphs/" + parseFilename[0] + ".json");
 	}
 	// Use file to create explosion graph
-	else if (ver == 1) {
-		std::cout << "Using explosion file" << std::endl;
+	else {
+		std::cout << "Using explosion file " << explosionFilename << std::endl;
 
-		rapidjson::Document d = ContentReadWrite::readExplosionGraph("./graphs/SNES.json");
+		rapidjson::Document d = ContentReadWrite::readExplosionGraph(explosionFilename);
 
 		if (!d.IsObject()) {
 			std::cout << "File is not valid JSON" << std::endl;

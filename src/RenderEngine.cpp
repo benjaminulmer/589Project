@@ -6,7 +6,6 @@ RenderEngine::RenderEngine(SDL_Window* window, Camera* camera) :
 	SDL_GetWindowSize(window, &width, &height);
 
 	mainProgram = ShaderTools::compileShaders("./shaders/mesh.vert", "./shaders/mesh.frag");
-	lightProgram = ShaderTools::compileShaders("./shaders/light.vert", "./shaders/light.frag");
 	pickerProgram = ShaderTools::compileShaders("./shaders/picker.vert", "./shaders/picker.frag");
 
 	lightPos = glm::vec3(0.0, 2.0, 0.0);
@@ -85,7 +84,6 @@ void RenderEngine::render(const std::vector<std::vector<Node*>>& graph, int leve
 		}
 		i++;
 	}
-	renderLight();
 }
 
 int RenderEngine::pickerRender(const std::vector<std::vector<Node*>>& graph, int level, float perc, float distBuffer, int x, int y) {
@@ -176,19 +174,6 @@ int RenderEngine::pickerRender(const std::vector<std::vector<Node*>>& graph, int
 
 	// Return ID at pixel of interest
 	return *(pixels + width*y + x);
-}
-
-
-// Renders the current position of the light as a point
-void RenderEngine::renderLight() {
-	glUseProgram(lightProgram);
-
-	// Uniforms
-	glUniformMatrix4fv(glGetUniformLocation(lightProgram, "view"), 1, GL_FALSE, glm::value_ptr(view));
-	glUniformMatrix4fv(glGetUniformLocation(lightProgram, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
-	glUniform3fv(glGetUniformLocation(lightProgram, "lightPos"), 1, glm::value_ptr(lightPos));
-
-	glDrawArrays(GL_POINTS, 0, 1);
 }
 
 // Assigns and binds buffers for a renderable (sends it to the GPU)

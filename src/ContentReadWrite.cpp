@@ -29,9 +29,16 @@ rapidjson::Document ContentReadWrite::readExplosionGraph(std::string graphFile) 
 	file.close();
 	buffer[length] = 0;
 
+	std::cout << "length: " << length << std::endl;
+
 	// Create JSON document
 	rapidjson::Document d;
-	d.Parse(buffer);
+	rapidjson::ParseResult ok = d.Parse<rapidjson::kParseStopWhenDoneFlag>(buffer);
+
+	if (!ok) {
+		rapidjson::ParseErrorCode error = ok.Code();
+		std::cout << "error parsing JSON file: " << error << std::endl;
+	}
 	delete[] buffer;
 
 	return d;
