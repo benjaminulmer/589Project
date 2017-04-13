@@ -132,7 +132,6 @@ void Program::loadObjects() {
 	std::cout << filename << std::endl;
 	std::vector<UnpackedLists> split = ContentReadWrite::partsFromObj(filename);
 
-
 	// Create renderables from split object
 	std::vector<Renderable*> renderables(split.size());
 	for (unsigned int i = 0; i < split.size(); i++) {
@@ -296,6 +295,7 @@ void Program::_3Dpick(bool select) {
 			highlightNode->highlighted = true;
 		}
 		else {
+			std::cout << result - 1 << std::endl;
 			selectedNode = graph->at(result - 1);
 			selectedNode->selected = true;
 		}

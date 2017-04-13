@@ -87,6 +87,27 @@ ExplosionGraph::ExplosionGraph(std::vector<Renderable*> parts, std::vector<Block
 			}
 		}
 
+		// If all parts are unblocked move the biggest part last
+		if (unblocked.size() == activeSet.size()) {
+
+			int biggest = -1;
+			float maxArea = -1.f;
+
+			// Find biggest part
+			for (int i : unblocked) {
+				glm::vec3 dims = nodes[i].part->getDimensions();
+				float area = dims.x * dims.y * dims.z;
+
+				if (area > maxArea) {
+					maxArea = area;
+					biggest = i;
+				}
+			}
+			// Move biggest part to end of queue
+			unblocked.erase(std::find(unblocked.begin(), unblocked.end(), biggest));
+			unblocked.push_back(biggest);
+		}
+
 		std::vector<int> movedThisIteration;
 		for (unsigned int m = 0; m < unblocked.size(); m++) {
 			std::vector<int> blocking;
