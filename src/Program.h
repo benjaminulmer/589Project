@@ -4,6 +4,7 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_opengl.h>
 #include <string>
+#include <sstream>
 #undef main
 //#include <GLFW/glfw3.h>
 

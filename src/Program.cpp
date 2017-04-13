@@ -22,7 +22,6 @@ Program::Program() {
 
 	filename = "./models/FixedExample.obj";
 	explosionFilename = "./graphs/FixedExample.json";
-	//explosionFilename = "";
 }
 
 Program::Program(char* file) {
@@ -168,7 +167,26 @@ void Program::loadObjects() {
 		graph = new ExplosionGraph(renderables, blocks);
 
 		rapidjson::Document d = graph->getJSON();
-		ContentReadWrite::writeExplosionGraph(d, "./graphs/FixedExample.json");
+
+		// Parse the model's filename to get the proper name for the JSON file
+		std::stringstream ss;
+		ss.str(filename);
+		std::string item;
+		std::vector<std::string> parseFilename;
+		while (std::getline(ss, item, '/')) {
+			parseFilename.push_back(item);
+		}
+		std::cout << parseFilename[parseFilename.size() - 1] << std::endl;
+		std::string tail = parseFilename[parseFilename.size() - 1];
+		parseFilename.clear();
+		std::stringstream ss2;
+		ss2.str(tail);
+		while (std::getline(ss2, item, '.')) {
+			parseFilename.push_back(item);
+		}
+
+		// Write to JSON file
+		ContentReadWrite::writeExplosionGraph(d, "./graphs/" + parseFilename[0] + ".json");
 
 	}
 	// Use file to create explosion graph

@@ -37,13 +37,10 @@ rapidjson::Document ContentReadWrite::readExplosionGraph(std::string graphFile) 
 	// Create JSON document
 	rapidjson::Document d;
 	rapidjson::ParseResult ok = d.Parse<rapidjson::kParseStopWhenDoneFlag>(buffer);
-	//rapidjson::ParseResult ok = d.Parse(buffer);
+
 	if (!ok) {
 		rapidjson::ParseErrorCode error = ok.Code();
-		//fprintf(stderr, "JSON parse error: %s (%u)", rapidjson::GetParseError_En(ok.Code()), ok.Offset());
-		//fprintf(stderr, "JSON parse error: %s (%u)", rapidjson::GetParseError(error), ok.Offset());
-		std::cout << "error: " << error << std::endl;
-		std::cout << rapidjson::kParseErrorDocumentRootNotSingular << " " << rapidjson::kParseErrorArrayMissCommaOrSquareBracket << std::endl;
+		std::cout << "error parsing JSON file: " << error << std::endl;
 	}
 	delete[] buffer;
 
