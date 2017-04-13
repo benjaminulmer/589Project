@@ -22,6 +22,7 @@ Program::Program() {
 
 	filename = "./models/FixedExample.obj";
 	explosionFilename = "./graphs/FixedExample.json";
+	//explosionFilename = "";
 }
 
 Program::Program(char* file) {
