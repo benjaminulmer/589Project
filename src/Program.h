@@ -3,6 +3,8 @@
 #include <GL/glew.h>
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_opengl.h>
+#include <string>
+#include <sstream>
 #undef main
 //#include <GLFW/glfw3.h>
 
@@ -23,6 +25,8 @@ class Program {
 
 public:
 	Program();
+	Program(char* file);
+	Program(char* file, char* explosionFile);
 	virtual ~Program();
 
 	void start();
@@ -64,4 +68,7 @@ private:
 	void collapse();
 
 	float startTime;
+
+	std::string filename;
+	std::string explosionFilename;
 };
