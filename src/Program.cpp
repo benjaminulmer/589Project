@@ -101,39 +101,26 @@ void Program::loadObjects() {
 	int ver = 0;
 	// Compute blocking and create explosion graph
 	if (ver == 0) {
-		std::cout << "Computing explosion" << std::endl;
 
-		// Compute contacts and blocking
+		// Compute blockings
 		std::vector<BlockingPair> blocks = ModelOperations::blocking(split);
-
-		std::vector<int> counts(split.size(), 0);
-		for (unsigned int i = 0; i < blocks.size(); i++) {
-			counts[blocks[i].focusPart]++;
-			if (blocks[i].focusPart == 3)
-			printf("part %d, part %d, dir %f, %f, %f\n", blocks[i].focusPart, blocks[i].otherPart, blocks[i].direction.x, blocks[i].direction.y, blocks[i].direction.z);
-		}
-		std::cout << blocks.size() << std::endl;
 		graph = new ExplosionGraph(renderables, blocks);
 
 		rapidjson::Document d = graph->getJSON();
-		ContentReadWrite::writeExplosionGraph(d, "./graphs/mechanical.json");
+		ContentReadWrite::writeExplosionGraph(d, "./graphs/clock.json");
 
 	}
 	// Use file to create explosion graph
 	else if (ver == 1) {
 		std::cout << "Using explosion file" << std::endl;
 
-		rapidjson::Document d = ContentReadWrite::readExplosionGraph("./graphs/FixedExample.json");
+		rapidjson::Document d = ContentReadWrite::readExplosionGraph("./graphs/SNES.json");
 
 		if (!d.IsObject()) {
 			std::cout << "File is not valid JSON" << std::endl;
 			exit(0);
 		}
 		graph = new ExplosionGraph(renderables, d);
-	}
-	else {
-		std::cout << std::boolalpha << ModelOperations::pointInLine2D(glm::vec2(0.f, 0.f), glm::vec2(1.f, 1.f), glm::vec2(0.f, 0.f)) << std::endl;
-		std::cout << std::boolalpha << ModelOperations::pointInLine2D(glm::vec2(0.f, 0.f), glm::vec2(1.f, 1.f), glm::vec2(1.5f, 1.5f)) << std::endl;
 	}
 }
 
@@ -224,7 +211,6 @@ void Program::_3Dpick(bool select) {
 
 	// Reset current active node (if there is one)
 	if (highlightNode != nullptr && !select) {
-		highlightNode->move(-0.3f);
 		highlightNode->highlighted = false;
 	}
 	else if  (selectedNode != nullptr && select) {
@@ -236,11 +222,9 @@ void Program::_3Dpick(bool select) {
 
 		if (!select) {
 			highlightNode = graph->at(result - 1);
-			highlightNode->move(0.3f);
 			highlightNode->highlighted = true;
 		}
 		else {
-			std::cout << result -1 << std::endl;
 			selectedNode = graph->at(result - 1);
 			selectedNode->selected = true;
 		}

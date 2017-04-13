@@ -53,7 +53,7 @@ ExplosionGraph::ExplosionGraph(std::vector<Renderable*> parts, std::vector<Block
 	std::vector<int> moved;
 	// Construct the explosion graph
 	while (activeSet.size() > 0) {
-		std::cout << "set: ";
+		std::cout << "Active set: ";
 		for (int active : activeSet) {
 			std::cout << active << " ";
 		}
@@ -165,6 +165,10 @@ ExplosionGraph::ExplosionGraph(std::vector<Renderable*> parts, std::vector<Block
 			//activeSet.erase(std::find(activeSet.begin(), activeSet.end(), unblocked[m]));
 			movedThisIteration.push_back(unblocked[m]);
 		}
+		if (movedThisIteration.size() == 0) {
+			std::cout << "Could not construct graph from blockings" << std::endl;
+			exit(0);
+		}
 		for (int p : movedThisIteration) {
 			if (activeSet.size() == 1) {
 				for (int i : movedThisIteration) {
@@ -198,6 +202,7 @@ ExplosionGraph::ExplosionGraph(std::vector<Renderable*> parts, std::vector<Block
 	constructInverse();
 	if (sort() == -1) {
 		std::cout << "Error, graph contains cycle(s)" << std::endl;
+		exit(0);
 	}
 	updateDistances();
 }
@@ -243,6 +248,7 @@ ExplosionGraph::ExplosionGraph(std::vector<Renderable*> parts, rapidjson::Docume
 	constructInverse();
 	if (sort() == -1) {
 		std::cout << "Error, graph contains cycle(s)" << std::endl;
+		exit(0);
 	}
 	updateDistances();
 }

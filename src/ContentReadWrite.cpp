@@ -2,9 +2,6 @@
 
 // Create renderable from obj file
 std::vector<UnpackedLists> ContentReadWrite::partsFromObj(std::string modelFile) {
-	std::cout << "Creating renderables" << std::endl;
-
-	// Read data in from obj file
 	IndexedLists obj;
 	ContentReadWrite::loadOBJ(modelFile.c_str(), obj);
 
