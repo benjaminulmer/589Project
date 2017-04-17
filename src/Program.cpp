@@ -72,10 +72,6 @@ Program::Program(char* file, char* explosionFile) {
 	explosionFilename = explosionFile;
 }
 
-Program::~Program() {
-	// nothing to do here, end of mainLoop performs clean up
-}
-
 // Called to start the program. Conducts set up then enters the main loop
 void Program::start() {
 	setupWindow();
@@ -106,7 +102,6 @@ void Program::setupWindow() {
 	SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
 	
 	SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
-
 
 	window = SDL_CreateWindow("CPSC589 Project", 10, 30, width, height, SDL_WINDOW_OPENGL);
 	if (window == nullptr){
@@ -148,6 +143,7 @@ void Program::loadObjects() {
 		j -= (1.0 / renderables.size());
 
 		renderEngine->assignBuffers(*object);
+		renderEngine->setBufferData(*object);
 	}
 
 	// Compute blocking and create explosion graph

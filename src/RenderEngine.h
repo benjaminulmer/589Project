@@ -21,12 +21,17 @@ public:
 	virtual ~RenderEngine();
 
 	void render(const std::vector<std::vector<Node*>>& graph, int level, float perc, float distBuffer);
-	void assignBuffers(Renderable& renderable);
-	void deleteBuffers(Renderable& renderable);
-	unsigned int loadTexture(std::string filename);
 
+	void assignBuffers(Renderable& renderable);
+	void assignBuffers(LineVerts& lines);
+
+	void setBufferData(Renderable& renderable);
+	void setBufferData(LineVerts& lines);
+
+	unsigned int loadTexture(std::string filename);
 	void setWindowSize(int newWidth, int newHeight);
 	void updateLightPos(glm::vec3 add);
+	void toggleLines();
 
 	int pickerRender(const std::vector<std::vector<Node*>>& graph, int level, float perc, float distBuffer, int x, int y);
 
@@ -35,13 +40,15 @@ private:
 	int width, height;
 
 	GLuint mainProgram;
-	GLuint lightProgram;
+	GLuint pickerProgram;
+	GLuint lineProgram;
 
 	Camera* camera;
 	glm::mat4 view;
 	glm::mat4 projection;
 	glm::vec3 lightPos;
 
-	GLuint pickerProgram;
+	bool drawLines;
+	LineVerts lines;
 };
 

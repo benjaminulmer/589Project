@@ -1,8 +1,10 @@
 #include "Renderable.h"
 
-Renderable::Renderable() :
-	vao(0), vertexBuffer(0), normalBuffer(0), uvBuffer(0),
-	indexBuffer(0), textureID(0), colour(glm::vec4(1.f, 0.f, 0.f, 1.f)), boundingBoxComputed(false) {}
+LineVerts::~LineVerts() {
+	// Remove data from GPU
+	glDeleteBuffers(1, &vertexBuffer);
+	glDeleteVertexArrays(1, &vao);
+}
 
 Renderable::~Renderable() {
 	// Remove data from GPU

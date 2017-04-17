@@ -23,10 +23,18 @@ struct UnpackedLists {
 	std::vector<glm::vec2> uvs;
 };
 
+struct LineVerts {
+	virtual ~LineVerts();
+
+	std::vector<glm::vec3> verts;
+
+	GLuint vao;
+	GLuint vertexBuffer;
+};
+
 class Renderable {
 
 public:
-	Renderable();
 	virtual ~Renderable();
 
 	std::vector<glm::vec3> verts;

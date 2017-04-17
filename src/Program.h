@@ -27,7 +27,6 @@ public:
 	Program();
 	Program(char* file);
 	Program(char* file, char* explosionFile);
-	virtual ~Program();
 
 	void start();
 

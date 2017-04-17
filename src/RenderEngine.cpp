@@ -7,17 +7,22 @@ RenderEngine::RenderEngine(SDL_Window* window, Camera* camera) :
 
 	mainProgram = ShaderTools::compileShaders("./shaders/mesh.vert", "./shaders/mesh.frag");
 	pickerProgram = ShaderTools::compileShaders("./shaders/picker.vert", "./shaders/picker.frag");
+	lineProgram = ShaderTools::compileShaders("./shaders/lines.vert", "./shaders/lines.frag");
 
 	lightPos = glm::vec3(0.0, 2.0, 0.0);
 	projection = glm::perspective(45.0f, (float)width/height, 0.01f, 100.0f);
+
+	drawLines = false;
+	assignBuffers(lines);
 
 	// Default openGL state
 	// If you change state you must change back to default after
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_LINE_SMOOTH);
 	glEnable(GL_MULTISAMPLE);
-	glPointSize(30.0f);
-	glClearColor(0.3, 0.3, 0.4, 0.0);
+	glPointSize(30.f);
+	//glLineWidth(5.f);
+	glClearColor(0.3f, 0.3f, 0.4f, 0.f);
 }
 
 RenderEngine::~RenderEngine() {
@@ -33,6 +38,9 @@ void RenderEngine::render(const std::vector<std::vector<Node*>>& graph, int leve
 
 	level = graph.size() - level - 1;
 
+	view = camera->getLookAt();
+	lines.verts.clear();
+
 	int i = 0;
 	for (std::vector<Node*> l : graph) {
 		for (Node* node : l) {
@@ -41,8 +49,6 @@ void RenderEngine::render(const std::vector<std::vector<Node*>>& graph, int leve
 
 			// If the object has no image texture switch to attribute only mode
 			Texture::bind2DTexture(mainProgram, renderable->textureID, "image");
-
-			view = camera->getLookAt();
 			glm::mat4 model;
 
 			// Determine how far to move object
@@ -56,6 +62,8 @@ void RenderEngine::render(const std::vector<std::vector<Node*>>& graph, int leve
 			else {
 				model = glm::mat4();
 			}
+			lines.verts.push_back(node->part->getPosition());
+			lines.verts.push_back(glm::vec3(model * glm::vec4(node->part->getPosition(), 1.0f)));
 
 			glm::mat4 modelView = view * model;
 
@@ -79,11 +87,22 @@ void RenderEngine::render(const std::vector<std::vector<Node*>>& graph, int leve
 			glUniform1i(glGetUniformLocation(mainProgram, "hasTexture"), (renderable->textureID > 0 ? 1 : 0));
 
 			glDrawElements(GL_TRIANGLES, renderable->faces.size(), GL_UNSIGNED_SHORT, (void*)0);
-			glBindVertexArray(0);
 			Texture::unbind2DTexture();
 		}
 		i++;
 	}
+	if (drawLines) {
+		setBufferData(lines);
+		glUseProgram(lineProgram);
+		glBindVertexArray(lines.vao);
+
+		glUniformMatrix4fv(glGetUniformLocation(lineProgram, "modelView"), 1, GL_FALSE, glm::value_ptr(view));
+		glUniformMatrix4fv(glGetUniformLocation(lineProgram, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
+		glDrawArrays(GL_LINES, 0, lines.verts.size());
+	}
+
+	glBindVertexArray(0);
+
 }
 
 int RenderEngine::pickerRender(const std::vector<std::vector<Node*>>& graph, int level, float perc, float distBuffer, int x, int y) {
@@ -123,6 +142,8 @@ int RenderEngine::pickerRender(const std::vector<std::vector<Node*>>& graph, int
 
 	level = graph.size() - level - 1;
 
+	view = camera->getLookAt();
+
 	int i = 0;
 	for (std::vector<Node*> l : graph) {
 		for (Node* node : l) {
@@ -131,8 +152,6 @@ int RenderEngine::pickerRender(const std::vector<std::vector<Node*>>& graph, int
 
 			// If the object has no image texture switch to attribute only mode
 			Texture::bind2DTexture(pickerProgram, renderable->textureID, "image");
-
-			view = camera->getLookAt();
 			glm::mat4 model;
 
 			// Determine how far to move object
@@ -176,53 +195,75 @@ int RenderEngine::pickerRender(const std::vector<std::vector<Node*>>& graph, int
 	return *(pixels + width*y + x);
 }
 
-// Assigns and binds buffers for a renderable (sends it to the GPU)
+// Assigns buffers for a renderable
 void RenderEngine::assignBuffers(Renderable& renderable) {
-	std::vector<glm::vec3>& vertices = renderable.verts;
-	std::vector<glm::vec3>& normals = renderable.normals;
-	std::vector<glm::vec2>& uvs = renderable.uvs;
-	std::vector<GLushort>& faces = renderable.faces;
 
-	// Bind attribute array for triangles
 	glGenVertexArrays(1, &renderable.vao);
 	glBindVertexArray(renderable.vao);
 
 	// Vertex buffer
 	glGenBuffers(1, &renderable.vertexBuffer);
 	glBindBuffer(GL_ARRAY_BUFFER, renderable.vertexBuffer);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec3)*vertices.size(), vertices.data(), GL_STATIC_DRAW);
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
 	glEnableVertexAttribArray(0);
 
 	// Normal buffer
 	glGenBuffers(1, &renderable.normalBuffer);
 	glBindBuffer(GL_ARRAY_BUFFER, renderable.normalBuffer);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec3)*normals.size(), normals.data(), GL_STATIC_DRAW);
 	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
 	glEnableVertexAttribArray(1);
 
 	// UV buffer
 	glGenBuffers(1, &renderable.uvBuffer);
 	glBindBuffer(GL_ARRAY_BUFFER, renderable.uvBuffer);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec2)*uvs.size(), uvs.data(), GL_STATIC_DRAW);
 	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 0, (void*)0);
 	glEnableVertexAttribArray(2);
 
 	// Face buffer
 	glGenBuffers(1, &renderable.indexBuffer);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, renderable.indexBuffer);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(GLushort)*faces.size(), faces.data(), GL_STATIC_DRAW);
-
 	glBindVertexArray(0);
 }
 
-// Deletes buffers
-void RenderEngine::deleteBuffers(Renderable& renderable) {
-	glDeleteBuffers(1, &renderable.vertexBuffer);
-	glDeleteBuffers(1, &renderable.normalBuffer);
-	glDeleteBuffers(1, &renderable.indexBuffer);
+// Assigns buffers for lines
+void RenderEngine::assignBuffers(LineVerts& lines) {
 
-	glDeleteVertexArrays(1, &renderable.vao);
+	glGenVertexArrays(1, &lines.vao);
+	glBindVertexArray(lines.vao);
+
+	// Vertex buffer
+	glGenBuffers(1, &lines.vertexBuffer);
+	glBindBuffer(GL_ARRAY_BUFFER, lines.vertexBuffer);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
+	glEnableVertexAttribArray(0);
+}
+
+// Sets buffer data for a renderable
+void RenderEngine::setBufferData(Renderable& renderable) {
+
+	// Vertex buffer
+	glBindBuffer(GL_ARRAY_BUFFER, renderable.vertexBuffer);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec3)*renderable.verts.size(), renderable.verts.data(), GL_STATIC_DRAW);
+
+	// Normal buffer
+	glBindBuffer(GL_ARRAY_BUFFER, renderable.normalBuffer);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec3)*renderable.normals.size(), renderable.normals.data(), GL_STATIC_DRAW);
+
+	// UV buffer
+	glBindBuffer(GL_ARRAY_BUFFER, renderable.uvBuffer);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec2)*renderable.uvs.size(), renderable.uvs.data(), GL_STATIC_DRAW);
+
+	// Face buffer
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, renderable.indexBuffer);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(GLushort)*renderable.faces.size(), renderable.faces.data(), GL_STATIC_DRAW);
+}
+
+// Sets buffer data for lines
+void RenderEngine::setBufferData(LineVerts& lines) {
+
+	// Vertex buffer
+	glBindBuffer(GL_ARRAY_BUFFER, lines.vertexBuffer);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec3)*lines.verts.size(), lines.verts.data(), GL_STATIC_DRAW);
 }
 
 // Creates a 2D texture
@@ -252,4 +293,9 @@ void RenderEngine::setWindowSize(int newWidth, int newHeight) {
 // Updates lightPos by specified value
 void RenderEngine::updateLightPos(glm::vec3 add) {
 	lightPos += add;
+}
+
+// Toggles lines on and off
+void RenderEngine::toggleLines() {
+	drawLines = !drawLines;
 }

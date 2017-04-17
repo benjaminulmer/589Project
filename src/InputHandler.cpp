@@ -75,6 +75,9 @@ void InputHandler::key(SDL_KeyboardEvent& e) {
 	case(SDLK_g) :
 		program->updateExplosionTime(-0.25f);
 		break;
+	case(SDLK_3) :
+		renderEngine->toggleLines();
+		break;
 	case(SDLK_ESCAPE) :
 		SDL_Quit();
 		exit(0);
