@@ -74,9 +74,10 @@ Program::Program(char* file, char* explosionFile) {
 
 // Called to start the program. Conducts set up then enters the main loop
 void Program::start() {
+	loadObjects();
+
 	setupWindow();
 	GLenum err = glewInit();
-	
 	if (glewInit() != GLEW_OK) {
 		std::cerr << glewGetErrorString(err) << std::endl;
 	}
@@ -84,7 +85,8 @@ void Program::start() {
 	camera = new Camera();
 	renderEngine = new RenderEngine(window, camera);
 	InputHandler::setUp(camera, renderEngine, this);
-	loadObjects();
+
+	assignBuffers();
 	mainLoop();
 }
 
@@ -103,7 +105,7 @@ void Program::setupWindow() {
 	
 	SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
 
-	window = SDL_CreateWindow("CPSC589 Project", 10, 30, width, height, SDL_WINDOW_OPENGL);
+	window = SDL_CreateWindow("CPSC589 Project", 10, 30, width, height, SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE);
 	if (window == nullptr){
 		//TODO: cleanup methods upon exit
 		std::cout << "SDL_CreateWindow Error: " << SDL_GetError() << std::endl;
@@ -140,9 +142,6 @@ void Program::loadObjects() {
 		object->colour = glm::vec3(0, i, j);
 		i += (1.0 / renderables.size());
 		j -= (1.0 / renderables.size());
-
-		renderEngine->assignBuffers(*object);
-		renderEngine->setBufferData(*object);
 	}
 
 	// Compute blocking and create explosion graph
@@ -186,6 +185,18 @@ void Program::loadObjects() {
 			exit(0);
 		}
 		graph = new ExplosionGraph(renderables, d);
+	}
+}
+
+// Assigned buffers for all objects for rendering
+void Program::assignBuffers() {
+	std::vector<std::vector<Node*>>& sort = graph->getSort();
+	for (std::vector<Node*> l : sort) {
+		for (Node* node : l) {
+			Renderable* renderable = node->part;
+			renderEngine->assignBuffers(*renderable);
+			renderEngine->setBufferData(*renderable);
+		}
 	}
 }
 

@@ -61,6 +61,7 @@ private:
 
 	void setupWindow();
 	void loadObjects();
+	void assignBuffers();
 	void mainLoop();
 
 	void explode();
