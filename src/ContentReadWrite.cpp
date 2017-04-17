@@ -29,8 +29,6 @@ rapidjson::Document ContentReadWrite::readExplosionGraph(std::string graphFile) 
 	file.close();
 	buffer[length] = 0;
 
-	std::cout << "length: " << length << std::endl;
-
 	// Create JSON document
 	rapidjson::Document d;
 	rapidjson::ParseResult ok = d.Parse<rapidjson::kParseStopWhenDoneFlag>(buffer);
@@ -68,7 +66,7 @@ void ContentReadWrite::writeExplosionGraph(rapidjson::Document& d, std::string g
 
 // Load obj file from path into indexed list data structure
 bool ContentReadWrite::loadOBJ(const char* path, IndexedLists& r) {
-	printf("Loading OBJ file %s...\n", path);
+	printf("Loading OBJ file %s\n", path);
 
 	FILE * file; 
 	file = fopen(path, "r");

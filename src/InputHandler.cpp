@@ -5,6 +5,7 @@ RenderEngine* InputHandler::renderEngine;
 Program* InputHandler::program;
 float InputHandler::mouseOldX;
 float InputHandler::mouseOldY;
+bool InputHandler::moved;
 
 // Must be called before processing any GLFW events
 void InputHandler::setUp(Camera* camera, RenderEngine* renderEngine, Program* program) {
@@ -18,6 +19,9 @@ void InputHandler::pollEvent(SDL_Event& e) {
 		InputHandler::key(e.key);
 	}
 	else if (e.type == SDL_MOUSEBUTTONDOWN) {
+		moved = false;
+	}
+	else if (e.type == SDL_MOUSEBUTTONUP) {
 		InputHandler::mouse(e.button);
 	}
 	else if (e.type == SDL_MOUSEMOTION) {
@@ -39,24 +43,6 @@ void InputHandler::pollEvent(SDL_Event& e) {
 void InputHandler::key(SDL_KeyboardEvent& e) {
 	// Light controls
 	switch (e.keysym.sym) {
-	case(SDLK_w) :
-		renderEngine->updateLightPos(glm::vec3(0.0, 0.1, 0.0));
-		break;
-	case(SDLK_s) :
-		renderEngine->updateLightPos(glm::vec3(0.0, -0.1, 0.0));
-		break;
-	case(SDLK_a) :
-		renderEngine->updateLightPos(glm::vec3(-0.1, 0.0, 0.0));
-		break;
-	case(SDLK_d) :
-		renderEngine->updateLightPos(glm::vec3(0.1, 0.0, 0.0));
-		break;
-	case(SDLK_e) :
-		renderEngine->updateLightPos(glm::vec3(0.0, 0.0, 0.1));
-		break;
-	case(SDLK_q) :
-		renderEngine->updateLightPos(glm::vec3(0.0, 0.0, -0.1));
-		break;
 	case(SDLK_1) :
 		program->setState(AniamtionState::EXPLODE);
 		break;
@@ -89,7 +75,7 @@ void InputHandler::mouse(SDL_MouseButtonEvent& e) {
 	mouseOldX = e.x;
 	mouseOldY = e.y;
 
-	if (e.button == SDL_BUTTON_LEFT) {
+	if (e.button == SDL_BUTTON_LEFT && !moved) {
 		program->_3Dpick(true);
 	}
 }
@@ -102,6 +88,7 @@ void InputHandler::motion(SDL_MouseMotionEvent& e) {
 
 	// left mouse button moves camera
 	if (SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_LEFT)) {
+		moved = true;
 		camera->updateLongitudeRotation(dx * 0.5);
 		camera->updateLatitudeRotation(dy * 0.5);
 	}

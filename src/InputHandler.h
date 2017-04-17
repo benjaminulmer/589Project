@@ -30,4 +30,6 @@ private:
 
 	static float mouseOldX;
 	static float mouseOldY;
+
+	static bool moved;
 };

@@ -227,8 +227,6 @@ ExplosionGraph::ExplosionGraph(std::vector<Renderable*> parts, std::vector<Block
 	}
 	topologicalSort[0][0]->direction = glm::vec3(0.f, 0.f, 0.f);
 	updateDistances();
-
-	std::cout << nodes[4].direction.x << ", " << nodes[4].direction.y << ", " << nodes[4].direction.z << std::endl;
 }
 
 // Creates explosion graph input file

@@ -9,8 +9,8 @@ RenderEngine::RenderEngine(SDL_Window* window, Camera* camera) :
 	pickerProgram = ShaderTools::compileShaders("./shaders/picker.vert", "./shaders/picker.frag");
 	lineProgram = ShaderTools::compileShaders("./shaders/lines.vert", "./shaders/lines.frag");
 
-	lightPos = glm::vec3(0.0, 2.0, 0.0);
-	projection = glm::perspective(45.0f, (float)width/height, 0.01f, 100.0f);
+	lightPos = glm::vec3(-10.f, 100.f, -10.f);
+	projection = glm::perspective(45.f, (float)width/height, 0.01f, 1000.f);
 
 	drawLines = false;
 	assignBuffers(lines);
