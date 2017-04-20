@@ -73,7 +73,7 @@ bool ContentReadWrite::loadOBJ(const char* path, IndexedLists& r) {
 	if( file == NULL ){
 		printf("Cannot open file. Check path.");
 		getchar();
-		return false;
+		exit(0);
 	}
 
 	while(true){

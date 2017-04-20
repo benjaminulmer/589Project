@@ -20,8 +20,8 @@ Program::Program() {
 	distBuffer = 1.5f;
 	startTime =  0;
 
-	filename = "./models/FixedExample.obj";
-	explosionFilename = "./graphs/FixedExample.json";
+	filename = "./models/mechanical.obj";
+	explosionFilename = "./graphs/mechanical.json";
 }
 
 Program::Program(char* file) {
@@ -181,7 +181,7 @@ void Program::loadObjects() {
 		rapidjson::Document d = ContentReadWrite::readExplosionGraph(explosionFilename);
 
 		if (!d.IsObject()) {
-			std::cout << "File is not valid JSON" << std::endl;
+			std::cout << "Could not read explosion file" << std::endl;
 			exit(0);
 		}
 		graph = new ExplosionGraph(renderables, d);
