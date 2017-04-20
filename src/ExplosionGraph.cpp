@@ -134,7 +134,7 @@ ExplosionGraph::ExplosionGraph(std::vector<Renderable*> parts, std::vector<Block
 			}
 			Node* curNode = &nodes[unblocked[m]];
 
-			// find shortest distance to escape bounding box of active parts this part is in contact with
+			// Find shortest distance to escape bounding box of active parts
 			if (xPlus) {
 				float xplusDist = getEscapeDistance(curNode, 1, 'x', activeSet);
 				if (xplusDist < minDistance) {
@@ -179,18 +179,22 @@ ExplosionGraph::ExplosionGraph(std::vector<Renderable*> parts, std::vector<Block
 				}
 			}
 
+			// Set values to those found
 			nodes[unblocked[m]].direction = unblockDirection;
 			nodes[unblocked[m]].minSelfDistance = minDistance;
 			nodes[unblocked[m]].curSelfDistance = minDistance;
 
-			//activeSet.erase(std::find(activeSet.begin(), activeSet.end(), unblocked[m]));
 			movedThisIteration.push_back(unblocked[m]);
 		}
 		if (movedThisIteration.size() == 0) {
 			std::cout << "Could not construct graph from blockings" << std::endl;
 			exit(0);
 		}
+
+		// Add edges to the graph
 		for (int p : movedThisIteration) {
+
+			// Add edge to all other parts if this is the last part
 			if (activeSet.size() == 1) {
 				for (int i : movedThisIteration) {
 					if (i != p) {
@@ -202,6 +206,8 @@ ExplosionGraph::ExplosionGraph(std::vector<Renderable*> parts, std::vector<Block
 					graph[p].push_back(&nodes[i]);
 				}
 			}
+
+			// Add edges from moved parts that were being blocked by parts moved this iteration
 			activeSet.erase(std::find(activeSet.begin(), activeSet.end(), p));
 			for (int m : moved) {
 
